@@ -127,7 +127,7 @@ The project is organized into four main layers, each with its responsibility:
 
 
 
--### Key Best Practices
+- ### Key Best Practices
 
 - **Dependency Injection (DI):** Use `tsyringe` to register and inject dependencies by interfaces (e.g., inject `IProductRepository` with a concrete `MongoProductRepository` implementation), enabling loose coupling and easy mocking in tests.
 - **DTO Validation with Zod:** Place validation schemas in `interface/dtos/` to validate API input cleanly and consistently before passing data down to use cases.
@@ -141,7 +141,7 @@ The project is organized into four main layers, each with its responsibility:
 
 
 
--### ✅ Best Practices Summary
+- ### ✅ Best Practices Summary
 - **Tsyringe DI:** Use tsyringe to inject dependencies via interfaces.
 - **Zod DTOs:** Validate incoming data in dtos/ using Zod schemas.
 - **MongoDB:** Abstract MongoDB logic behind repository interfaces.
@@ -151,7 +151,7 @@ The project is organized into four main layers, each with its responsibility:
 - **Infrastructure Layer:** Implement external integrations and data access.
 - **Testing:** Mock dependencies via DI for unit testing each layers.
 
---**This structured approach fosters clear separation of concerns, making the application scalable, maintainable, and test-friendly.**
+--- **This structured approach fosters clear separation of concerns, making the application scalable, maintainable, and test-friendly.**
 
 
 
