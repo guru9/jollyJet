@@ -1,12 +1,12 @@
 # jollyJet
 
-## npm cmd steps to start the app
+### npm cmd steps to start the app
 
 Here are the **npm commands step-by-step to start your Node.js + TypeScript app (jollyJet)**:
 
 ***
 
-## 1. Initialize project and install dependencies (one-time)
+### 1. Initialize project and install dependencies (one-time)
 
 ```bash
 npm install
@@ -14,7 +14,7 @@ npm install
 
 ***
 
-## 2. Development mode (run with automatic TypeScript interpretation)
+### 2. Development mode (run with automatic TypeScript interpretation)
 
 ```bash
 npm run dev
@@ -24,7 +24,7 @@ This runs your app directly from `src/index.ts` via `ts-node` (no need to build 
 
 ***
 
-## 3. Production mode
+### 3. Production mode
 
 Build the project (compile TypeScript to JavaScript):
 
@@ -41,13 +41,13 @@ npm start
 
 ***
 
-## 4. Environment variables
+### 4. Environment variables
 
 Make sure you have `.env` with env variables (e.g., MongoDB URI)
 
 ***
 
-### Summary
+## Summary
 
 - `npm run dev` for development (auto-run TS code)
 - `npm run build` + `npm start` for production
@@ -112,7 +112,7 @@ src/
 
 
 
-## Clean Architecture Layers
+### Clean Architecture Layers
 
 The project is organized into four main layers, each with its responsibility:
 
@@ -122,7 +122,7 @@ The project is organized into four main layers, each with its responsibility:
 - **Interface Layer:** The entry points of the application such as API controllers, route definitions, DTOs for input validation (using Zod), and middleware like error handlers. It deals with HTTP concerns and delegates business logic to use cases.
 
 
-## Key Best Practices
+### Key Best Practices
 
 - **Dependency Injection (DI):** Use `tsyringe` to register and inject dependencies by interfaces (e.g., inject `IProductRepository` with a concrete `MongoProductRepository` implementation), enabling loose coupling and easy mocking in tests.
 - **DTO Validation with Zod:** Place validation schemas in `interface/dtos/` to validate API input cleanly and consistently before passing data down to use cases.
@@ -135,7 +135,7 @@ The project is organized into four main layers, each with its responsibility:
 - **Custom Error Handling:** Create a custom `AppError` class extending the native `Error`, including HTTP status and operational flags, to standardize error responses in middleware.
 
 
-## ✅ Best Practices Summary
+### ✅ Best Practices Summary
 - **Tsyringe DI:** Use tsyringe to inject dependencies via interfaces.
 - **Zod DTOs:** Validate incoming data in dtos/ using Zod schemas.
 - **MongoDB:** Abstract MongoDB logic behind repository interfaces.
