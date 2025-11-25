@@ -1,5 +1,6 @@
 # jollyJet
 
+
 ### npm cmd steps to start the app
 
 Here are the **npm commands step-by-step to start your Node.js + TypeScript app (jollyJet)**:
@@ -58,7 +59,9 @@ Make sure you have `.env` with env variables (e.g., MongoDB URI)
 
 
 
+
 ## --------------------- 🧠 Clean Architecture Overview -----------------------
+
 
 
 ### 📁 Recommended Folder Structureaca
@@ -112,6 +115,7 @@ src/
 
 
 
+
 ### Clean Architecture Layers
 
 The project is organized into four main layers, each with its responsibility:
@@ -120,6 +124,7 @@ The project is organized into four main layers, each with its responsibility:
 - **Use Cases Layer(application layer):** Defines application-specific logic or workflows that orchestrate domain services and infrastructure interactions. For example, use cases such as `CreateProductUseCase` and `CancelOrderUseCase`.
 - **Infrastructure Layer:** Contains actual implementations interfacing with external systems like databases (e.g., MongoDB clients and schemas), third-party APIs (payment gateways), and repository implementations (`MongoProductRepository`). This layer depends on domain interfaces but not vice versa.
 - **Interface Layer:** The entry points of the application such as API controllers, route definitions, DTOs for input validation (using Zod), and middleware like error handlers. It deals with HTTP concerns and delegates business logic to use cases.
+
 
 
 ### Key Best Practices
@@ -133,6 +138,7 @@ The project is organized into four main layers, each with its responsibility:
 - **Middleware:** Implement reusable middleware such as error handlers and request loggers in the interface layer.
 - **Centralized HTTP Status Codes:** Define status codes as constants (`shared/constants.ts`) and use them throughout the app to avoid magic numbers.
 - **Custom Error Handling:** Create a custom `AppError` class extending the native `Error`, including HTTP status and operational flags, to standardize error responses in middleware.
+
 
 
 ### ✅ Best Practices Summary
