@@ -58,7 +58,7 @@ Make sure you have `.env` with env variables (e.g., MongoDB URI)
 
 
 
-## ------------------------------------ 🧠 Clean Architecture Overview ----------------------------------------------
+## --------------------- 🧠 Clean Architecture Overview -----------------------
 
 
 ### 📁 Recommended Folder Structureaca
