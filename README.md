@@ -117,7 +117,7 @@ src/
 The project is organized into four main layers, each with its responsibility:
 
 - **Domain Layer:** Contains core business logic, including Entities (core models like `Product`), Repository Interfaces (e.g., `IProductRepository`), and Domain Services encapsulating business rules. This layer has no dependencies on external frameworks or databases, ensuring purity and testability.
-- **Use Cases Layer:** Defines application-specific logic or workflows that orchestrate domain services and infrastructure interactions. For example, use cases such as `CreateProductUseCase` and `CancelOrderUseCase`.
+- **Use Cases Layer(application layer):** Defines application-specific logic or workflows that orchestrate domain services and infrastructure interactions. For example, use cases such as `CreateProductUseCase` and `CancelOrderUseCase`.
 - **Infrastructure Layer:** Contains actual implementations interfacing with external systems like databases (e.g., MongoDB clients and schemas), third-party APIs (payment gateways), and repository implementations (`MongoProductRepository`). This layer depends on domain interfaces but not vice versa.
 - **Interface Layer:** The entry points of the application such as API controllers, route definitions, DTOs for input validation (using Zod), and middleware like error handlers. It deals with HTTP concerns and delegates business logic to use cases.
 
@@ -135,17 +135,17 @@ The project is organized into four main layers, each with its responsibility:
 - **Custom Error Handling:** Create a custom `AppError` class extending the native `Error`, including HTTP status and operational flags, to standardize error responses in middleware.
 
 
-✅ Best Practices Summary
-Tsyringe DI: Use tsyringe to inject dependencies via interfaces.
-Zod DTOs: Validate incoming data in dtos/ using Zod schemas.
-MongoDB: Abstract MongoDB logic behind repository interfaces.
-Controllers: Only handle HTTP logic and delegate to use cases.
-Use Cases: Encapsulate business logic and orchestrate domain/repo calls.
-Domain Layer: Stay pure—no framework or database dependencies.
-Infrastructure Layer: Implement external integrations and data access.
-Testing: Mock dependencies via DI for unit testing each layers.
+##✅ Best Practices Summary
+-**Tsyringe DI:** Use tsyringe to inject dependencies via interfaces.
+-**Zod DTOs:** Validate incoming data in dtos/ using Zod schemas.
+-**MongoDB:** Abstract MongoDB logic behind repository interfaces.
+-**Controllers:** Only handle HTTP logic and delegate to use cases.
+-**Use Cases:** Encapsulate business logic and orchestrate domain/repo calls.
+-**Domain Layer:** Stay pure—no framework or database dependencies.
+-**Infrastructure Layer:** Implement external integrations and data access.
+-**Testing:** Mock dependencies via DI for unit testing each layers.
 
-This structured approach fosters clear separation of concerns, making the application scalable, maintainable, and test-friendly.
+**This structured approach fosters clear separation of concerns, making the application scalable, maintainable, and test-friendly.**
 
 
 
