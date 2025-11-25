@@ -135,15 +135,15 @@ The project is organized into four main layers, each with its responsibility:
 - **Custom Error Handling:** Create a custom `AppError` class extending the native `Error`, including HTTP status and operational flags, to standardize error responses in middleware.
 
 
-##✅ Best Practices Summary
--**Tsyringe DI:** Use tsyringe to inject dependencies via interfaces.
--**Zod DTOs:** Validate incoming data in dtos/ using Zod schemas.
--**MongoDB:** Abstract MongoDB logic behind repository interfaces.
--**Controllers:** Only handle HTTP logic and delegate to use cases.
--**Use Cases:** Encapsulate business logic and orchestrate domain/repo calls.
--**Domain Layer:** Stay pure—no framework or database dependencies.
--**Infrastructure Layer:** Implement external integrations and data access.
--**Testing:** Mock dependencies via DI for unit testing each layers.
+## ✅ Best Practices Summary
+- **Tsyringe DI:** Use tsyringe to inject dependencies via interfaces.
+- **Zod DTOs:** Validate incoming data in dtos/ using Zod schemas.
+- **MongoDB:** Abstract MongoDB logic behind repository interfaces.
+- **Controllers:** Only handle HTTP logic and delegate to use cases.
+- **Use Cases:** Encapsulate business logic and orchestrate domain/repo calls.
+- **Domain Layer:** Stay pure—no framework or database dependencies.
+- **Infrastructure Layer:** Implement external integrations and data access.
+- **Testing:** Mock dependencies via DI for unit testing each layers.
 
 **This structured approach fosters clear separation of concerns, making the application scalable, maintainable, and test-friendly.**
 
