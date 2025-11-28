@@ -93,26 +93,26 @@ src/
 │   └── external/                                # 🌍 Payment, emails, etc.
 │
 ├── interface/
-│   ├── controllers/                    # 🎛️ ProductController.ts, OrderController.ts
-│   ├── routes/                         # 🛣️ productRoutes.ts, orderRoutes.ts
-│   ├── middlewares/                    # 🚦 errorHandler.ts, requestLogger.ts
-│   └── dtos/                           # Zod DTO validation schemas
+│   ├── controllers/                        # 🎛️ ProductController.ts, OrderController.ts
+│   ├── routes/                             # 🛣️ productRoutes.ts, orderRoutes.ts
+│   ├── middlewares/                        # 🚦 errorHandler.ts, requestLogger.ts
+│   └── dtos/                               # Zod DTO validation schemas
 │       └── product.dto.ts                      # 🛡️  Zod schemas (Product)
 |       └── order.dto.ts                        # 🛡️  Zod schemas (Order)
 |
 ├── config/
-    │   ├── index.ts                    # 📝 App config
-│   └── di-container.ts                 # 💉 Tsyringe DI
+    │   ├── index.ts                        # 📝 App config
+│   └── di-container.ts                     # 💉 Tsyringe DI
 │
 ├── shared/
-│   ├── constants.ts                    # 🎯 Constants (HTTP status codes etc.)
-│   ├── errors.ts                       # ❗ Custom errors (e.g., AppError)
-│   └── utils.ts                        # 🧰 Helpers
+│   ├── constants.ts                        # 🎯 Constants (HTTP status codes etc.)
+│   ├── errors.ts                           # ❗ Custom errors (e.g., AppError)
+│   └── utils.ts                            # 🧰 Helpers
 │
-├── app.ts                              # 🚀 Express app setup
-├── server.ts                           # 🎬 Server bootstrap
+├── app.ts                                  # 🚀 Express app setup
+├── server.ts                               # 🎬 Server bootstrap
 └── types/
-    └── index.d.ts                      # 🏷️ Global TypeScript types
+    └── index.d.ts                          # 🏷️ Global TypeScript types
 ```
 
 
