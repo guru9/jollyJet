@@ -1,0 +1,27 @@
+{
+    "workbench.colorTheme": "SynthWave84",
+    "editor.fontFamily": "Consolas, 'Courier New', monospace",
+    "editor.fontSize": 14,
+    "editor.tokenColorCustomizations": {
+        "textMateRules": [
+            {
+                "scope": [
+                    "comment",
+                    "keyword",
+                    "storage",
+                    "entity.name.function",
+                    "variable.parameter"
+                ],
+                "settings": {
+                    "fontStyle": "italic"
+                }
+            },
+            {
+                "scope": "comment",
+                "settings": {
+                    "foreground": "#75715E"
+                }
+            }
+        ]
+    }
+}
