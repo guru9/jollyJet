@@ -1,6 +1,15 @@
 import dotenv from 'dotenv';
 
-dotenv.config();
+// Load environment variables
+const result = dotenv.config();
+
+/**
+* Debug: Check if .env was loaded
+*
+* console.log('Dotenv loaded:', result.error ? 'FAILED' : 'SUCCESS');
+* console.log('MONGO_URI from env:', process.env.MONGO_URI);
+* console.log('PORT from env:', process.env.PORT);
+*/
 
 const config = {
     port: process.env.PORT || 3000,
