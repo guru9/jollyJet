@@ -1,10 +1,10 @@
+/**
 import dotenv from 'dotenv';
 
-// Load environment variables
-const result = dotenv.config();
+ * Load environment variables
+   const result = dotenv.config();
 
-/**
-* Debug: Check if .env was loaded
+* Debug: Check if .env was loadeds
 *
 * console.log('Dotenv loaded:', result.error ? 'FAILED' : 'SUCCESS');
 * console.log('MONGO_URI from env:', process.env.MONGO_URI);
