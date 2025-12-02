@@ -5,6 +5,7 @@
     "dev": "ts-node src/server.ts"
   },
   "devDependencies": {
+    "@types/dotenv": "^8.2.0",
     "@types/express": "^5.0.5",
     "@types/node": "^24.10.1",
     "nodemon": "^3.1.11",

@@ -1,5 +1,16 @@
 import app from "./app";
+import config from "./config";
 
-app.listen(3000, () => {
-    console.log('🛫 jollyJet API ready at http://localhost:3000');
-})
+
+//Start server
+const startServer = () => {
+    try {
+        app.listen(config.port, () => {
+            console.log(`🛫 jollyJet Server is running on port ${config.port}`);
+        })
+    } catch (error) {
+        console.log('Failed to start server', error);
+    }
+}
+
+startServer()
