@@ -1,15 +1,22 @@
+import 'reflect-metadata';
 import app from './app';
 import config from './config';
+import { initializeDIContainer } from './config/di-container';
 import mongoDBConnection from './infrastructure/database/mongodb';
+import logger from './shared/logger';
+
+// Initialize DI container
+initializeDIContainer();
 
 // Graceful shutdown handler
 const gracefulShutdown = async (signal: string) => {
-  console.log(`\n${signal} received. Closing gracefully...`);
+  logger.info({ signal: signal }, 'signal: received. Closing gracefully...');
   try {
     await mongoDBConnection.disconnect();
+    logger.info('MongoDB disconnected');
     process.exit(0);
   } catch (error) {
-    console.error('Error during shutdown:', error);
+    logger.error({ err: error }, 'Error during shutdown');
     process.exit(1);
   }
 };
@@ -18,17 +25,29 @@ const gracefulShutdown = async (signal: string) => {
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
+// Handle uncaught errors
+process.on('uncaughtException', (error: Error) => {
+  logger.error({ err: error }, 'Uncaught Exception:');
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason: unknown) => {
+  logger.error({ err: reason }, 'Unhandled Rejection:');
+  process.exit(1);
+});
+
 //Start server
 const startServer = async () => {
   try {
     // Connect to MongoDB first
     await mongoDBConnection.connect();
+    logger.info('MongoDB connected successfully.');
 
     app.listen(config.port, () => {
-      console.log(`🛫 jollyJet Server is running on port ${config.port}`);
+      logger.info(`🛫 jollyJet Server listening on port ${config.port}.`);
     });
   } catch (error) {
-    console.log('Failed to start server', error);
+    logger.error({ error: error }, 'Failed to start server.');
     process.exit(1);
   }
 };

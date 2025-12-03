@@ -1,7 +1,18 @@
 {
-    "workbench.colorTheme": "SynthWave84",
+    "workbench.colorTheme": "SynthWave '84",
+    "synthwave84.disableGlow": true,
+    "synthwave84.brightness": 0.2,
     "editor.fontFamily": "Consolas, 'Courier New', monospace",
-    "editor.fontSize": 14,
+    // "editor.formatOnSave": true,
+    "editor.defaultFormatter": null,
+    "[typescript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "workbench.colorCustomizations": {
+        "editorError.foreground": "#FF8A80",
+        "editorWarning.foreground": "#FFCC80",
+        "editorInfo.foreground": "#80D8FF"
+    },
     "editor.tokenColorCustomizations": {
         "textMateRules": [
             {

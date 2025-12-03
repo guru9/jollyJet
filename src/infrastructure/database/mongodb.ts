@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import config from '../../config';
+import logger from '../../shared/logger';
 
 class MongoDBConnection {
   private static instance: MongoDBConnection;
@@ -19,7 +20,6 @@ class MongoDBConnection {
   public async connect(): Promise<void> {
     //Guard clause:If already connected, don't connect again
     if (this.isConnected) {
-      console.log('MongoDB is already connected');
       return; //Exit early
     }
 
@@ -30,7 +30,6 @@ class MongoDBConnection {
       });
 
       this.isConnected = true;
-      console.log('✅ MongoDB connected successfully');
 
       /**
        * Event Listeners
@@ -45,7 +44,7 @@ class MongoDBConnection {
        * - Authentication failures
        */
       mongoose.connection.on('error', (error) => {
-        console.log('MongoDB connection error:', error);
+        logger.error({ err: error }, 'MongoDB connection error.');
         this.isConnected = false; //update status
       });
 
@@ -58,7 +57,6 @@ class MongoDBConnection {
        * - Manual disconnect
        */
       mongoose.connection.on('disconnected', () => {
-        console.log('MongoDB disconnected');
         this.isConnected = false; // Update status
       });
 
@@ -69,11 +67,10 @@ class MongoDBConnection {
        * This event fires when reconnection succeeds.
        */
       mongoose.connection.on('reconnected', () => {
-        console.log('MongoDB reconnected');
         this.isConnected = true; // Update status
       });
     } catch (error) {
-      console.log('MongoDB connection error', error);
+      logger.error({ err: error }, 'MongoDB connection error');
       throw error;
     }
   }
@@ -82,7 +79,6 @@ class MongoDBConnection {
   public async disconnect(): Promise<void> {
     // Guard clause: If not connected, nothing to disconnect
     if (!this.isConnected) {
-      console.log('MongoDB is not connected');
       return; // Exit early
     }
 
@@ -90,9 +86,8 @@ class MongoDBConnection {
       // Close the mongoose connection
       await mongoose.connection.close();
       this.isConnected = false; // Update our status
-      console.log('MongoDB disconnected');
     } catch (error) {
-      console.log('Error closing MongoDB connection:', error);
+      logger.info({ err: error }, 'Error closing MongoDB connection');
       throw error;
     }
   }
