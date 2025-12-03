@@ -57,6 +57,34 @@ Make sure you have `.env` with env variables (e.g., MongoDB URI)
 
 ***
 
+### 5. Code Quality & Formatting
+
+The project uses **Prettier** for code formatting and **ESLint** for linting.
+
+**Format code:**
+```bash
+npm run format
+```
+
+**Check formatting:**
+```bash
+npm run format:check
+```
+
+**Lint code:**
+```bash
+npm run lint
+```
+
+**Auto-fix linting issues:**
+```bash
+npm run lint:fix
+```
+
+> **Note:** VS Code is configured to auto-format on save using Prettier and auto-fix ESLint issues.
+
+***
+
 
 
 
