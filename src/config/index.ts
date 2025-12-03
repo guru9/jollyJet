@@ -22,5 +22,4 @@ const config = {
   logLevel: env.LOG_LEVEL,
 };
 
-
 export default config;
