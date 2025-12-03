@@ -1,10 +1,12 @@
 import { pino } from 'pino';
-import config from '../config';
+
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const LOG_LEVEL = (process.env.LOG_LEVEL as any) || (NODE_ENV === 'production' ? 'info' : 'debug');
 
 const logger = pino({
-  level: config.env === 'development' ? 'info' : 'debug',
+  level: LOG_LEVEL,
   transport:
-    config.env !== 'production'
+    NODE_ENV !== 'production'
       ? {
           target: 'pino-pretty',
           options: {
@@ -16,14 +18,12 @@ const logger = pino({
         }
       : undefined,
   formatters: {
-    level: (label) => {
-      return { level: label };
-    },
+    level: (label) => ({ level: label }),
   },
   base: {
     pid: false,
     hostname: false,
-    env: config.env,
+    env: NODE_ENV,
   },
 });
 
