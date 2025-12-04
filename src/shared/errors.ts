@@ -19,9 +19,9 @@ export class NotFoundError extends AppError {
   }
 }
 
-export class ValidationError extends AppError {
+export class BadRequestError extends AppError {
   public readonly statusCode: number = 400;
-  constructor(message: string = 'Validation failed') {
+  constructor(message: string = 'Bad request') {
     super(message);
     this.statusCode = this.statusCode;
   }
@@ -38,6 +38,14 @@ export class UnauthorizedError extends AppError {
 export class ForbiddenError extends AppError {
   public readonly statusCode: number = 403;
   constructor(message: string = 'Forbidden access') {
+    super(message);
+    this.statusCode = this.statusCode;
+  }
+}
+
+export class ConflictError extends AppError {
+  public readonly statusCode: number = 409;
+  constructor(message: string = 'Resource conflict') {
     super(message);
     this.statusCode = this.statusCode;
   }
