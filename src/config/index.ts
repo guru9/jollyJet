@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import { validateEnv } from './env.validation';
 
 /**
  * Debug: Check if .env was loadeds
@@ -12,10 +13,13 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 //Define config
+const env = validateEnv();
+
 const config = {
-  port: process.env.PORT || 3000,
-  mongoUri: process.env.MONGO_URI || 'mongodb://localhost:27017/jollyjet',
-  env: process.env.NODE_ENV || 'development',
+  env: env.NODE_ENV,
+  port: env.PORT,
+  mongoUri: env.MONGODB_URI,
+  logLevel: env.LOG_LEVEL,
 };
 
 export default config;
