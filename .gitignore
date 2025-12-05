@@ -6,4 +6,3 @@ yarn-error.log
 coverage
 *.log
 .DS_Store
-docs
