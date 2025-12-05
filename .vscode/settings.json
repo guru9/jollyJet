@@ -1,22 +1,74 @@
 {
-  "workbench.colorTheme": "SynthWave '84",
-  "synthwave84.disableGlow": true,
-  "synthwave84.brightness": 0.2,
+  "workbench.colorTheme": "SynthWave84",
   "editor.fontFamily": "Consolas, 'Courier New', monospace",
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
+
+  // Language-specific formatters
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+
+  // ESLint configuration
   "eslint.validate": ["typescript", "javascript"],
+
+  // TypeScript auto-import settings
+  "typescript.suggest.autoImports": true,
+  "javascript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "javascript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.suggest.importStatements": true,
+  "javascript.suggest.importStatements": true,
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "javascript.preferences.importModuleSpecifier": "relative",
+
+  // IntelliSense settings
+  "typescript.suggest.completeFunctionCalls": true,
+  "javascript.suggest.completeFunctionCalls": true,
+  "typescript.inlayHints.parameterNames.enabled": "all",
+  "typescript.inlayHints.functionLikeReturnTypes.enabled": true,
+
+  // Quick suggestions - enable auto-suggestions as you type
+  "editor.quickSuggestions": {
+    "other": "on",
+    "comments": "off",
+    "strings": "on"
+  },
+  "editor.suggestOnTriggerCharacters": true,
+  "editor.acceptSuggestionOnCommitCharacter": true,
+  "editor.acceptSuggestionOnEnter": "on",
+  "editor.tabCompletion": "on",
+  "editor.suggest.insertMode": "replace",
+  "editor.suggest.showWords": false,
+  "editor.wordBasedSuggestions": "off",
+
+  // Code actions on save
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit",
+    "source.fixAll.eslint": "explicit"
+  },
+
+  // Use workspace TypeScript version
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+
+  // Icon Theme Settings
+  "workbench.iconTheme": "material-icon-theme",
+  "material-icon-theme.folders.color": "#7c4dff",
+
+  // Color customizations
   "workbench.colorCustomizations": {
     "editorError.foreground": "#FF8A80",
     "editorWarning.foreground": "#FFCC80",
     "editorInfo.foreground": "#80D8FF"
   },
+
+  // Token color customizations
   "editor.tokenColorCustomizations": {
     "textMateRules": [
       {

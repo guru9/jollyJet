@@ -1,186 +1,232 @@
-# jollyJet
+# 🚀 jollyJet
 
-- **Shopping App (When Speed and Happiness Matters :)**
+> **A High-Performance Shopping Application** - _Because Speed and Happiness Matter :)_
 
-## 📊 Project Status & Documentation
-
-- 📈 **[Project Analysis](./analysis/01-project-analysis.md)** - Comprehensive overview of completed features, utilities, and next steps
-- 🏗️ **Architecture:** Clean Architecture with TypeScript + Express + MongoDB
-- ✅ **Status:** Foundation Complete | Ready for Feature Development
-
----
-
-### npm cmd steps to start the app
-
-Here are the **npm commands step-by-step to start your Node.js + TypeScript app (jollyJet)**:
+![Project Status](https://img.shields.io/badge/status-foundation%20complete-success.svg)
+![Test Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
+![Architecture](https://img.shields.io/badge/architecture-clean-blueviolet)
+![Language](https://img.shields.io/badge/typescript-v5.0+-blue)
 
 ---
 
-### 1. Initialize project and install dependencies (one-time)
+## 📚 Documentation Center
+
+### 🛠️ Core Documentation
+
+- 📈 **[Project Analysis](./docs/analysis/01-project-analysis.md)** - Comprehensive overview of project status and architecture
+- 📋 **[Task Checklist](./docs/tasks/00-task.md)** - Live project roadmap and progress tracker
+- 📊 **[Test Coverage Report](./docs/tests/02-test-coverage-walkthrough.md)** - Detailed walkthrough of the 100% test coverage suite
+
+### 🏗️ Implementation Plans
+
+> Detailed technical specs for each completed phase:
+
+- 🗄️ **[Phase 1: MongoDB Setup](./docs/implementation-plans/01-mongodb-setup-plan.md)** - Database connection & configuration
+- 🎨 **[Phase 2: Code Quality](./docs/implementation-plans/02-prettier-eslint-setup-plan.md)** - Prettier & ESLint setup
+- 🏛️ **[Phase 3: Foundation](./docs/implementation-plans/03-foundation-setup-plan.md)** - Clean Architecture structure & DI
+- 🧰 **[Phase 4: Utilities](./docs/implementation-plans/04-core-utilities-types-plan.md)** - Core types & helper functions
+- 🧹 **[Phase 5: Migration](./docs/implementation-plans/05-eslint-v9-migration-plan.md)** - Modernizing ESLint configuration
+- 📑 **[Phase 6: Swagger](./docs/implementation-plans/06-swagger-setup-plan.md)** - API documentation setup
+- 🧪 **[Phase 7: Testing](./docs/implementation-plans/07-testing-setup-plan.md)** - Jest infrastructure & test suites
+
+---
+
+## ⚡ Quick Start
+
+### 1️⃣ Installation
 
 ```bash
+# Clone and install dependencies
+git clone <repo-url>
+cd jollyJet
 npm install
 ```
 
----
+### 2️⃣ Environment Setup
 
-### 2. Development mode (run with automatic TypeScript interpretation)
+Create a `.env` file in the root directory:
+
+```env
+PORT=3000
+MONGODB_URI=mongodb://localhost:27017/jollyjet
+LOG_LEVEL=info
+```
+
+### 3️⃣ Run Application
 
 ```bash
+# Development Mode (with hot-reload)
 npm run dev
-```
 
-This runs your app directly from `src/index.ts` via `ts-node` (no need to build first).
-
----
-
-### 3. Production mode
-
-Build the project (compile TypeScript to JavaScript):
-
-```bash
+# Production Build
 npm run build
-```
-
-Run the built JavaScript from `dist`:
-
-```bash
 npm start
 ```
 
 ---
 
-### 4. Environment variables
+## 🛠️ Developer Tools
 
-Make sure you have `.env` with env variables (e.g., MongoDB URI)
+### Quality Assurance
 
----
-
-## Summary
-
-- `npm run dev` for development (auto-run TS code)
-- `npm run build` + `npm start` for production
-- Install all dependencies first with `npm install`
-- Use `.env` for secrets/configs via `dotenv`
-
----
-
-### 5. Code Quality & Formatting
-
-The project uses **Prettier** for code formatting and **ESLint** for linting.
-
-**Format code:**
-
-```bash
-npm run format
-```
-
-**Check formatting:**
-
-```bash
-npm run format:check
-```
-
-**Lint code:**
-
-```bash
-npm run lint
-```
-
-**Auto-fix linting issues:**
-
-```bash
-npm run lint:fix
-```
-
-> **Note:** VS Code is configured to auto-format on save using Prettier and auto-fix ESLint issues.
+| Command                 | Description                 |
+| ----------------------- | --------------------------- |
+| `npm run lint`          | Check for code style issues |
+| `npm run lint:fix`      | Auto-fix listing issues     |
+| `npm run format`        | Format code with Prettier   |
+| `npm test`              | Run all tests               |
+| `npm run test:watch`    | Run tests in watch mode     |
+| `npm run test:coverage` | Generate coverage report    |
 
 ---
 
-## --------------------- 🧠 Clean Architecture Overview -----------------------
+## 🏛️ Clean Architecture
 
-### 📁 Recommended Folder Structureaca
+The project follows strict Clean Architecture principles to separate concerns and ensure scalability.
 
-```
+### Layers Overview
+
+- **🖥️ Interface Layer** (`src/interface`)
+  - Controllers, Routes, DTOs (Zod schemas), Middlewares.
+  - Entry point for HTTP requests.
+- **🎯 Use Cases Layer** (`src/usecases`)
+  - Application specific business rules.
+  - Orchestrates domain entities and interfaces.
+- **🏛️ Domain Layer** (`src/domain`)
+  - **Pure** business logic (Entities, Repository Interfaces).
+  - _No external dependencies._
+- **🌐 Infrastructure Layer** (`src/infrastructure`)
+  - External implementations (Database, External APIs).
+  - Implements repository interfaces.
+
+### Folder Structure
+
+#### 📂 High-Level Overview
+
+```bash
 src/
-├── domain/
-│   ├── entities/                           # 🏛️  Core models (e.g., Product.ts, Order.ts)
-│   ├── interfaces/                         # 🔗  Repository interfaces (IProductRepository.ts, IOrderRepository.ts)
-│   └── services/                           # ⚙️  Business rules, domain services(UserService.ts, OrderService.ts)
 │
-├── usecases/
-│   ├── product/
-│   │   ├── CreateProductUseCase.ts              # ➕  Create
-│   │   ├── UpdateProductUseCase.ts              # 🔄  Update
-│   │   └── ListProductsUseCase.ts               # 📃  List
-│   └── order/
-│       ├── CreateOrderUseCase.ts                # ➕  Create
-│       └── CancelOrderUseCase.ts                # ❌  Cancel
+├── ⚙️ config/                 # ⚙️ Configuration & DI Container
 │
-├── infrastructure/
-│   ├── database/
-│   │   └── mongodb/
-│   │       ├── MongoClient.ts                   # 🌱  DB connection
-│   │       └── schemas/
-│   │           └── ProductSchema.ts             # 🗂  Mongo schema
-│   ├── repositories/
-│   │   └── MongoProductRepository.ts            # 🗃  Mongo repo
-│   └── external/                                # 🌍 Payment, emails, etc.
+├── 🧠 𝗱𝗼𝗺𝗮𝗶𝗻/                 # 🧠 Pure Business Logic (Entities & Interfaces)
 │
-├── interface/
-│   ├── controllers/                        # 🎛️ ProductController.ts, OrderController.ts
-│   ├── routes/                             # 🛣️ productRoutes.ts, orderRoutes.ts
-│   ├── middlewares/                        # 🚦 errorHandler.ts, requestLogger.ts
-│   └── dtos/                               # Zod DTO validation schemas
-│       └── product.dto.ts                      # 🛡️  Zod schemas (Product)
-|       └── order.dto.ts                        # 🛡️  Zod schemas (Order)
-|
-├── config/
-    │   ├── index.ts                        # 📝 App config
-│   └── di-container.ts                     # 💉 Tsyringe DI
+├── 🔌 𝗶𝗻𝗳𝗿𝗮𝘀𝘁𝗿𝘂𝗰𝘁𝘂𝗿𝗲/         # 🔌 External Services (DB, APIs)
 │
-├── shared/
-│   ├── constants.ts                        # 🎯 Constants (HTTP status codes etc.)
-│   ├── errors.ts                           # ❗ Custom errors (e.g., AppError)
-│   └── utils.ts                            # 🧰 Helpers
+├── 📡 𝗶𝗻𝘁𝗲𝗿𝗳𝗮𝗰𝗲/              # 📡 HTTP Layer (Controllers, Routes)
 │
-├── app.ts                                  # 🚀 Express app setup
-├── server.ts                               # 🎬 Server bootstrap
-└── types/
-    └── index.d.ts                          # 🏷️ Global TypeScript types
+├── 🧩 shared/                 # 🧩 Shared Utilities & Constants
+│
+├── 💼 𝘂𝘀𝗲𝗰𝗮𝘀𝗲𝘀/               # 💼 Application Use Cases
+│
+├── 🏷️ types/                  # 🏷️ Global TypeScript Types
+│
+├── 🚀 app.ts                  # 🚀 App Entry Point
+└── 🎬 server.ts               # 🎬 Server Bootstrap
 ```
 
-### Clean Architecture Layers
+#### 🏗️ Detailed Architecture (Recommended)
 
-The project is organized into four main layers, each with its responsibility:
+```bash
+src/
+│
+├── 🧠 𝗱𝗼𝗺𝗮𝗶𝗻/
+│   ├── 🏛️ entities/                        # Core business models
+│   │   ├── 𝑃𝑟𝑜𝑑𝑢𝑐𝑡.𝑡𝑠
+│   │   └── 𝑈𝑠𝑒𝑟.𝑡𝑠
+│   │
+│   ├── 🔗 interfaces/                      # Contracts & Abstractions
+│   │   ├── 𝐼𝑃𝑟𝑜𝑑𝑢𝑐𝑡𝑅𝑒𝑝𝑜𝑠𝑖𝑡𝑜𝑟𝑦.𝑡𝑠
+│   │   └── 𝐼𝐸𝑚𝑎𝑖𝑙𝑆𝑒𝑟𝑣𝑖𝑐𝑒.𝑡𝑠
+│   │
+│   └── ⚙️ services/                        # Pure domain logic
+│       └── 𝑃𝑟𝑖𝑐𝑖𝑛𝑔𝑆𝑒𝑟𝑣𝑖𝑐𝑒.𝑡𝑠
+│
+├── 💼 𝘂𝘀𝗲𝗰𝗮𝘀𝗲𝘀/
+│   └── 🛍️ product/                         # Application business rules
+│       ├── 𝐶𝑟𝑒𝑎𝑡𝑒𝑃𝑟𝑜𝑑𝑢𝑐𝑡𝑈𝑠𝑒𝐶𝑎𝑠𝑒.𝑡𝑠
+│       └── 𝐺𝑒𝑡𝑃𝑟𝑜𝑑𝑢𝑐𝑡𝑈𝑠𝑒𝐶𝑎𝑠𝑒.𝑡𝑠
+│
+├── 🔌 𝗶𝗻𝗳𝗿𝗮𝘀𝘁𝗿𝘂𝗰𝘁𝘂𝗿𝗲/
+│   ├── 🍃 database/                        # Database implementations
+│   │   └── mongodb/
+│   │       ├── 🗂️ schemas/                 # ORM Schemas
+│   │       │   └── 𝑃𝑟𝑜𝑑𝑢𝑐𝑡𝑆𝑐ℎ𝑒𝑚𝑎.𝑡𝑠
+│   │       └── 𝑐𝑜𝑛𝑛𝑒𝑐𝑡𝑖𝑜𝑛.𝑡𝑠
+│   │
+│   ├── 🗃️ repositories/                    # Data access implementation
+│   │   └── 𝑀𝑜𝑛𝑔𝑜𝑃𝑟𝑜𝑑𝑢𝑐𝑡𝑅𝑒𝑝𝑜𝑠𝑖𝑡𝑜𝑟𝑦.𝑡𝑠
+│   │
+│   └── 🌍 external/                        # 3rd party adapters
+│       ├── 𝑆𝑡𝑟𝑖𝑝𝑒𝑃𝑎𝑦𝑚𝑒𝑛𝑡𝑆𝑒𝑟𝑣𝑖𝑐𝑒.𝑡𝑠
+│       └── 𝑆𝑒𝑛𝑑𝐺𝑟𝑖𝑑𝐸𝑚𝑎𝑖𝑙𝑆𝑒𝑟𝑣𝑖𝑐𝑒.𝑡𝑠
+│
+├── 📡 𝗶𝗻𝘁𝗲𝗿𝗳𝗮𝗰𝗲/
+│   ├── 🎛️ controllers/                     # Request handlers
+│   │   └── 𝑃𝑟𝑜𝑑𝑢𝑐𝑡𝐶𝑜𝑛𝑡𝑟𝑜𝑙𝑙𝑒𝑟.𝑡𝑠
+│   │
+│   ├── 🛣️ routes/                          # API Definitions
+│   │   └── 𝑝𝑟𝑜𝑑𝑢𝑐𝑡𝑅𝑜𝑢𝑡𝑒𝑠.𝑡𝑠
+│   │
+│   ├── 🚦 middlewares/                     # Request processing
+│   │   ├── 𝑎𝑢𝑡ℎ𝑀𝑖𝑑𝑑𝑙𝑒𝑤𝑎𝑟𝑒.𝑡𝑠
+│   │   ├── 𝑣𝑎𝑙𝑖𝑑𝑎𝑡𝑖𝑜𝑛𝑀𝑖𝑑𝑑𝑙𝑒𝑤𝑎𝑟𝑒.𝑡𝑠
+│   │   └── 𝑒𝑟𝑟𝑜𝑟𝐻𝑎𝑛𝑑𝑙𝑒𝑟.𝑡𝑠
+│   │
+│   └── 🛡️ dtos/                            # Input validation schemas
+│       ├── 𝑃𝑟𝑜𝑑𝑢𝑐𝑡𝐷𝑇𝑂.𝑡𝑠
+│       └── 𝑈𝑠𝑒𝑟𝐷𝑇𝑂.𝑡𝑠
+│
+├── ⚙️ config/
+│   ├── index.ts                            # Environment configs
+│   └── di-container.ts                     # Dependency Injection
+│
+├── 🧩 shared/
+│   ├── constants.ts                        # Global constants
+│   ├── errors.ts                           # Error definitions
+│   └── utils.ts                            # Shared helpers
+│
+├── 🧪 test/                                # Test suites (Unit & Integration)
+│
+├── 🏷️ types/                               # Type definitions
+│
+├── 🚀 app.ts                               # App setup
+└── 🎬 server.ts                            # Entry point
+```
 
-- **🏛️Domain Layer:** Contains core business logic, including Entities (core models like `Product`), Repository Interfaces (e.g., `IProductRepository`), and Domain Services encapsulating business rules. This layer has no dependencies on external frameworks or databases, ensuring purity and testability.
-- **🎯Use Cases Layer(application layer):** Defines application-specific logic or workflows that orchestrate domain services and infrastructure interactions. For example, use cases such as `CreateProductUseCase` and `CancelOrderUseCase`.
-- **🌐Infrastructure Layer:** Contains actual implementations interfacing with external systems like databases (e.g., MongoDB clients and schemas), third-party APIs (payment gateways), and repository implementations (`MongoProductRepository`). This layer depends on domain interfaces but not vice versa.
-- **🖥️Interface Layer:** The entry points of the application such as API controllers, route definitions, DTOs for input validation (using Zod), and middleware like error handlers. It deals with HTTP concerns and delegates business logic to use cases.
+---
 
-### Key Best Practices
+## 🌟 Key Features & Highlights
 
-- **💉Dependency Injection (DI):** Use `tsyringe` to register and inject dependencies by interfaces (e.g., inject `IProductRepository` with a concrete `MongoProductRepository` implementation), enabling loose coupling and easy mocking in tests.
-- **🛡️DTO Validation with Zod:** Place validation schemas in `interface/dtos/` to validate API input cleanly and consistently before passing data down to use cases.
-- **🔗Repository Abstraction:** Keep database logic hidden behind repository interfaces defined in the domain layer, implemented concretely in the infrastructure layer.
-- **🎛️Controllers:** Only handle HTTP request/response logic. Validate inputs using DTOs, then delegate business logic to use cases.
-- **🎯Use Cases:** Encapsulate all business workflows and orchestrate between domain services and repositories.
-- **🏛️Domain Layer Purity:** The domain layer is pure and does not depend on frameworks or databases, facilitating isolated business rules testing.
-- **🚦Middleware:** Implement reusable middleware such as error handlers and request loggers in the interface layer.
-- **✅Centralized HTTP Status Codes:** Define status codes as constants (`shared/constants.ts`) and use them throughout the app to avoid magic numbers.
-- **❗Custom Error Handling:** Create a custom `AppError` class extending the native `Error`, including HTTP status and operational flags, to standardize error responses in middleware.
+### 🏗️ Architecture & Core
 
-### ✅ Best Practices Summary
+- **Clean Architecture:** Strict separation of concerns (Domain, Use Case, Infra, Interface) ensuring long-term maintainability.
+- **💉 Dependency Injection:** Powerful LoC (Inversion of Control) container using `tsyringe` for modular, testable code.
+- **🔒 Advanced Type Safety:** Built with **Strict TypeScript** configuration (ES2020 target) for robust, error-free development.
+- **📦 DTO Pattern:** Data Transfer Objects with strict validation layers to sanitize all inputs.
 
-- **💉Tsyringe DI:** Use tsyringe to inject dependencies via interfaces.
-- **🛡️Zod DTOs:** Validate incoming data in dtos/ using Zod schemas.
-- **🌱MongoDB:** Abstract MongoDB logic behind repository interfaces.
-- **🎛️Controllers:** Only handle HTTP logic and delegate to use cases.
-- **🎯Use Cases:** Encapsulate business logic and orchestrate domain/repo calls.
-- **🏛️Domain Layer:** Stay pure—no framework or database dependencies.
-- **🌐Infrastructure Layer:** Implement external integrations and data access.
-- **🖥️Interface Layer:** It deals with HTTP concerns and delegates business logic to use cases.
-- **🧪Testing:** Mock dependencies via DI for unit testing each layers.
+### 🛡️ Security & Quality
 
-**This structured approach fosters clear separation of concerns, making the application scalable, maintainable, and test-friendly.**
+- **✨ Automated Formatting:** Zero-config code consistency with **Prettier** & **ESLint v9** (Flat Config).
+- **🔎 Runtime Validation:** Fail-fast data integrity checks using **Zod** schema validation.
+- **🧪 Enterprise Testing:**
+  - **Unit Tests:** Isolated business logic testing.
+  - **Integration Tests:** In-memory MongoDB testing with `mongodb-memory-server`.
+  - **100% Coverage:** Critical paths fully verified.
+
+### ⚙️ Backend Engineering
+
+- **🍃 MongoDB Object Modeling:** Type-safe database interactions with **Mongoose**.
+- **📝 Structured Logging:** JSON-based, high-performance logging with **Pino** (includes pretty-printing for dev).
+- **⚡ Global Error Handling:** Centralized middleware catching `AppError`, validation errors, and async rejections.
+- **📚 Live API Documentation:** Auto-generated **Swagger/OpenAPI 3.0** documentation accessible via browser.
+
+### 💻 Developer Experience (DX)
+
+- **⚡ Hot Reloading:** Instant feedback loop with `nodemon`.
+- **🏷️ Path Aliases:** Clean imports using `@/*` mapping (e.g., `@/domain` instead of `../../domain`).
+- **🧩 Modular Design:** Feature-based scalability ready for microservices or monolith expansion.
+- **🎨 Beautiful CLI:** Colored log outputs and formatted console messages.
+
+---
+
+> **Status:** ✅ Foundation Complete | 🚀 Ready for Phase 8: Product Module
