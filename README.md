@@ -14,7 +14,7 @@
 ### 🛠️ Core Documentation
 
 - 📈 **[Project Analysis](./docs/analysis/01-project-analysis.md)** - Comprehensive overview of project status and architecture
-- 📋 **[Task Checklist](./docs/tasks/00-task.md)** - Live project roadmap and progress tracker
+- 📋 **[Task Checklist](./docs/tasks/01-jollyjet-task.md)** - Live project roadmap and progress tracker
 - 📊 **[Test Coverage Report](./docs/tests/02-test-coverage-walkthrough.md)** - Detailed walkthrough of the 100% test coverage suite
 
 ### 🏗️ Implementation Plans
@@ -28,6 +28,7 @@
 - 🧹 **[Phase 5: Migration](./docs/implementation-plans/05-eslint-v9-migration-plan.md)** - Modernizing ESLint configuration
 - 📑 **[Phase 6: Swagger](./docs/implementation-plans/06-swagger-setup-plan.md)** - API documentation setup
 - 🧪 **[Phase 7: Testing](./docs/implementation-plans/07-testing-setup-plan.md)** - Jest infrastructure & test suites
+- 🛍️ **[Phase 8: Product Module](./docs/implementation-plans/08-product-module-plan.md)** - Product CRUD operations & catalog management
 
 ---
 
@@ -63,6 +64,13 @@ npm run build
 npm start
 ```
 
+### 4️⃣ Access API Documentation
+
+Once the server is running, access the interactive API documentation:
+
+- **Swagger UI:** [http://localhost:3000/api-docs/](http://localhost:3000/api-docs/)
+- **OpenAPI Spec:** [http://localhost:3000/api-docs.json](http://localhost:3000/api-docs.json)
+
 ---
 
 ## 🛠️ Developer Tools
@@ -86,18 +94,18 @@ The project follows strict Clean Architecture principles to separate concerns an
 
 ### Layers Overview
 
-- **🖥️ Interface Layer** (`src/interface`)
-  - Controllers, Routes, DTOs (Zod schemas), Middlewares.
-  - Entry point for HTTP requests.
-- **🎯 Use Cases Layer** (`src/usecases`)
-  - Application specific business rules.
-  - Orchestrates domain entities and interfaces.
 - **🏛️ Domain Layer** (`src/domain`)
   - **Pure** business logic (Entities, Repository Interfaces).
   - _No external dependencies._
 - **🌐 Infrastructure Layer** (`src/infrastructure`)
   - External implementations (Database, External APIs).
   - Implements repository interfaces.
+- **🎯 Use Cases Layer** (`src/usecases`)
+  - Application specific business rules.
+  - Orchestrates domain entities and interfaces.
+- **🖥️ Interface Layer** (`src/interface`)
+  - Controllers, Routes, DTOs (Zod schemas), Middlewares.
+  - Entry point for HTTP requests.
 
 ### Folder Structure
 
@@ -106,19 +114,19 @@ The project follows strict Clean Architecture principles to separate concerns an
 ```bash
 src/
 │
-├── ⚙️ config/                 # ⚙️ Configuration & DI Container
-│
 ├── 🧠 𝗱𝗼𝗺𝗮𝗶𝗻/                 # 🧠 Pure Business Logic (Entities & Interfaces)
 │
 ├── 🔌 𝗶𝗻𝗳𝗿𝗮𝘀𝘁𝗿𝘂𝗰𝘁𝘂𝗿𝗲/         # 🔌 External Services (DB, APIs)
 │
 ├── 📡 𝗶𝗻𝘁𝗲𝗿𝗳𝗮𝗰𝗲/              # 📡 HTTP Layer (Controllers, Routes)
 │
-├── 🧩 shared/                 # 🧩 Shared Utilities & Constants
-│
 ├── 💼 𝘂𝘀𝗲𝗰𝗮𝘀𝗲𝘀/               # 💼 Application Use Cases
 │
+├── 🧩 shared/                 # 🧩 Shared Utilities & Constants
+│
 ├── 🏷️ types/                  # 🏷️ Global TypeScript Types
+│
+├── ⚙️ config/                 # ⚙️ Configuration & DI Container
 │
 ├── 🚀 app.ts                  # 🚀 App Entry Point
 └── 🎬 server.ts               # 🎬 Server Bootstrap
