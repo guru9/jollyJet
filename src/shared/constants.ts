@@ -52,3 +52,8 @@ export const VALIDATION_RULES = {
   USERNAME_MIN_LENGTH: 3,
   USERNAME_MAX_LENGTH: 30,
 };
+
+// DI Container Tokens
+export const DI_TOKENS = {
+  PRODUCT_REPOSITORY: 'ProductRepository',
+} as const;
