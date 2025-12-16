@@ -1,5 +1,6 @@
 import { randomBytes } from 'crypto';
 import { NextFunction, Request, Response } from 'express';
+import { Types } from 'mongoose';
 import { ZodError, ZodType } from 'zod';
 import { ERROR_MESSAGES, HTTP_STATUS } from './constants';
 
@@ -102,10 +103,10 @@ export const safeParseFloat = (value: string, defaultValue: number = 0): number 
  * Generates a cryptographically secure random string of specified length using alphanumeric characters.
  * Uses Node.js crypto module for better security compared to Math.random().
  * Returns an empty string if length is less than or equal to 0.
- * @param length - Length of the string (must be positive)
+ * @param length - Length of the string (must be positive, default: 10)
  * @returns Random string
  */
-export const generateRandomString = (length: number): string => {
+export const generateRandomString = (length: number = 10): string => {
   if (length <= 0) return '';
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const bytes = randomBytes(length);
@@ -142,4 +143,185 @@ export const isEmpty = (value: unknown): boolean => {
 export const capitalize = (str: string): string => {
   if (typeof str !== 'string' || !str) return str;
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
+
+/**
+ * Converts a string to a URL-friendly slug.
+ * Converts to lowercase, replaces spaces with dashes, removes special characters,
+ * and trims dashes from start and end.
+ * @param text - Text to convert to slug
+ * @returns URL-friendly slug string
+ */
+export const slugify = (text: string): string => {
+  if (typeof text !== 'string') return '';
+
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-') // Replace spaces with dashes
+    .replace(/-+/g, '-') // Replace multiple dashes with single dash
+    .replace(/^-+|-+$/g, ''); // Trim dashes from start and end
+};
+
+/**
+ * Validates if a string is a valid MongoDB ObjectId.
+ * @param id - String to validate
+ * @returns True if valid ObjectId, false otherwise
+ */
+export const isValidObjectId = (id: string): boolean => {
+  if (typeof id !== 'string') return false;
+  return /^[0-9a-fA-F]{24}$/.test(id);
+};
+
+/**
+ * Converts a string to MongoDB ObjectId.
+ * @param id - String to convert
+ * @returns ObjectId instance
+ * @throws Error if invalid ObjectId
+ */
+export const toObjectId = (id: string): Types.ObjectId => {
+  if (!isValidObjectId(id)) {
+    throw new Error('Invalid ObjectId');
+  }
+  return new Types.ObjectId(id);
+};
+
+/**
+ * Gets pagination parameters with validation and defaults.
+ * @param page - Page number (default: 1)
+ * @param limit - Items per page (default: 10, max: 100)
+ * @returns Pagination parameters with page, limit, and skip
+ */
+export const getPaginationParams = (page: number = 1, limit: number = 10) => {
+  const validatedPage = Math.max(1, page);
+  const validatedLimit = Math.min(100, Math.max(1, limit));
+  const skip = (validatedPage - 1) * validatedLimit;
+
+  return {
+    page: validatedPage,
+    limit: validatedLimit,
+    skip,
+  };
+};
+
+/**
+ * Creates a paginated response object.
+ * @param data - Array of data items
+ * @param total - Total number of items
+ * @param page - Current page number
+ * @param limit - Items per page
+ * @returns Paginated response object
+ */
+export const createPaginatedResponse = <T>(
+  data: T[],
+  total: number,
+  page: number,
+  limit: number
+) => {
+  const totalPages = Math.ceil(total / limit);
+
+  return {
+    success: true,
+    data,
+    pagination: {
+      total,
+      page,
+      limit,
+      totalPages,
+    },
+  };
+};
+
+/**
+ * Creates a success response object.
+ * @param data - Response data
+ * @param message - Optional success message
+ * @returns Success response object
+ */
+export const successResponse = <T>(data: T, message?: string) => {
+  return {
+    success: true,
+    data,
+    ...(message && { message }),
+  };
+};
+
+/**
+ * Creates an error response object.
+ * @param message - Error message
+ * @param errors - Optional array of error details
+ * @returns Error response object
+ */
+export const errorResponse = (message: string, errors?: unknown[]) => {
+  return {
+    success: false,
+    message,
+    ...(errors && { errors }),
+  };
+};
+
+/**
+ * Removes null and undefined values from an object.
+ * @param obj - Object to sanitize
+ * @returns New object without null/undefined values
+ */
+export const sanitizeObject = <T extends Record<string, unknown>>(obj: T): Partial<T> => {
+  if (!obj || typeof obj !== 'object') return {};
+
+  const result: Partial<T> = {};
+  for (const key in obj) {
+    if (obj[key] !== null && obj[key] !== undefined) {
+      result[key] = obj[key];
+    }
+  }
+  return result;
+};
+
+/**
+ * Formats a date to ISO string format.
+ * @param date - Date to format
+ * @returns ISO string representation of the date
+ */
+export const formatDate = (date: Date): string => {
+  return date.toISOString();
+};
+
+/**
+ * Checks if a date is in the past (expired).
+ * @param date - Date to check
+ * @returns True if date is in the past, false otherwise
+ */
+export const isExpired = (date: Date): boolean => {
+  return date < new Date();
+};
+
+/**
+ * Calculates pagination metadata.
+ * @param total - Total number of items
+ * @param page - Current page number
+ * @param limit - Items per page
+ * @returns Pagination metadata object
+ */
+export const calculatePaginationMeta = (total: number, page: number, limit: number) => {
+  const totalPages = Math.ceil(total / limit);
+
+  return {
+    total,
+    page,
+    limit,
+    totalPages,
+  };
+};
+
+/**
+ * Validates if a string is a valid email address.
+ * @param email - Email string to validate
+ * @returns True if valid email, false otherwise
+ */
+export const isValidEmail = (email: string): boolean => {
+  if (typeof email !== 'string') return false;
+
+  const emailRegex = /^[\w.-]+@[\w.-]+\.\w+$/;
+  return emailRegex.test(email);
 };

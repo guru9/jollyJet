@@ -13,9 +13,9 @@
 
 ### 🛠️ Core Documentation
 
-- 📈 **[Project Analysis](./docs/analysis/01-project-analysis.md)** - Comprehensive overview of project status and architecture
+- 📈 **[Project Analysis](./docs/analysis/project-analysis.md)** - Comprehensive overview of project status and architecture
 - 📋 **[Task Checklist](./docs/tasks/01-jollyjet-task.md)** - Live project roadmap and progress tracker
-- 📊 **[Test Coverage Report](./docs/tests/02-test-coverage-walkthrough.md)** - Detailed walkthrough of the 100% test coverage suite
+- 📊 **[Test Coverage Report](./docs/tests/test-coverage-walkthrough.md)** - Detailed walkthrough of the 100% test coverage suite
 
 ### 🏗️ Implementation Plans
 

@@ -385,6 +385,14 @@ export const createProductSchema = z.object({
 
 The project is ready to implement the first feature module following the established patterns:
 
+**Product Entity Documentation:**
+
+- 📄 **[Product Entity Analysis](./products/step1.1-product-entity.md)** - Detailed analysis of the Product entity structure and requirements
+
+**TestCase Documentation:**
+
+- 🧪 **[Main Tests](../tests/test-coverage-walkthrough.md)** - Comprehensive unit tests for the Main testcase
+
 **Planned Implementation Order:**
 
 1. **Domain Layer** - Product entity, repository interface, business services
