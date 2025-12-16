@@ -84,8 +84,6 @@ Complete error class testing:
 
 #### [Product Entity Test Documentation](./product/step1.1-product-entity-test.md)
 
-**Product Entity Test Documentation:**
-
 Comprehensive unit tests for the Product entity, including:
 
 - ✅ **isInWishlist property tests** - Getter accessibility, correct value returns, factory method
