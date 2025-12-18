@@ -27,16 +27,6 @@ export class Product {
     this.validate(); // Enforce business rules
   }
 
-  // Getter for isInWishlist property
-  get isInWishlist(): boolean {
-    return this.props.isInWishlist ?? false;
-  }
-
-  // Getter for wishlistCount property
-  get wishlistCount(): number {
-    return this.props.wishlistCount ?? 0;
-  }
-
   // Validate the product properties and business rules
   validate(): void {
     if (!this.props.name) throw new Error('Product name is required.');
@@ -55,8 +45,13 @@ export class Product {
       throw new Error('wishlistCount must be a non-negative number if provided.');
   }
 
+  // Method to get all props as an object for external use
+  public toProps(): ProductProps {
+    return { ...this.props };
+  }
+
   // Factory method for creating validated Product instances
-  public static create(props: ProductProps): Product {
+  public static createProduct(props: ProductProps): Product {
     return new Product(props);
   }
 
@@ -67,25 +62,25 @@ export class Product {
 
   // Method to add to wishlist
   public addToWishlist(): Product {
-    if (this.isInWishlist) {
+    if (this.props.wishlistCount) {
       return this; // Already in wishlist
     }
-    return Product.create({
+    return Product.createProduct({
       ...this.props,
       isInWishlist: true,
-      wishlistCount: (this.wishlistCount ?? 0) + 1, //wishlistCount is marked as optional (wishlistCount?: number), so it might be undefined
+      wishlistCount: (this.props.wishlistCount ?? 0) + 1, //wishlistCount is marked as optional (wishlistCount?: number), so it might be undefined
       updatedAt: new Date(),
     });
   }
 
   // Method to toggle wishlist status
   public toggleWishlist(): Product {
-    const newWishlistCount = this.isInWishlist
-      ? (this.wishlistCount ?? 0) - 1
-      : (this.wishlistCount ?? 0) + 1;
-    return Product.create({
+    const newWishlistCount = this.props.isInWishlist
+      ? (this.props.wishlistCount ?? 0) - 1
+      : (this.props.wishlistCount ?? 0) + 1;
+    return Product.createProduct({
       ...this.props,
-      isInWishlist: !this.isInWishlist,
+      isInWishlist: !this.props.isInWishlist,
       wishlistCount: newWishlistCount,
       updatedAt: new Date(),
     });
@@ -93,27 +88,30 @@ export class Product {
 
   // Method to remove from wishlist
   public removeFromWishlist(): Product {
-    if (!this.isInWishlist) {
+    if (!this.props.isInWishlist) {
       return this; // Already not in wishlist
     }
-    return Product.create({
+    return Product.createProduct({
       ...this.props,
       isInWishlist: false,
-      wishlistCount: (this.wishlistCount ?? 0) - 1,
+      wishlistCount: (this.props.wishlistCount ?? 0) - 1,
       updatedAt: new Date(),
     });
   }
 }
 
-// Example usage:
-// const productProps = {
-//   name: 'Sample Product',
-//   description: 'This is a sample product.',
-//   price: 29.99,
-//   stock: 50,
-//   category: 'Electronics',
-//   isInWishlist: false,
-// };
+/*
+*Example usage:
 
-// const product = Product.create(productProps);
-// console.log(product.isInWishlist); // false
+const productProps = {
+  name: 'Sample Product',
+  description: 'This is a sample product.',
+  price: 29.99,
+  stock: 50,
+  category: 'Electronics',
+  isInWishlist: false,
+};
+
+const product = Product.createProduct(productProps);
+console.log(product.isInWishlist); // false
+*/
