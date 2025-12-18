@@ -27,7 +27,7 @@ The current implementation of `ProductService` does not directly interact with `
 
 ## Dependency Injection
 
-The `ProductService` class is decorated with `@injectable()`, indicating that it can be managed by the dependency injection (DI) container. This decorator is necessary if the service is intended to be injected into other classes or if it depends on other injectable services. In the current implementation, the service is instantiated manually, but the decorator is included for future extensibility.
+The `ProductService` class does not use dependency injection (DI) decorators (`@injectable()` or `@inject`). The service is instantiated manually, and its dependencies are passed directly to the constructor. This approach simplifies the service's usage but requires manual dependency management.
 
 ## Error Handling
 

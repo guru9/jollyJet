@@ -1,19 +1,11 @@
-import { injectable } from 'tsyringe';
 import { Product, ProductProps } from '../entities/Product';
 
-@injectable()
 export class ProductService {
-  constructor(
-    private product: Product,
-    private stock: number
-  ) {
-    this.stock = this.product.toProps().stock; // Initialize stock from product props
-  }
-
   // Method to update product stock with validation
   public updateStock(product: Product, quantity: number): Product {
     // Create updated product with all required properties preserved
-    const newStock = quantity < 0 ? this.stock + 0 : this.stock + quantity;
+    const currentStock = product.toProps().stock;
+    const newStock = quantity < 0 ? currentStock + 0 : currentStock + quantity;
 
     if (newStock < 0) throw new Error('Insufficient stock.'); // Prevent negative stock
 
