@@ -17,4 +17,5 @@ export interface IProductRepository {
   findAll(filter?: ProductFilter, skip?: number, limit?: number): Promise<Product[]>; // Retrieve all products with optional filtering and pagination
   delete(id: string): Promise<void>; // Delete a product by its ID
   count(filter?: ProductFilter): Promise<number>; // Get the total count of products matching a filter
+  toggleWishlistStatus(id: string, isInWishlist: boolean): Promise<Product>; // Toggle the wishlist status of a product
 }

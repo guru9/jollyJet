@@ -54,50 +54,6 @@ export class Product {
   public static createProduct(props: ProductProps): Product {
     return new Product(props);
   }
-
-  // Factory method for creating a product with wishlist status
-  public static createWithWishlistStatus(props: ProductProps, isInWishlist: boolean): Product {
-    return new Product({ ...props, isInWishlist: isInWishlist });
-  }
-
-  // Method to add to wishlist
-  public addToWishlist(): Product {
-    if (this.props.wishlistCount) {
-      return this; // Already in wishlist
-    }
-    return Product.createProduct({
-      ...this.props,
-      isInWishlist: true,
-      wishlistCount: (this.props.wishlistCount ?? 0) + 1, //wishlistCount is marked as optional (wishlistCount?: number), so it might be undefined
-      updatedAt: new Date(),
-    });
-  }
-
-  // Method to toggle wishlist status
-  public toggleWishlist(): Product {
-    const newWishlistCount = this.props.isInWishlist
-      ? (this.props.wishlistCount ?? 0) - 1
-      : (this.props.wishlistCount ?? 0) + 1;
-    return Product.createProduct({
-      ...this.props,
-      isInWishlist: !this.props.isInWishlist,
-      wishlistCount: newWishlistCount,
-      updatedAt: new Date(),
-    });
-  }
-
-  // Method to remove from wishlist
-  public removeFromWishlist(): Product {
-    if (!this.props.isInWishlist) {
-      return this; // Already not in wishlist
-    }
-    return Product.createProduct({
-      ...this.props,
-      isInWishlist: false,
-      wishlistCount: (this.props.wishlistCount ?? 0) - 1,
-      updatedAt: new Date(),
-    });
-  }
 }
 
 /*

@@ -80,17 +80,6 @@ Full utility function coverage:
 
 Complete error class testing:
 
----
-
-#### [Product Entity Test Documentation](./product/step1.1-product-entity-test.md)
-
-Comprehensive unit tests for the Product entity, including:
-
-- ✅ **isInWishlist property tests** - Getter accessibility, correct value returns, factory method
-- ✅ **wishlistCount property tests** - Getter accessibility, default value handling
-
-**Test Coverage:** 2 test suites, 5 tests
-
 - ✅ `AppError` - Custom message, status code, default values, inheritance
 - ✅ `NotFoundError` (404) - Custom and default messages
 - ✅ `BadRequestError` (400) - Custom and default messages
@@ -151,22 +140,26 @@ src/test/
 ├── unit/                    # Unit Tests
 │   ├── utils.test.ts       # 14 test suites, 30+ tests
 │   ├── errors.test.ts      # 8 test suites, 22 tests
-│   └── middleware.test.ts  # 2 test suites, 8 tests
+│   ├── middleware.test.ts  # 2 test suites, 8 tests
+│   └── products/           # Product module tests
+│       ├── productEntity.test.ts       # 2 test suites, 5 tests
+│       └── productRepository.test.ts   # 9 test suites, 18 tests
 ├── integration/             # Integration Tests
 │   └── app.test.ts         # 4 test suites, 7 tests
 └── setup.ts                # Test environment setup
 ```
 
-### Total Test Suites: 6
+### Total Test Suites: 7
 
 1. **Integration:** App Endpoints (app.test.ts)
 2. **Unit:** Middleware Tests (middleware.test.ts)
 3. **Unit:** Utility Functions (utils.test.ts)
 4. **Unit:** Error Classes (errors.test.ts)
-5. **Unit:** Product Entity Tests ([Product Entity Test Documentation](./product/step1.1-product-entity-test.md))
-6. **Setup:** Test Setup (setup.ts)
+5. **Unit:** Product Entity Tests ([Product Entity Test Documentation](./products/step1.1-product-entity-test.md))
+6. **Unit:** Product Repository Tests ([Product Repository Test Documentation](./products/step2.2-product-repository-test.md))
+7. **Setup:** Test Setup (setup.ts)
 
-### Total Tests: 72 individual test cases
+### Total Tests: 90 individual test cases
 
 ### Coverage Metrics: 100%
 

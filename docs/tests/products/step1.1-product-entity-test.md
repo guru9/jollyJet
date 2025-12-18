@@ -9,7 +9,7 @@ The tests are organized into two main sections:
 1. **isInWishlist Property Tests**
    - Tests the accessibility of the `isInWishlist` property via a getter.
    - Validates that the getter returns the correct value from the provided props.
-   - Tests the `createWithWishlistStatus` factory method to ensure it works correctly with the getter.
+   - Tests that the property defaults to `false` when not provided.
 
 2. **wishlistCount Property Tests**
    - Tests the accessibility of the `wishlistCount` property via a getter.
@@ -53,9 +53,9 @@ The tests are organized into two main sections:
   ```
 - **Expected Output**: `product.isInWishlist` should return `false`.
 
-#### Test Case 3: Factory Method
+#### Test Case 3: Default Value
 
-- **Description**: Tests the `createWithWishlistStatus` factory method to ensure it works correctly with the getter.
+- **Description**: Tests that the `isInWishlist` property defaults to `false` when not provided.
 - **Input**:
   ```typescript
   const productProps = {
@@ -64,11 +64,10 @@ The tests are organized into two main sections:
     price: 10.99,
     stock: 100,
     category: 'Test Category',
-    isInWishlist: false,
   };
-  const product = Product.createWithWishlistStatus(productProps, true);
+  const product = new Product(productProps);
   ```
-- **Expected Output**: `product.isInWishlist` should return `true`.
+- **Expected Output**: `product.isInWishlist` should return `false`.
 
 ### wishlistCount Property
 
@@ -109,4 +108,4 @@ The tests are organized into two main sections:
 
 ## Summary
 
-The `Product` entity tests ensure that the `isInWishlist` and `wishlistCount` properties are accessible and return the correct values. The tests cover both the direct initialization of the properties and the use of factory methods to ensure robustness and correctness.
+The `Product` entity tests ensure that the `isInWishlist` and `wishlistCount` properties are accessible and return the correct values. The tests cover direct initialization of the properties, default value behavior, and basic property access to ensure robustness and correctness. The entity has been simplified to focus on core product properties and validation, with wishlist operations handled by the repository layer.

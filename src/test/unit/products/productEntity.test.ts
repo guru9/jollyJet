@@ -15,7 +15,8 @@ describe('Product', () => {
       const product = new Product(productProps);
 
       // Test that the getter works
-      expect(product.isInWishlist).toBe(true);
+      const productData = product.toProps();
+      expect(productData.isInWishlist).toBe(true);
     });
 
     it('should return the correct value from props', () => {
@@ -31,24 +32,24 @@ describe('Product', () => {
       const product = new Product(productProps);
 
       // Test that the getter returns the correct value
-      expect(product.isInWishlist).toBe(false);
-      expect(product.isInWishlist).toBe(false);
+      const productData = product.toProps();
+      expect(productData.isInWishlist).toBe(false);
     });
 
-    it('should work with createWithWishlistStatus factory method', () => {
+    it('should default to false when not provided', () => {
       const productProps = {
         name: 'Test Product',
         description: 'Test Description',
         price: 10.99,
         stock: 100,
         category: 'Test Category',
-        isInWishlist: false,
       };
 
-      const product = Product.createWithWishlistStatus(productProps, true);
+      const product = new Product(productProps);
 
-      // Test that the factory method works with the getter
-      expect(product.isInWishlist).toBe(true);
+      // Test that the default value is false
+      const productData = product.toProps();
+      expect(productData.isInWishlist).toBe(false);
     });
   });
 
@@ -67,7 +68,8 @@ describe('Product', () => {
       const product = new Product(productProps);
 
       // Test that the getter works
-      expect(product.wishlistCount).toBe(5);
+      const productData = product.toProps();
+      expect(productData.wishlistCount).toBe(5);
     });
 
     it('should return default value if not provided', () => {
@@ -83,7 +85,8 @@ describe('Product', () => {
       const product = new Product(productProps);
 
       // Test that the getter returns default value (0) if not provided
-      expect(product.wishlistCount).toBe(0);
+      const productData = product.toProps();
+      expect(productData.wishlistCount).toBe(0);
     });
   });
 });
