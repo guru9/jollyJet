@@ -394,6 +394,7 @@ The project is ready to implement the first feature module following the establi
 - 📄 **[Product Service Analysis](./products/step1.3-product-service.md)** - Comprehensive analysis of the Product Service and its business logic
 - 📄 **[Product Model Analysis](./products/step2.1-product-model.md)** - Detailed analysis of the Product Model and its Mongoose schema
 - 📄 **[Product Repository Implementation Analysis](./products/step2.2-product-repository.md)** - Detailed analysis of the Product Repository implementation
+- 📄 **[Product DTOs Analysis](./products/step3.1-product-dtos.md)** - Comprehensive analysis of the Product DTOs and their validation requirements
 
 **TestCase Documentation:**
 
