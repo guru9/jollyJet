@@ -17,7 +17,11 @@ src/test/
 ├── unit/                    # Unit tests (isolated component testing)
 │   ├── utils.test.ts       # Utility function tests
 │   ├── errors.test.ts      # Error class tests
-│   └── middleware.test.ts  # Middleware tests
+│   ├── middleware.test.ts  # Middleware tests
+│   └── products/           # Product module tests
+│       ├── productEntity.test.ts       # Product entity tests
+│       ├── productRepository.test.ts   # Product repository tests
+│       └── productValidators.test.ts   # Product validators tests
 ├── integration/             # Integration tests (full app testing)
 │   └── app.test.ts         # App endpoint tests
 └── setup.ts                # Test environment setup
@@ -92,6 +96,21 @@ Complete error class testing:
 
 ---
 
+#### [`src/test/unit/products/productValidators.test.ts`](file:///e:/Project/jollyJet/src/test/unit/products/productValidators.test.ts)
+
+Comprehensive product validators testing:
+
+- ✅ **createProductSchema**: Valid product creation data, name validation, description validation, price validation, stock validation, category validation, optional fields, image URL validation
+- ✅ **updateProductSchema**: Partial updates, multiple field updates, invalid field values, empty body
+- ✅ **productIdSchema**: Valid product ID, empty product ID, missing product ID
+- ✅ **productFilterSchema**: Filter with all optional fields, filter with some fields, empty filter, invalid price range
+- ✅ **toggleWishlistStatusSchema**: Valid wishlist status update, missing product ID, missing isInWishlist field
+- ✅ **paginationSchema**: Pagination parameters, pagination with only skip, pagination with only limit, empty pagination, negative skip value, zero limit value
+
+**Test Coverage:** 6 test suites, 47 tests
+
+---
+
 ### 3. Jest Configuration Update
 
 Updated [`jest.config.ts`](file:///e:/Project/jollyJet/jest.config.ts) to focus coverage on testable code:
@@ -143,13 +162,14 @@ src/test/
 │   ├── middleware.test.ts  # 2 test suites, 8 tests
 │   └── products/           # Product module tests
 │       ├── productEntity.test.ts       # 2 test suites, 5 tests
-│       └── productRepository.test.ts   # 9 test suites, 18 tests
+│       ├── productRepository.test.ts   # 9 test suites, 18 tests
+│       └── productValidators.test.ts   # 6 test suites, 47 tests
 ├── integration/             # Integration Tests
 │   └── app.test.ts         # 4 test suites, 7 tests
 └── setup.ts                # Test environment setup
 ```
 
-### Total Test Suites: 7
+### Total Test Suites: 8
 
 1. **Integration:** App Endpoints (app.test.ts)
 2. **Unit:** Middleware Tests (middleware.test.ts)
@@ -157,9 +177,10 @@ src/test/
 4. **Unit:** Error Classes (errors.test.ts)
 5. **Unit:** Product Entity Tests ([Product Entity Test Documentation](./products/step1.1-product-entity-test.md))
 6. **Unit:** Product Repository Tests ([Product Repository Test Documentation](./products/step2.2-product-repository-test.md))
-7. **Setup:** Test Setup (setup.ts)
+7. **Unit:** Product Validators Tests ([Product Validators Test Documentation](./products/step3.2-product-validators-test.md))
+8. **Setup:** Test Setup (setup.ts)
 
-### Total Tests: 90 individual test cases
+### Total Tests: 137 individual test cases
 
 ### Coverage Metrics: 100%
 
@@ -219,8 +240,8 @@ After running `npm run test:coverage`, view the detailed coverage report at:
 
 ✅ **100% test coverage achieved** for all critical application code
 ✅ **Tests organized** into unit and integration folders
-✅ **5 comprehensive test suites** created
-✅ **67 test cases** covering all code paths
+✅ **8 comprehensive test suites** created
+✅ **137 test cases** covering all code paths
 ✅ **Jest configuration optimized** to focus on testable code
 ✅ **All tests passing** with no errors or warnings
 ✅ **All utility functions implemented** and fully tested

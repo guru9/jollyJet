@@ -395,6 +395,7 @@ The project is ready to implement the first feature module following the establi
 - 📄 **[Product Model Analysis](./products/step2.1-product-model.md)** - Detailed analysis of the Product Model and its Mongoose schema
 - 📄 **[Product Repository Implementation Analysis](./products/step2.2-product-repository.md)** - Detailed analysis of the Product Repository implementation
 - 📄 **[Product DTOs Analysis](./products/step3.1-product-dtos.md)** - Comprehensive analysis of the Product DTOs and their validation requirements
+- 📄 **[Product Validators Analysis](./products/step3.2-product-validators.md)** - Comprehensive analysis of the Product Validators and their Zod-based validation schemas
 
 **TestCase Documentation:**
 
