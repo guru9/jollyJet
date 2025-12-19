@@ -221,6 +221,8 @@ src/test/unit/modules/product.test.ts
 - **Coverage**: Core functionality fully covered
 - **Performance**: All tests < 50ms
 
+**For detailed test documentation, refer to:** [Product Entity Test Documentation](../../tests/products/step1.1-product-entity-test.md)
+
 ## 📋 Attribute Analysis
 
 ### Comprehensive Field-by-Field Analysis

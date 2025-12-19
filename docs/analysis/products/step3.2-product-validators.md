@@ -242,6 +242,8 @@ validateRequest(paginationSchema);
 - **Integration Tests:** Test validation in API context
 - **Error Response Tests:** Test validation error formats
 
+**For detailed test documentation, refer to:** [Product Validators Test Documentation](../../tests/products/step3.2-product-validators-test.md)
+
 ### Test Approach
 
 - **Unit Tests:** Test individual schema validation
@@ -388,3 +390,5 @@ describe('paginationSchema', () => {
 ## Conclusion
 
 Step 3.2 successfully implements the validation layer for the Product Module, providing comprehensive runtime validation for all API requests. These validators ensure data integrity at the API boundaries and integrate seamlessly with the Express middleware chain. The implementation follows Clean Architecture principles and provides a solid foundation for the upcoming use case and controller layers.
+
+**For detailed test documentation, refer to:** [Product Validators Test Documentation](../../tests/products/step3.2-product-validators-test.md)

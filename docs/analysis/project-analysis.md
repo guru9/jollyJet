@@ -396,6 +396,7 @@ The project is ready to implement the first feature module following the establi
 - 📄 **[Product Repository Implementation Analysis](./products/step2.2-product-repository.md)** - Detailed analysis of the Product Repository implementation
 - 📄 **[Product DTOs Analysis](./products/step3.1-product-dtos.md)** - Comprehensive analysis of the Product DTOs and their validation requirements
 - 📄 **[Product Validators Analysis](./products/step3.2-product-validators.md)** - Comprehensive analysis of the Product Validators and their Zod-based validation schemas
+- 📄 **[Shared Constants Analysis](./products/step4.1-constants.md)** - Comprehensive analysis of the shared constants and configuration for the Product Module
 
 **TestCase Documentation:**
 
@@ -1146,11 +1147,6 @@ GET    /api/products          # List products (paginated)
 GET    /api/products/:id      # Get product by ID
 PUT    /api/products/:id      # Update product
 DELETE /api/products/:id      # Delete product
-
-# 🔥 Wishlist Endpoints (Enhanced Feature)
-POST   /api/products/{id}/wishlist    # Add product to wishlist
-DELETE /api/products/{id}/wishlist    # Remove product from wishlist
-GET    /api/products/wishlist         # Get all wishlist products (paginated)
 ```
 
 **Implementation Steps:**

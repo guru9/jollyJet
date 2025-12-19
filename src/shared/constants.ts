@@ -35,6 +35,10 @@ export const PRODUCT_CONSTANTS = {
   DEFAULT_CATEGORY: 'general',
   MIN_STOCK: 0,
   MAX_STOCK: 100000,
+  MIN_WISHLIST_COUNT: 0,
+  MAX_WISHLIST_COUNT: 1000000,
+  MAX_WISHLIST_ITEMS_PER_USER: 100,
+  DEFAULT_WISHLIST_STATUS: false,
 };
 
 export const ORDER_CONSTANTS = {
@@ -51,9 +55,32 @@ export const VALIDATION_RULES = {
   PASSWORD_REGEX: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
   USERNAME_MIN_LENGTH: 3,
   USERNAME_MAX_LENGTH: 30,
+  WISHLIST_NAME_REGEX: /^[a-zA-Z0-9\s\-_]{3,50}$/,
+  WISHLIST_ITEM_NAME_REGEX: /^[a-zA-Z0-9\s\-_,.!]{3,100}$/,
 };
 
-// DI Container Tokens
+// Wishlist Constants
+export const WISHLIST_CONSTANTS = {
+  MAX_ITEMS_PER_USER: 100,
+  MAX_ITEM_NAME_LENGTH: 100,
+  MAX_ITEM_DESCRIPTION_LENGTH: 500,
+  DEFAULT_WISHLIST_NAME: 'My Wishlist',
+  WISHLIST_EXPIRY_DAYS: 30,
+  MAX_WISHLIST_COUNT: 1000000,
+  MIN_WISHLIST_COUNT: 0,
+};
+
+// Wishlist Error Messages
+export const WISHLIST_ERRORS = {
+  WISHLIST_ERROR: 'Wishlist operation failed',
+  ALREADY_IN_WISHLIST: 'Product is already in wishlist',
+  NOT_IN_WISHLIST: 'Product is not in wishlist',
+  WISHLIST_LIMIT_EXCEEDED: 'Wishlist limit exceeded',
+};
+
+// DI Container Tokens for Dependency Injection
+// These tokens enable loose coupling between layers through dependency injection
 export const DI_TOKENS = {
-  PRODUCT_REPOSITORY: 'ProductRepository',
+  PRODUCT_REPOSITORY: 'ProductRepository', // Injection token for product repository
+  // Future tokens can be added here for other modules
 } as const;
