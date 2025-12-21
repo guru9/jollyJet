@@ -62,6 +62,9 @@ npm run dev
 # Production Build
 npm run build
 npm start
+
+#To resolve the "Access to the registry key is denied" error when setting the execution policy in PowerShell
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigneds
 ```
 
 ### 4️⃣ Access API Documentation
