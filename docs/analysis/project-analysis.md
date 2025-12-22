@@ -406,6 +406,7 @@ The project is ready to implement the first feature module following the establi
 **Database Migrations Documentation:**
 
 - 🔄 **[SQL Migration Guide](../migrations/sql-migration-guide.md)** - Comprehensive guide for migrating from MongoDB to SQL databases
+- 📊 **[SQL Integration Findings](../migrations/sql-integration-findings.md)** - Detailed findings and recommendations for SQL integration
 
 **Planned Implementation Order:**
 

@@ -24,7 +24,7 @@
 - **Legacy Integration**: When connecting to existing SQL systems
 - **Specific Performance Needs**: If MongoDB limitations emerge for particular use cases
 
-**🎯 Current Recommendation:** Continue with MongoDB and use this guide as reference if future requirements change.
+**🎯 Current Recommendation:** Continue with MongoDB and use this guide as reference if future requirements change. For detailed findings and recommendations, refer to the [SQL Integration Findings](./sql-integration-findings.md) document.
 
 ## Overview
 
