@@ -6,6 +6,6 @@ export interface CreateProductDTO {
   stock: number; // Initial stock quantity (required, non-negative integer)
   category: string; // Product category (required, min 1 char)
   images?: string[]; // Product image URLs (optional, validated as URLs)
-  isActive?: boolean; // Product active status (optional, default: true)
+  isActive: boolean; // Product active status (optional, default: true)
   iswishliststatus?: boolean; // Product wishlist status (optional, default: false)
 }

@@ -7,7 +7,7 @@ export interface ProductProps {
   stock: number; // Available stock quantity. Must be non-negative (required)
   category: string; // Category to which the product belongs (required)
   images?: string[]; //  array of image URLs (Optional)
-  isActive?: boolean; // Current status of the product (Optional, default: true)
+  isActive: boolean; // Current status of the product (Optional, default: true)
   createdAt?: Date; // Timestamp of product creation (Optional)
   updatedAt?: Date; // Timestamp of last update (Optional)
   wishlistCount?: number; // Number of times the product has been added to wishlists (Optional)

@@ -10,6 +10,7 @@ describe('Product', () => {
         stock: 100,
         category: 'Test Category',
         isInWishlist: true,
+        isActive: true,
       };
 
       const product = new Product(productProps);
@@ -27,6 +28,7 @@ describe('Product', () => {
         stock: 100,
         category: 'Test Category',
         isInWishlist: false,
+        isActive: true,
       };
 
       const product = new Product(productProps);
@@ -43,6 +45,7 @@ describe('Product', () => {
         price: 10.99,
         stock: 100,
         category: 'Test Category',
+        isActive: true,
       };
 
       const product = new Product(productProps);
@@ -63,6 +66,7 @@ describe('Product', () => {
         category: 'Test Category',
         isInWishlist: false,
         wishlistCount: 5,
+        isActive: true,
       };
 
       const product = new Product(productProps);
@@ -80,6 +84,7 @@ describe('Product', () => {
         stock: 100,
         category: 'Test Category',
         isInWishlist: false,
+        isActive: true,
       };
 
       const product = new Product(productProps);

@@ -1,6 +1,11 @@
 import { Product, ProductProps } from '../entities/Product';
 
 export class ProductService {
+  // Method to check product availability
+  public isAvailable(product: Product): boolean {
+    return product.toProps().isActive && product.toProps().stock > 0;
+  }
+
   // Method to update product stock with validation
   public updateStock(product: Product, quantity: number): Product {
     // Create updated product with all required properties preserved

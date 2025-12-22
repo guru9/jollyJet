@@ -11,11 +11,11 @@ export interface ProductFilter {
 
 // Repository Interface for Product entity
 export interface IProductRepository {
-  create(product: Product): Promise<void>; // Create a new product
-  update(product: Product): Promise<void>; // Update an existing product
+  create(product: Product): Promise<Product>; // Create a new product
+  update(product: Product): Promise<Product>; // Update an existing product
   findById(id: string): Promise<Product | null>; // Find a product by its ID
   findAll(filter?: ProductFilter, skip?: number, limit?: number): Promise<Product[]>; // Retrieve all products with optional filtering and pagination
-  delete(id: string): Promise<void>; // Delete a product by its ID
+  delete(id: string): Promise<boolean>; // Delete a product by its ID
   count(filter?: ProductFilter): Promise<number>; // Get the total count of products matching a filter
   toggleWishlistStatus(id: string, isInWishlist: boolean): Promise<Product>; // Toggle the wishlist status of a product
 }

@@ -8,10 +8,12 @@ export class ProductRepository implements IProductRepository {
    * @param product Product entity to create
    * @returns Promise with created Product entity
    */
-  public async create(product: Product): Promise<void> {
+  public async create(product: Product): Promise<Product> {
     const productData = product.toProps();
 
-    await Productmodel.create(productData);
+    // Create document in MongoDB and convert back to domain entity
+    const createdProduct = await Productmodel.create(productData);
+    return Product.createProduct(createdProduct.toObject());
   }
 
   /**
@@ -20,11 +22,16 @@ export class ProductRepository implements IProductRepository {
    * @returns Promise with updated Product entity
    * @throws Error if product ID is missing or product not found
    */
-  public async update(product: Product): Promise<void> {
+  public async update(product: Product): Promise<Product> {
     const productData = product.toProps();
     if (!productData.id) throw new Error('Product ID is required for update.');
 
-    await Productmodel.findByIdAndUpdate(productData.id, productData, { new: true });
+    //find the updated document, return the updated product
+    const updatedProduct = await Productmodel.findByIdAndUpdate(productData.id, productData, {
+      new: true,
+    });
+    if (!updatedProduct) throw new Error('Product not found for update.');
+    return Product.createProduct(updatedProduct.toObject());
   }
 
   /**
@@ -66,6 +73,7 @@ export class ProductRepository implements IProductRepository {
     if (skip !== undefined) query.skip(skip);
     if (limit !== undefined) query.limit(limit);
 
+    // Execute the query and convert documents to Product entities
     const productDocuments = await query.exec();
     return productDocuments.map((doc) => Product.createProduct(doc.toObject()));
   }
@@ -75,8 +83,9 @@ export class ProductRepository implements IProductRepository {
    * @param id Product ID to delete
    * @returns Promise with boolean indicating success
    */
-  public async delete(id: string): Promise<void> {
-    await Productmodel.findByIdAndDelete(id);
+  public async delete(id: string): Promise<boolean> {
+    const result = await Productmodel.findByIdAndDelete(id);
+    return result !== null;
   }
 
   /**
@@ -96,7 +105,7 @@ export class ProductRepository implements IProductRepository {
       if (filter.priceRange)
         query.where('price').gte(filter.priceRange.min).lte(filter.priceRange.max);
     }
-
+    // Return the count of matching products
     return await query.exec();
   }
 
@@ -107,16 +116,18 @@ export class ProductRepository implements IProductRepository {
    * @returns Promise<Product> with the updated product
    */
   public async toggleWishlistStatus(id: string, isInWishlist: boolean): Promise<Product> {
+    // Update the isInWishlist status and adjust wishlistCount accordingly
     const updatedProduct = await Productmodel.findByIdAndUpdate(
       id,
       { isInWishlist: isInWishlist, wishlistCount: isInWishlist ? 1 : 0 },
       { new: true }
     );
 
+    //check if product doesn't exist
     if (!updatedProduct) {
       throw new Error('Product not found');
     }
 
-    return Product.createProduct(updatedProduct.toObject());
+    return Product.createProduct(updatedProduct.toObject()); // Convert to Product entity
   }
 }

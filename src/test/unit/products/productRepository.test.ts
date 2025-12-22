@@ -23,6 +23,7 @@ describe('ProductRepository', () => {
         price: 100,
         stock: 10,
         category: 'Test Category',
+        isActive: true,
       });
 
       await productRepository.create(product);
@@ -43,6 +44,7 @@ describe('ProductRepository', () => {
         category: 'Test Category',
         isInWishlist: false,
         wishlistCount: 0,
+        isActive: true,
       });
 
       await productRepository.create(product);
@@ -70,6 +72,7 @@ describe('ProductRepository', () => {
         price: 100,
         stock: 10,
         category: 'Test Category',
+        isActive: true,
       });
 
       await productRepository.create(product);
@@ -98,6 +101,7 @@ describe('ProductRepository', () => {
         price: 100,
         stock: 10,
         category: 'Test Category',
+        isActive: true,
       });
 
       await productRepository.create(product);
@@ -124,6 +128,7 @@ describe('ProductRepository', () => {
         price: 100,
         stock: 10,
         category: 'Test Category',
+        isActive: true,
       });
 
       const product2 = Product.createProduct({
@@ -132,6 +137,7 @@ describe('ProductRepository', () => {
         price: 200,
         stock: 20,
         category: 'Test Category',
+        isActive: true,
       });
 
       await productRepository.create(product1);
@@ -148,6 +154,7 @@ describe('ProductRepository', () => {
         price: 100,
         stock: 10,
         category: 'Test Category',
+        isActive: true,
       });
 
       const product2 = Product.createProduct({
@@ -156,6 +163,7 @@ describe('ProductRepository', () => {
         price: 200,
         stock: 20,
         category: 'Another Category',
+        isActive: true,
       });
 
       await productRepository.create(product1);
@@ -175,6 +183,7 @@ describe('ProductRepository', () => {
         price: 100,
         stock: 10,
         category: 'Test Category',
+        isActive: true,
       });
 
       await productRepository.create(product);
@@ -197,6 +206,7 @@ describe('ProductRepository', () => {
         price: 100,
         stock: 10,
         category: 'Test Category',
+        isActive: true,
       });
 
       const product2 = Product.createProduct({
@@ -205,6 +215,7 @@ describe('ProductRepository', () => {
         price: 200,
         stock: 20,
         category: 'Test Category',
+        isActive: true,
       });
 
       await productRepository.create(product1);
@@ -221,6 +232,7 @@ describe('ProductRepository', () => {
         price: 100,
         stock: 10,
         category: 'Test Category',
+        isActive: true,
       });
 
       const product2 = Product.createProduct({
@@ -229,6 +241,7 @@ describe('ProductRepository', () => {
         price: 200,
         stock: 20,
         category: 'Another Category',
+        isActive: true,
       });
 
       await productRepository.create(product1);
