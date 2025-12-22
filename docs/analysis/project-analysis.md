@@ -403,6 +403,10 @@ The project is ready to implement the first feature module following the establi
 
 - 🧪 **[Main Tests](../tests/test-coverage-walkthrough.md)** - Comprehensive unit tests for the Main testcase
 
+**Database Migrations Documentation:**
+
+- 🔄 **[SQL Migration Guide](../migrations/sql-migration-guide.md)** - Comprehensive guide for migrating from MongoDB to SQL databases
+
 **Planned Implementation Order:**
 
 1. **Domain Layer** - Product entity, repository interface, business services
