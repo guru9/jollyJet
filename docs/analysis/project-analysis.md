@@ -408,6 +408,10 @@ The project is ready to implement the first feature module following the establi
 - 🔄 **[SQL Migration Guide](../migrations/sql-migration-guide.md)** - Comprehensive guide for migrating from MongoDB to SQL databases
 - 📊 **[SQL Integration Findings](../migrations/sql-integration-findings.md)** - Detailed findings and recommendations for SQL integration
 
+**Best Practices Documentation:**
+
+- 📚 **[Best Practices Guide](../best-practices/best-practices.md)** - Complete project best practices, do's and don'ts, and architecture guidelines
+
 **Planned Implementation Order:**
 
 1. **Domain Layer** - Product entity, repository interface, business services
