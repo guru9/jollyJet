@@ -381,4 +381,4 @@ This test suite integrates with the overall test coverage strategy:
 
 ## Conclusion
 
-The CreateProductUseCase test suite provides comprehensive coverage of the use case implementation, ensuring proper functionality, type safety, and error handling. The tests follow established patterns and integrate seamlessly with the overall test strategy, contributing to the project's 100% test coverage goal.
+The `CreateProductUseCase` test suite provides comprehensive coverage of the use case implementation, ensuring proper functionality, type safety, and error handling. The tests follow established patterns and integrate seamlessly with the overall test strategy, contributing to the project's 100% test coverage goal.

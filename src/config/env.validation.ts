@@ -4,12 +4,12 @@ import logger from '../shared/logger';
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('3000').transform(Number),
-  MONGODB_URI: z.preprocess(
+  MONGO_URI: z.preprocess(
     (val) => {
-      // prefer MONGODB_URI, fall back to MONGO_URI from .env
+      // prefer MONGO_URI, fall back to MONGODB_URI from .env
       if (typeof val === 'string' && val.length) return val;
-      if (typeof process.env.MONGO_URI === 'string' && process.env.MONGO_URI.length)
-        return process.env.MONGO_URI;
+      if (typeof process.env.MONGODB_URI === 'string' && process.env.MONGODB_URI.length)
+        return process.env.MONGODB_URI;
       return val;
     },
     z
@@ -17,7 +17,7 @@ const envSchema = z.object({
       .min(1, 'MongoDB URI is required')
       .refine((uri) => /^mongodb(\+srv)?:\/\/.+/.test(uri), {
         message:
-          'MONGODB_URI must be a valid MongoDB connection string (mongodb:// or mongodb+srv://)',
+          'MONGO_URI must be a valid MongoDB connection string (mongodb:// or mongodb+srv://)',
       })
   ),
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),

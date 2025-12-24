@@ -177,6 +177,8 @@ if (!this.productService.isAvailable(newProduct)) {
 
 ### Example Test Cases
 
+**For detailed test documentation, refer to:** [Create Product Use Case Test Documentation](../../tests/products/step4.2-create-product-usecase-test.md)
+
 ```typescript
 describe('CreateProductUseCase', () => {
   let useCase: CreateProductUseCase;

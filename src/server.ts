@@ -39,17 +39,18 @@ process.on('unhandledRejection', (reason: unknown) => {
 //Start server
 const startServer = async () => {
   try {
-    // Connect to MongoDB first
+    // Try to connect to MongoDB first
     await mongoDBConnection.connect();
     logger.info('MongoDB connected successfully.');
-
-    app.listen(config.port, () => {
-      logger.info(`🛫 jollyJet Server listening on port ${config.port}.`);
-    });
   } catch (error) {
-    logger.error({ error: error }, 'Failed to start server.');
-    process.exit(1);
+    logger.warn({ error: error }, 'MongoDB connection failed. Starting server without database.');
+    // Continue without database connection
   }
+
+  // Start the server regardless of MongoDB connection status
+  app.listen(config.port, () => {
+    logger.info(`🛫 jollyJet Server listening on port ${config.port}.`);
+  });
 };
 
 startServer();

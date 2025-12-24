@@ -6,6 +6,12 @@ import { ProductService } from '../domain/services/ProductService';
 import { CreateProductDTO } from '../interface/dtos/CreateProductDTO';
 import { DI_TOKENS } from '../shared/constants';
 
+/**
+ * Usecase for creating new products
+ * Depends on: DI_TOKENS.PRODUCT_REPOSITORY (step 4.1)
+ *             CreateProductDTO (step 4.1)
+ * Implements: Business logic orchestration between layers
+ */
 @injectable()
 export class CreateProductUseCase {
   constructor(
