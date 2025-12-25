@@ -3,7 +3,7 @@ export interface ProductProps {
   id?: string; //  unique product identifier (Optional)
   name: string; // Name of the product(required)
   description: string; // Product description(required)
-  price: number; // Price of the product.Must be non-negative (required)
+  price: number; // Price of the product. Must be non-negative (required)
   stock: number; // Available stock quantity. Must be non-negative (required)
   category: string; // Category to which the product belongs (required)
   images?: string[]; //  array of image URLs (Optional)

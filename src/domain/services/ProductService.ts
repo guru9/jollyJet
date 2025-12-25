@@ -6,11 +6,16 @@ export class ProductService {
     return product.toProps().isActive && product.toProps().stock > 0;
   }
 
+  // Method to check valid pricerange for the products
+  public isValidPriceRange(priceRange?: { min: number; max: number }): boolean {
+    return !!priceRange && priceRange.min >= 0 && priceRange.max >= 0;
+  }
+
   // Method to update product stock with validation
   public updateStock(product: Product, quantity: number): Product {
     // Create updated product with all required properties preserved
     const currentStock = product.toProps().stock;
-    const newStock = quantity < 0 ? currentStock + 0 : currentStock + quantity;
+    const newStock = currentStock + quantity;
 
     if (newStock < 0) throw new Error('Insufficient stock.'); // Prevent negative stock
 

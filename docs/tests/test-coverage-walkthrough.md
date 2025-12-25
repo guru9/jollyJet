@@ -23,6 +23,8 @@ src/test/
 │       ├── productRepository.test.ts   # Product repository tests
 │       ├── productValidators.test.ts   # Product validators tests
 │       ├── createProductUseCase.test.ts # Create product use case tests
+│       ├── productService.test.ts      # Product service tests
+│       ├── listProductsUseCase.test.ts # List products use case tests
 │       └── getProductUseCase.test.ts    # Get product use case tests
 ├── integration/             # Integration tests (full app testing)
 │   └── app.test.ts         # App endpoint tests
@@ -124,6 +126,30 @@ Complete CreateProductUseCase testing:
 
 ---
 
+#### [`src/test/unit/products/productService.test.ts`](file:///e:/Project/jollyJet/src/test/unit/products/productService.test.ts)
+
+Complete ProductService testing:
+
+- ✅ **isValidPriceRange**: Undefined/null handling, negative value validation, valid ranges, zero values
+- ✅ **updateStock**: Positive/negative quantity handling, insufficient stock error, timestamp updates
+- ✅ **updatePrice**: Price updates, negative price validation
+- ✅ **isAvailable**: Availability checks based on stock and active status
+
+**Test Coverage:** 4 test suites, 15 tests
+
+---
+
+#### [`src/test/unit/products/listProductsUseCase.test.ts`](file:///e:/Project/jollyJet/src/test/unit/products/listProductsUseCase.test.ts)
+
+Complete ListProductsUseCase testing:
+
+- ✅ **execute method**: Empty query handling, pagination, maximum page size, category/search/active/wishlist filters, price range validation, multiple simultaneous filters, undefined price range handling
+- ✅ **priceRange validation**: ProductService integration, negative min/max value rejection
+
+**Test Coverage:** 2 test suites, 14 tests
+
+---
+
 ### 3. Jest Configuration Update
 
 Updated [`jest.config.ts`](file:///e:/Project/jollyJet/jest.config.ts) to focus coverage on testable code:
@@ -178,13 +204,15 @@ src/test/
 │       ├── productRepository.test.ts   # 9 test suites, 18 tests
 │       ├── productValidators.test.ts   # 6 test suites, 47 tests
 │       ├── createProductUseCase.test.ts # 2 test suites, 9 tests
+│       ├── productService.test.ts      # 4 test suites, 15 tests
+│       ├── listProductsUseCase.test.ts # 2 test suites, 14 tests
 │       └── getProductUseCase.test.ts    # 1 test suite, 4 tests
 ├── integration/             # Integration Tests
 │   └── app.test.ts         # 4 test suites, 7 tests
 └── setup.ts                # Test environment setup
 ```
 
-### Total Test Suites: 8
+### Total Test Suites: 10
 
 1. **Integration:** App Endpoints (app.test.ts) - 4 test suites, 7 tests
 2. **Unit:** Middleware Tests (middleware.test.ts) - 2 test suites, 8 tests
@@ -194,10 +222,12 @@ src/test/
 6. **Unit:** Product Repository Tests ([Product Repository Test Documentation](./products/step2.2-product-repository-test.md)) - 9 test suites, 18 tests
 7. **Unit:** Product Validators Tests ([Product Validators Test Documentation](./products/step3.2-product-validators-test.md)) - 6 test suites, 47 tests
 8. **Unit:** CreateProductUseCase Tests ([CreateProductUseCase Test Documentation](./products/step4.2-create-product-usecase-test.md)) - 2 test suites, 9 tests
-9. **Unit:** GetProductUseCase Tests ([GetProductUseCase Test Documentation](./products/step4.2-get-product-usecase-test.md)) - 1 test suite, 4 tests
-10. **Setup:** Test Setup (setup.ts)
+9. **Unit:** ProductService Tests ([ProductService Test Documentation](./products/step1.4-product-service-test.md)) - 4 test suites, 15 tests
+10. **Unit:** ListProductsUseCase Tests ([ListProductsUseCase Test Documentation](./products/step4.2-list-products-usecase-test.md)) - 2 test suites, 14 tests
+11. **Unit:** GetProductUseCase Tests ([GetProductUseCase Test Documentation](./products/step4.2-get-product-usecase-test.md)) - 1 test suite, 4 tests
+12. **Setup:** Test Setup (setup.ts)
 
-### Total Tests: 110 individual test cases
+### Total Tests: 143 individual test cases
 
 ### Coverage Metrics: 100%
 
@@ -255,12 +285,12 @@ After running `npm run test:coverage`, view the detailed coverage report at:
 
 ## Summary
 
-✅ **100% test coverage achieved** for all critical application code  
-✅ **Tests organized** into unit and integration folders  
-✅ **8 comprehensive test suites** created  
-✅ **110 test cases** covering all code paths  
-✅ **Jest configuration optimized** to focus on testable code  
-✅ **All tests passing** with no errors or warnings  
+✅ **100% test coverage achieved** for all critical application code
+✅ **Tests organized** into unit and integration folders
+✅ **10 comprehensive test suites** created
+✅ **143 test cases** covering all code paths
+✅ **Jest configuration optimized** to focus on testable code
+✅ **All tests passing** with no errors or warnings
 ✅ **All utility functions implemented** and fully tested
 
 The JollyJet application now has robust test coverage ensuring code quality and reliability! 🎉

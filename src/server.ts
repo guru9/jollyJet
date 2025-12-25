@@ -41,9 +41,12 @@ const startServer = async () => {
   try {
     // Try to connect to MongoDB first
     await mongoDBConnection.connect();
-    logger.info('MongoDB connected successfully.');
+    logger.info({ uri: config.mongoUri, port: config.port }, 'MongoDB connected successfully.');
   } catch (error) {
-    logger.warn({ error: error }, 'MongoDB connection failed. Starting server without database.');
+    logger.warn(
+      { uri: config.mongoUri, port: config.port, error: error },
+      'MongoDB connection failed. Starting server without database.'
+    );
     // Continue without database connection
   }
 

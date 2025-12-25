@@ -15,6 +15,8 @@ The current implementation of `ProductService` does not directly interact with `
 
 ## Key Methods
 
+- `isValidPriceRange(priceRange?: { min: number; max: number })`: Validates that a price range has non-negative min and max values.
+- `isAvailable(product: Product)`: Checks if a product is available (active and has stock).
 - `updateStock(product: Product, quantity: number)`: Updates the stock of a product with validation.
 - `updatePrice(product: Product, newPrice: number)`: Updates the price of a product with validation.
 - `updateProductDetails(product: Product, details: Partial<Omit<ProductProps, 'createdAt' | 'updatedAt'>>)`: Updates multiple product details at once.

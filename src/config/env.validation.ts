@@ -6,15 +6,16 @@ const envSchema = z.object({
   PORT: z.string().default('3000').transform(Number),
   MONGO_URI: z.preprocess(
     (val) => {
-      // prefer MONGO_URI, fall back to MONGODB_URI from .env
+      // prefer MONGO_URI, fall back to MONGO_URI from .env
       if (typeof val === 'string' && val.length) return val;
-      if (typeof process.env.MONGODB_URI === 'string' && process.env.MONGODB_URI.length)
-        return process.env.MONGODB_URI;
+      if (typeof process.env.MONGO_URI === 'string' && process.env.MONGO_URI.length)
+        return process.env.MONGO_URI;
       return val;
     },
     z
       .string()
-      .min(1, 'MongoDB URI is required')
+      .optional()
+      .default(process.env.MONGO_URI_DEFAULT ?? 'mongodb://localhost:27017/jollyjet')
       .refine((uri) => /^mongodb(\+srv)?:\/\/.+/.test(uri), {
         message:
           'MONGO_URI must be a valid MongoDB connection string (mongodb:// or mongodb+srv://)',
