@@ -295,6 +295,17 @@ We will strictly follow **Clean Architecture**, ensuring our business rules (Dom
 > - **Integration Points:** Used by ProductController (Step 5.1) for API operations
 > - **Benefits:** Centralized business logic, easy testing, framework independence
 
+**Completed Use Cases:**
+
+1. **CreateProductUseCase**: Handles the creation of new products with validation and dependency injection.
+2. **GetProductUseCase**: Retrieves a product by its ID.
+3. **ListProductsUseCase**: Lists products with support for pagination, filtering, and parallel queries for efficiency.
+4. **UpdateProductUseCase**: Updates existing products, including support for wishlist status updates.
+5. **DeleteProductUseCase**: Deletes a product by its ID.
+6. **ToggleWishlistProductUseCase**: Specifically handles toggling the wishlist status of a product.
+
+All use cases follow best practices such as dependency injection, separation of concerns, and proper error handling. The wishlist functionality is integrated into both the `UpdateProductUseCase` and the dedicated `ToggleWishlistProductUseCase`.
+
 ### ✅ _Step 5.1: Build ProductController_
 
 - **Objective:** Create Express controller class handling HTTP requests, using use cases, and returning appropriate responses with error handling
@@ -450,13 +461,13 @@ We will strictly follow **Clean Architecture**, ensuring our business rules (Dom
 
 The Product Module follows a systematic implementation approach based on Clean Architecture principles with proper dependency flow:
 
-1. **Domain Layer (Steps 1.1-1.3)**: Create core business entities, interfaces, and services
-2. **Infrastructure Layer (Steps 2.1-2.2)**: Implement external adapters
-3. **Interface Layer - DTOs/Validators (Steps 3.1-3.2)**: Develop data transfer objects and validation
-4. **Shared Layer - Constants (Step 4.1)**: Define dependency injection tokens (no dependencies)
-5. **Application Layer - Use Cases (Step 4.2)**: Build use cases that orchestrate domain logic ← Depends on DTOs (3.1) and DI_TOKENS (4.1)
-6. **Interface Layer - Controllers/Routes (Steps 5.1-5.2)**: Develop HTTP adapters ← Depends on Use Cases (4.2)
-7. **Configuration Layer (Steps 6.1-6.2)**: Wire everything together
+1. **🟣 Domain Layer (Steps 1.1-1.3)**: Create core business entities, interfaces, and services
+2. **🟠 Infrastructure Layer (Steps 2.1-2.2)**: Implement external adapters
+3. **🟡 Interface Layer - DTOs/Validators (Steps 3.1-3.2)**: Develop data transfer objects and validation
+4. **🟢 Shared Layer - Constants (Step 4.1)**: Define dependency injection tokens (no dependencies)
+5. **🔵 Application Layer - Use Cases (Step 4.2)**: Build use cases that orchestrate domain logic ← Depends on DTOs (3.1) and DI_TOKENS (4.1)
+6. **🟡 Interface Layer - Controllers/Routes (Steps 5.1-5.2)**: Develop HTTP adapters ← Depends on Use Cases (4.2)
+7. **🟢 Configuration Layer (Steps 6.1-6.3)**: Wire everything together
 
 > **🔥 CRITICAL DEPENDENCY FLOW NOTES:**
 >
@@ -4412,28 +4423,28 @@ curl "http://localhost:3000/api/products/wishlist?page=1&limit=5"
 
 ```
 ┌─────────────────────────────────────────┐
-│    Configuration Layer (Setup)          │
-│  swagger.ts, di-container.ts, app.ts    │
+│    🟢 Configuration Layer (Setup)         │
+│  📄 swagger.ts, di-container.ts, app.ts │
 └─────────────────┬───────────────────────┘
                   │
 ┌─────────────────▼───────────────────────┐
-│         Interface Layer (API)           │
-│  controllers/ routes/ validators/       │
+│    🟡 Interface Layer (API)              │
+│  📡 controllers/ routes/ validators/    │
 └─────────────────┬───────────────────────┘
                   │
 ┌─────────────────▼───────────────────────┐
-│        Use Cases Layer (Business)       │
-│         usecases/ (application)         │
+│    🔵 Use Cases Layer (Business)         │
+│  ⚙️ usecases/ (application)             │
 └─────────────────┬───────────────────────┘
                   │
 ┌─────────────────▼───────────────────────┐
-│      Domain Layer (Core Business)      │
-│   entities/ interfaces/ services/      │
+│    🟣 Domain Layer (Core Business)       │
+│  💎 entities/ interfaces/ services/     │
 └─────────────────┬───────────────────────┘
                   │
 ┌─────────────────▼───────────────────────┐
-│    Infrastructure Layer (External)     │
-│  models/ repositories/                 │
+│    🟠 Infrastructure Layer (External)    │
+│  💾 models/ repositories/               │
 └─────────────────────────────────────────┘
 ```
 
