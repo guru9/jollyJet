@@ -46,6 +46,6 @@ export class CreateProductUseCase {
     // Persist the new product using the repository
     // 💡 Dependency Inversion: Use Cases depend on abstractions (interfaces)
     // 💡 This enables switching database implementations without changing business logic
-    return this.productRepository.create(newProduct);
+    return await this.productRepository.create(newProduct);
   }
 }

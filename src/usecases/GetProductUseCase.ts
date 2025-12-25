@@ -28,6 +28,6 @@ export class GetProductUseCase {
     // Retrieve the product using the repository
     // 💡 Dependency Inversion: Use Cases depend on abstractions (interfaces)
     // 💡 This enables switching database implementations without changing business logic
-    return this.productRepository.findById(productId);
+    return await this.productRepository.findById(productId);
   }
 }
