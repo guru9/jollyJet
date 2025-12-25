@@ -25,6 +25,10 @@ export class GetProductUseCase {
    * 📋 Business Rules: Enforced by domain entity validation
    */
   public async execute(productId: string): Promise<Product | null> {
+    // Validate input
+    if (!productId?.trim()) {
+      throw new Error('Product ID is required to retrieve the product.');
+    }
     // Retrieve the product using the repository
     // 💡 Dependency Inversion: Use Cases depend on abstractions (interfaces)
     // 💡 This enables switching database implementations without changing business logic

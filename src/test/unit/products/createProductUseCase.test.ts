@@ -25,7 +25,6 @@ describe('CreateProductUseCase', () => {
       updatePrice: jest.fn(),
       updateProductDetails: jest.fn(),
       updateWishlistStatus: jest.fn(),
-      toggleProductActivation: jest.fn(),
     } as unknown as jest.Mocked<ProductService>;
 
     useCase = new CreateProductUseCase(mockRepository, mockService);

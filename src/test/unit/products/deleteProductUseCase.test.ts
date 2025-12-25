@@ -58,10 +58,10 @@ describe('DeleteProductUseCase', () => {
     });
 
     it('should throw error for null/undefined product ID', async () => {
-      await expect(useCase.execute(null as any)).rejects.toThrow(
+      await expect(useCase.execute(null as unknown as string)).rejects.toThrow(
         'Product ID is required for deletion.'
       );
-      await expect(useCase.execute(undefined as any)).rejects.toThrow(
+      await expect(useCase.execute(undefined as unknown as string)).rejects.toThrow(
         'Product ID is required for deletion.'
       );
     });

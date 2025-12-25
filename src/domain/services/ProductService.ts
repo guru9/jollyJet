@@ -74,16 +74,4 @@ export class ProductService {
 
     return Product.createProduct(updatedProductProps);
   }
-
-  //Method to Toggle activate a product
-  public toggleProductActivation(product: Product): Product {
-    // Use the toProps() method to get all properties as an object
-    const updatedProductProps: ProductProps = {
-      ...product.toProps(),
-      isActive: !product.toProps().isActive,
-      updatedAt: new Date(),
-    };
-
-    return Product.createProduct(updatedProductProps);
-  }
 }

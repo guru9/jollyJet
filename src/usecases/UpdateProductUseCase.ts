@@ -30,6 +30,11 @@ export class UpdateProductUseCase {
    * 📋 Business Rules: Enforced by domain entity validation
    */
   public async execute(productId: string, productData: UpdateProductDTO): Promise<Product> {
+    // Validate input
+    if (!productId?.trim()) {
+      throw new Error('Product ID is required for updation.');
+    }
+
     // Retrieve the existing product using the repository
     let existingProduct = await this.productRepository.findById(productId);
 
