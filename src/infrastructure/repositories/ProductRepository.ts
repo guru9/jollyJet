@@ -17,6 +17,27 @@ export class ProductRepository implements IProductRepository {
   }
 
   /**
+   * Builds a filtered Mongoose query based on the provided filter criteria.
+   * @param filter Optional filter criteria
+   * @returns Mongoose query with applied filters
+   */
+  private buildFilteredQuery(filter?: ProductFilter) {
+    const query = Productmodel.find();
+
+    // Apply filters if provided
+    if (filter) {
+      if (filter.category) query.where('category', filter.category);
+      if (filter.isActive !== undefined) query.where('isActive', filter.isActive);
+      if (filter.isInWishlist !== undefined) query.where('isInWishlist', filter.isInWishlist);
+      if (filter.search) query.where({ $text: { $search: filter.search } });
+      if (filter.priceRange)
+        query.where('price').gte(filter.priceRange.min).lte(filter.priceRange.max);
+    }
+
+    return query;
+  }
+
+  /**
    * Updates an existing product
    * @param product Product entity with updates
    * @returns Promise with updated Product entity
@@ -56,18 +77,8 @@ export class ProductRepository implements IProductRepository {
    * @returns Promise with array of Product entities
    */
   public async findAll(filter?: ProductFilter, skip?: number, limit?: number): Promise<Product[]> {
-    // Build the query
-    const query = Productmodel.find();
-
-    // Apply filters if provided
-    if (filter) {
-      if (filter.category) query.where('category', filter.category);
-      if (filter.isActive) query.where('isActive', filter.isActive);
-      if (filter.isInWishlist) query.where('isInWishlist', filter.isInWishlist);
-      if (filter.search) query.where({ $text: { $search: filter.search } });
-      if (filter.priceRange)
-        query.where('price').gte(filter.priceRange.min).lte(filter.priceRange.max);
-    }
+    // Build the query with filters applied
+    const query = this.buildFilteredQuery(filter);
 
     // Apply pagination if provided
     if (skip !== undefined) query.skip(skip);
@@ -94,19 +105,21 @@ export class ProductRepository implements IProductRepository {
    * @returns Promise with count of matching products
    */
   public async count(filter?: ProductFilter): Promise<number> {
-    const query = Productmodel.countDocuments();
+    // Build a count query with the same filters
+    const countQuery = Productmodel.find();
 
-    // Apply filters if provided
+    // Apply filters if provided (same logic as buildFilteredQuery)
     if (filter) {
-      if (filter.category) query.where('category', filter.category);
-      if (filter.isActive) query.where('isActive', filter.isActive);
-      if (filter.isInWishlist) query.where('isInWishlist', filter.isInWishlist);
-      if (filter.search) query.where({ $text: { $search: filter.search } });
+      if (filter.category) countQuery.where('category', filter.category);
+      if (filter.isActive !== undefined) countQuery.where('isActive', filter.isActive);
+      if (filter.isInWishlist !== undefined) countQuery.where('isInWishlist', filter.isInWishlist);
+      if (filter.search) countQuery.where({ $text: { $search: filter.search } });
       if (filter.priceRange)
-        query.where('price').gte(filter.priceRange.min).lte(filter.priceRange.max);
+        countQuery.where('price').gte(filter.priceRange.min).lte(filter.priceRange.max);
     }
-    // Return the count of matching products
-    return await query.exec();
+
+    // Count documents matching the filters
+    return await countQuery.countDocuments().exec();
   }
 
   /**

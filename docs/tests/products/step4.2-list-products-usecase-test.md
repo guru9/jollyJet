@@ -76,6 +76,34 @@ The test suite follows a comprehensive approach:
 - Error recovery scenarios
 - Integration with actual database
 
+## Test Results
+
+**Actual Test Execution Output:**
+
+```
+ PASS  src/test/unit/products/listProductsUseCase.test.ts
+  ListProductsUseCase
+    execute
+      √ should handle empty query parameters with defaults (7 ms)
+      √ should handle pagination parameters correctly (3 ms)
+      √ should limit maximum page size to 100 (2 ms)
+      √ should apply category filter when provided (1 ms)
+      √ should apply search filter when provided (2 ms)
+      √ should apply isActive filter when provided (1 ms)
+      √ should apply isInWishlist filter when provided (1 ms)
+      √ should apply valid priceRange filter when provided
+      √ should not apply invalid priceRange filter (1 ms)
+      √ should handle multiple filters simultaneously (2 ms)
+      √ should handle undefined priceRange gracefully (4 ms)
+    priceRange validation
+      √ should use ProductService.isValidPriceRange for validation (1 ms)
+      √ should reject priceRange with negative min value (1 ms)
+      √ should reject priceRange with negative max value (1 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       14 passed, 14 total
+```
+
 ## Conclusion
 
 The `ListProductsUseCase` test suite provides comprehensive coverage of all filtering, pagination, and validation logic. The tests ensure that the use case correctly integrates with the service layer and repository, handles edge cases appropriately, and maintains data consistency throughout the product listing process.

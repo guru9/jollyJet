@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
 import { Product } from '../domain/entities/Product';
 import { IProductRepository, ProductFilter } from '../domain/interfaces/IProductRepository';

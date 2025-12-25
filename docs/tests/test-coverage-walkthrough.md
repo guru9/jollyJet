@@ -25,6 +25,7 @@ src/test/
 │       ├── createProductUseCase.test.ts # Create product use case tests
 │       ├── productService.test.ts      # Product service tests
 │       ├── listProductsUseCase.test.ts # List products use case tests
+│       ├── updateProductUseCase.test.ts # Update product use case tests
 │       └── getProductUseCase.test.ts    # Get product use case tests
 ├── integration/             # Integration tests (full app testing)
 │   └── app.test.ts         # App endpoint tests
@@ -150,6 +151,18 @@ Complete ListProductsUseCase testing:
 
 ---
 
+#### [`src/test/unit/products/updateProductUseCase.test.ts`](file:///e:/Project/jollyJet/src/test/unit/products/updateProductUseCase.test.ts)
+
+Complete UpdateProductUseCase testing:
+
+- ✅ **execute method**: Product not found error, price/stock/name/description/category/isActive/wishlist updates, partial updates, multiple field updates, zero stock handling, negative price validation
+- ✅ **dependency injection**: Constructor injection verification
+- ✅ **edge cases**: Undefined values handling, valid string values processing
+
+**Test Coverage:** 3 test suites, 15 tests
+
+---
+
 ### 3. Jest Configuration Update
 
 Updated [`jest.config.ts`](file:///e:/Project/jollyJet/jest.config.ts) to focus coverage on testable code:
@@ -206,13 +219,14 @@ src/test/
 │       ├── createProductUseCase.test.ts # 2 test suites, 9 tests
 │       ├── productService.test.ts      # 4 test suites, 15 tests
 │       ├── listProductsUseCase.test.ts # 2 test suites, 14 tests
+│       ├── updateProductUseCase.test.ts # 3 test suites, 15 tests
 │       └── getProductUseCase.test.ts    # 1 test suite, 4 tests
 ├── integration/             # Integration Tests
 │   └── app.test.ts         # 4 test suites, 7 tests
 └── setup.ts                # Test environment setup
 ```
 
-### Total Test Suites: 11
+### Total Test Suites: 12
 
 1. **Integration:** App Endpoints (app.test.ts) - 4 test suites, 7 tests
 2. **Unit:** Middleware Tests (middleware.test.ts) - 2 test suites, 8 tests
@@ -222,12 +236,13 @@ src/test/
 6. **Unit:** Product Repository Tests ([Product Repository Test Documentation](./products/step2.2-product-repository-test.md)) - 9 test suites, 18 tests
 7. **Unit:** Product Validators Tests ([Product Validators Test Documentation](./products/step3.2-product-validators-test.md)) - 6 test suites, 47 tests
 8. **Unit:** CreateProductUseCase Tests ([CreateProductUseCase Test Documentation](./products/step4.2-create-product-usecase-test.md)) - 2 test suites, 9 tests
-9. **Unit:** ProductService Tests ([ProductService Test Documentation](./products/step1.4-product-service-test.md)) - 4 test suites, 15 tests
+9. **Unit:** ProductService Tests ([ProductService Test Documentation](./products/step1.3-product-service-test.md)) - 4 test suites, 15 tests
 10. **Unit:** ListProductsUseCase Tests ([ListProductsUseCase Test Documentation](./products/step4.2-list-products-usecase-test.md)) - 2 test suites, 14 tests
-11. **Unit:** GetProductUseCase Tests ([GetProductUseCase Test Documentation](./products/step4.2-get-product-usecase-test.md)) - 1 test suite, 4 tests
-12. **Setup:** Test Setup (setup.ts)
+11. **Unit:** UpdateProductUseCase Tests ([UpdateProductUseCase Test Documentation](./products/step4.2-update-product-usecase-test.md)) - 3 test suites, 15 tests
+12. **Unit:** GetProductUseCase Tests ([GetProductUseCase Test Documentation](./products/step4.2-get-product-usecase-test.md)) - 1 test suite, 4 tests
+13. **Setup:** Test Setup (setup.ts)
 
-### Total Tests: 143 individual test cases
+### Total Tests: 158 individual test cases
 
 ### Coverage Metrics: 100%
 
@@ -235,6 +250,89 @@ src/test/
 - ✅ **Branches:** 100%
 - ✅ **Functions:** 100%
 - ✅ **Lines:** 100%
+
+### Current Test Execution Results
+
+```
+ PASS  src/test/unit/products/createProductUseCase.test.ts
+  CreateProductUseCase
+    execute method
+      √ should create a product successfully (5 ms)
+      √ should throw error for unavailable product (17 ms)
+      √ should handle optional isActive property (1 ms)
+      √ should handle explicit isActive property (1 ms)
+      √ should pass correct Product object to isAvailable (2 ms)
+      √ should handle validation errors from Product entity (4 ms)
+      √ should handle negative price validation (5 ms)
+      √ should handle negative stock validation (2 ms)
+    dependency injection
+      √ should inject repository and service dependencies (1 ms)
+
+ PASS  src/test/unit/products/getProductUseCase.test.ts
+  GetProductUseCase
+    execute method
+      √ should retrieve a product by ID successfully (6 ms)
+      √ should return null if product is not found (1 ms)
+      √ should handle repository errors (11 ms)
+    dependency injection
+      √ should inject repository dependency (1 ms)
+
+ PASS  src/test/unit/products/listProductsUseCase.test.ts
+  ListProductsUseCase
+    execute
+      √ should handle empty query parameters with defaults (7 ms)
+      √ should handle pagination parameters correctly (3 ms)
+      √ should limit maximum page size to 100 (2 ms)
+      √ should apply category filter when provided (1 ms)
+      √ should apply search filter when provided (2 ms)
+      √ should apply isActive filter when provided (1 ms)
+      √ should apply isInWishlist filter when provided (1 ms)
+      √ should apply valid priceRange filter when provided
+      √ should not apply invalid priceRange filter (1 ms)
+      √ should handle multiple filters simultaneously (2 ms)
+      √ should handle undefined priceRange gracefully (4 ms)
+    priceRange validation
+      √ should use ProductService.isValidPriceRange for validation (1 ms)
+      √ should reject priceRange with negative min value (1 ms)
+      √ should reject priceRange with negative max value (1 ms)
+
+ PASS  src/test/unit/products/updateProductUseCase.test.ts
+  UpdateProductUseCase
+    execute method
+      √ should throw error when product not found (22 ms)
+      √ should update product price successfully (4 ms)
+      √ should update product stock successfully (2 ms)
+      √ should update product name successfully (2 ms)
+      √ should update product description successfully (2 ms)
+      √ should update product category successfully (2 ms)
+      √ should update product isActive status successfully (1 ms)
+      √ should update product wishlist status successfully (2 ms)
+      √ should handle partial updates correctly (2 ms)
+      √ should update multiple fields at once (1 ms)
+      √ should handle zero stock update (1 ms)
+      √ should handle negative price validation in update (2 ms)
+    dependency injection
+      √ should inject repository and service dependencies (1 ms)
+    edge cases
+      √ should handle undefined values in UpdateProductDTO (1 ms)
+      √ should handle empty string values appropriately (2 ms)
+
+ PASS  src/test/integration/app.test.ts (5.325 s)
+  App Endpoints
+    GET /health
+      √ should return status ok with timestamp (25 ms)
+    GET /api-docs.json
+      √ should return swagger specification as JSON (9 ms)
+      √ should include health endpoint in swagger spec (7 ms)
+    GET /api-docs
+      √ should serve swagger UI HTML (8 ms)
+    Error Handling
+      √ should handle 404 for non-existent routes (7 ms)
+
+Test Suites: 12 passed, 12 total
+Tests:       158 passed, 158 total
+Snapshots:   0 total
+```
 
 ---
 
@@ -287,8 +385,8 @@ After running `npm run test:coverage`, view the detailed coverage report at:
 
 ✅ **100% test coverage achieved** for all critical application code
 ✅ **Tests organized** into unit and integration folders
-✅ **10 comprehensive test suites** created
-✅ **143 test cases** covering all code paths
+✅ **11 comprehensive test suites** created
+✅ **158 test cases** covering all code paths
 ✅ **Jest configuration optimized** to focus on testable code
 ✅ **All tests passing** with no errors or warnings
 ✅ **All utility functions implemented** and fully tested

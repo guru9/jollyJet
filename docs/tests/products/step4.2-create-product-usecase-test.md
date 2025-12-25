@@ -293,22 +293,22 @@ npm run test:watch -- src/test/unit/products/createProductUseCase.test.ts
 
 ## Test Results
 
-**Expected Output:**
+**Actual Test Execution Output:**
 
 ```
  PASS  src/test/unit/products/createProductUseCase.test.ts
   CreateProductUseCase
     execute method
-      ✓ should create a product successfully (10ms)
-      ✓ should throw error for unavailable product (5ms)
-      ✓ should handle optional isActive property (3ms)
-      ✓ should handle explicit isActive property (2ms)
-      ✓ should pass correct Product object to isAvailable (4ms)
-      ✓ should handle validation errors from Product entity (1ms)
-      ✓ should handle negative price validation (1ms)
-      ✓ should handle negative stock validation (1ms)
+      √ should create a product successfully (5 ms)
+      √ should throw error for unavailable product (17 ms)
+      √ should handle optional isActive property (1 ms)
+      √ should handle explicit isActive property (1 ms)
+      √ should pass correct Product object to isAvailable (2 ms)
+      √ should handle validation errors from Product entity (4 ms)
+      √ should handle negative price validation (5 ms)
+      √ should handle negative stock validation (2 ms)
     dependency injection
-      ✓ should inject repository and service dependencies (1ms)
+      √ should inject repository and service dependencies (1 ms)
 
 Test Suites: 1 passed, 1 total
 Tests:       9 passed, 9 total

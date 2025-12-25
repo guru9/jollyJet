@@ -1,4 +1,4 @@
-# Step 1.4: Product Service Test Documentation
+# Step 1.3: Product Service Test Documentation
 
 ## Overview
 

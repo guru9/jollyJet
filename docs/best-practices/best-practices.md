@@ -38,6 +38,7 @@ The project follows strict Clean Architecture principles to separate concerns an
 - **Single Responsibility**: Each class/module has one reason to change
 - **Dependency Injection**: Using tsyringe for IoC container management
 - **Factory Pattern**: Entities use factory methods for creation and validation
+- **DI Token Strategy**: Use tokens for interfaces, direct injection for concrete classes
 
 ### File Organization
 
@@ -174,6 +175,135 @@ Use cases orchestrate domain logic and implement application-specific workflows.
 - **Transaction Management**: Handle transactions at use case level
 - **Input/Output DTOs**: Use DTOs for input/output contracts
 
+### Dependency Injection Patterns
+
+**Reflect Metadata Import**: Always include `import 'reflect-metadata';` at the top of files using tsyringe decorators.
+
+```typescript
+// ✅ Required for decorator-based DI
+import 'reflect-metadata';
+import { inject, injectable } from 'tsyringe';
+
+@injectable()
+export class UpdateProductUseCase {
+  constructor(
+    @inject(DI_TOKENS.PRODUCT_REPOSITORY) private productRepository: IProductRepository,
+    private productService: ProductService // No @inject needed for concrete classes
+  ) {}
+}
+```
+
+`import 'reflect-metadata';` **is required** in `UpdateProductUseCase.ts`. Here's why:
+
+### Why It's Required
+
+### 1. **Decorator Support**
+
+The file uses TypeScript decorators from the `tsyringe` library:
+
+- `@injectable()` - Marks the class as injectable for dependency injection
+- `@inject(DI_TOKENS.PRODUCT_REPOSITORY)` - Injects the repository dependency
+
+### 2. **Metadata Reflection**
+
+`reflect-metadata` provides the runtime metadata reflection that these decorators need to function. Without it, the decorators won't work properly, and dependency injection will fail.
+
+### 3. **Standard Practice**
+
+This import is a standard requirement when using `tsyringe` decorators in TypeScript projects following Clean Architecture patterns.
+
+## Current Implementation
+
+The import is correctly present at the top of the file:
+
+```typescript
+import 'reflect-metadata';
+import { inject, injectable } from 'tsyringe';
+// ... rest of imports
+```
+
+## Alternative
+
+If you weren't using decorators, you could remove it, but since the use case relies on dependency injection through decorators (as shown in the constructor), it's essential to keep this import.
+
+## Verification
+
+The code compiles and runs successfully with this import, and removing it would cause runtime errors during dependency injection. The tests also pass, confirming that the metadata reflection is working correctly.
+
+**Bottom line:** Keep the `import 'reflect-metadata';` - it's required for the dependency injection system to work properly.
+
+**When to use `@inject()` decorators:**
+
+- **Interfaces**: Use `@inject(token)` for repository interfaces and abstractions
+- **Concrete Classes**: Direct injection for domain services and utilities
+- **Configuration**: Use tokens for external services that may have multiple implementations
+
+#### Interface vs Concrete Class Injection
+
+**Correct Approach: No `@inject` Decorator for `ProductService`**
+
+```typescript
+// ✅ Best Practice - Current Implementation
+constructor(
+  @inject(DI_TOKENS.PRODUCT_REPOSITORY) private productRepository: IProductRepository,
+  private productService: ProductService  // No @inject needed
+) {}
+```
+
+### Why This Pattern Exists:
+
+1. **Interface vs Concrete Class**:
+   - `IProductRepository` is an **interface** with multiple potential implementations (MongoDB, SQL, in-memory)
+   - `ProductService` is a **concrete class** with a single, stable implementation
+
+2. **Dependency Inversion Principle**:
+   - **Repository**: Uses DI token because use cases depend on abstractions, not concretions
+   - **Service**: Direct injection because it's a domain service with stable implementation
+
+3. **Project Pattern Consistency**:
+   All existing use cases follow this exact pattern:
+   - `CreateProductUseCase`: `@inject(DI_TOKENS.PRODUCT_REPOSITORY)` + `private productService: ProductService`
+   - `ListProductsUseCase`: Same pattern
+   - `UpdateProductUseCase`: Same pattern
+
+**Incorrect Approach: `@inject(ProductService)`**
+
+```typescript
+// ❌ Not Recommended - Violates established patterns
+constructor(
+  @inject(DI_TOKENS.PRODUCT_REPOSITORY) private productRepository: IProductRepository,
+  @inject(ProductService) private productService: ProductService  // ❌ Wrong
+) {}
+```
+
+**Why This Would Be Wrong:**
+
+- **Unnecessary Complexity**: `ProductService` doesn't need a token
+- **Pattern Inconsistency**: Breaks established codebase conventions
+- **Over-engineering**: Adds complexity without benefit
+- **Maintenance Burden**: Requires additional DI container registration
+
+**Best Practice Guidelines:**
+
+✅ **Use `@inject(token)` for:**
+
+- Interfaces (repositories, external services)
+- Abstractions that might have multiple implementations
+- Third-party services that need configuration
+
+✅ **Use direct injection for:**
+
+- Domain services with single implementations
+- Concrete classes that are stable and unlikely to change
+- Utility classes and helpers
+
+**Verification:**
+
+- `ProductService` is auto-resolved by tsyringe
+- Tests pass with mocked services
+- Code compiles and runs without issues
+- Follows the same pattern as all other use cases
+
 **Example Use Case Structure:**
 
 ```typescript
@@ -255,6 +385,7 @@ Testing structure and practices.
 - **Path Aliases**: Use `@/*` for clean imports (e.g., `@/domain/entities/Product`)
 - **Decorators**: Enabled for dependency injection metadata
 - **Source Maps**: Enabled for debugging
+- **Reflect Metadata**: Required for tsyringe decorator-based dependency injection
 
 ### Code Quality Tools
 

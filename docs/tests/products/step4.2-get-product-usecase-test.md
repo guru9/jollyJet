@@ -196,17 +196,17 @@ To run the tests, use the following command:
 npm run test
 ```
 
-### Expected Output
+### Actual Test Execution Output
 
 ```
-PASS src/test/unit/products/getProductUseCase.test.ts
+ PASS  src/test/unit/products/getProductUseCase.test.ts
   GetProductUseCase
     execute method
-      √ should retrieve a product by ID successfully (12 ms)
-      √ should return null if product is not found (2 ms)
-      √ should handle repository errors (12 ms)
+      √ should retrieve a product by ID successfully (6 ms)
+      √ should return null if product is not found (1 ms)
+      √ should handle repository errors (11 ms)
     dependency injection
-      √ should inject repository dependency (3 ms)
+      √ should inject repository dependency (1 ms)
 
 Test Suites: 1 passed, 1 total
 Tests:       4 passed, 4 total
