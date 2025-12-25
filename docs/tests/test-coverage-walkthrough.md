@@ -27,7 +27,8 @@ src/test/
 │       ├── listProductsUseCase.test.ts # List products use case tests
 │       ├── updateProductUseCase.test.ts # Update product use case tests
 │       ├── deleteProductUseCase.test.ts # Delete product use case tests
-│       └── getProductUseCase.test.ts    # Get product use case tests
+│       ├── getProductUseCase.test.ts    # Get product use case tests
+│       └── toggleWishlistProductUseCase.test.ts # Toggle wishlist product use case tests
 ├── integration/             # Integration tests (full app testing)
 │   └── app.test.ts         # App endpoint tests
 └── setup.ts                # Test environment setup
@@ -177,6 +178,17 @@ Complete DeleteProductUseCase testing:
 
 ---
 
+#### [`src/test/unit/products/toggleWishlistProductUseCase.test.ts`](file:///e:/Project/jollyJet/src/test/unit/products/toggleWishlistProductUseCase.test.ts)
+
+Complete ToggleWishlistProductUseCase testing:
+
+- ✅ **execute method**: Successful wishlist toggle to true/false, product not found error, empty/null/undefined ID validation, repository error handling during findById and toggleWishlistStatus
+- ✅ **dependency injection**: Constructor injection verification
+
+**Test Coverage:** 2 test suites, 8 tests
+
+---
+
 ### 3. Jest Configuration Update
 
 Updated [`jest.config.ts`](file:///e:/Project/jollyJet/jest.config.ts) to focus coverage on testable code:
@@ -235,13 +247,14 @@ src/test/
 │       ├── listProductsUseCase.test.ts # 2 test suites, 14 tests
 │       ├── updateProductUseCase.test.ts # 3 test suites, 15 tests
 │       ├── deleteProductUseCase.test.ts # 4 test suites, 12 tests
-│       └── getProductUseCase.test.ts    # 1 test suite, 4 tests
+│       ├── getProductUseCase.test.ts    # 1 test suite, 4 tests
+│       └── toggleWishlistProductUseCase.test.ts # 2 test suites, 8 tests
 ├── integration/             # Integration Tests
 │   └── app.test.ts         # 4 test suites, 7 tests
 └── setup.ts                # Test environment setup
 ```
 
-### Total Test Suites: 13
+### Total Test Suites: 14
 
 1. **Integration:** App Endpoints (app.test.ts) - 4 test suites, 7 tests
 2. **Unit:** Middleware Tests (middleware.test.ts) - 2 test suites, 8 tests
@@ -249,15 +262,17 @@ src/test/
 4. **Unit:** Error Classes (errors.test.ts) - 8 test suites, 22 tests
 5. **Unit:** Product Entity Tests ([Product Entity Test Documentation](./products/step1.1-product-entity-test.md)) - 2 test suites, 5 tests
 6. **Unit:** Product Repository Tests ([Product Repository Test Documentation](./products/step2.2-product-repository-test.md)) - 9 test suites, 18 tests
-7. **Unit:** Product Validators Tests ([Product Validators Test Documentation](./products/step3.2-product-validators-test.md)) - 6 test suites, 47 tests
-8. **Unit:** CreateProductUseCase Tests ([CreateProductUseCase Test Documentation](./products/step4.2-create-product-usecase-test.md)) - 2 test suites, 9 tests
-9. **Unit:** ProductService Tests ([ProductService Test Documentation](./products/step1.3-product-service-test.md)) - 4 test suites, 15 tests
+7. **Unit:** ProductService Tests ([ProductService Test Documentation](./products/step1.3-product-service-test.md)) - 4 test suites, 15 tests
+8. **Unit:** Product Validators Tests ([Product Validators Test Documentation](./products/step3.2-product-validators-test.md)) - 6 test suites, 47 tests
+9. **Unit:** CreateProductUseCase Tests ([CreateProductUseCase Test Documentation](./products/step4.2-create-product-usecase-test.md)) - 2 test suites, 9 tests
 10. **Unit:** ListProductsUseCase Tests ([ListProductsUseCase Test Documentation](./products/step4.2-list-products-usecase-test.md)) - 2 test suites, 14 tests
 11. **Unit:** UpdateProductUseCase Tests ([UpdateProductUseCase Test Documentation](./products/step4.2-update-product-usecase-test.md)) - 3 test suites, 15 tests
 12. **Unit:** GetProductUseCase Tests ([GetProductUseCase Test Documentation](./products/step4.2-get-product-usecase-test.md)) - 1 test suite, 4 tests
-13. **Setup:** Test Setup (setup.ts)
+13. **Unit:** DeleteProductUseCase Tests ([DeleteProductUseCase Test Documentation](./products/step4.2-delete-product-usecase-test.md)) - 4 test suites, 12 tests
+14. **Unit:** ToggleWishlistProductUseCase Tests ([ToggleWishlistProductUseCase Test Documentation](./products/step4.2-toggle-wishlist-product-usecase-test.md)) - 2 test suites, 8 tests
+15. **Setup:** Test Setup (setup.ts)
 
-### Total Tests: 170 individual test cases
+### Total Tests: 178 individual test cases
 
 ### Coverage Metrics: 100%
 
@@ -332,6 +347,38 @@ src/test/
       √ should handle undefined values in UpdateProductDTO (1 ms)
       √ should handle empty string values appropriately (2 ms)
 
+ PASS  src/test/unit/products/deleteProductUseCase.test.ts
+  DeleteProductUseCase
+    execute method
+      √ should successfully delete an existing product (3 ms)
+      √ should return false when product does not exist (1 ms)
+      √ should throw error for empty product ID (12 ms)
+      √ should throw error for null/undefined product ID (1 ms)
+      √ should handle repository delete failure (1 ms)
+      √ should handle repository errors during findById (1 ms)
+      √ should handle repository errors during delete
+    dependency injection
+      √ should inject repository dependency (3 ms)
+    business logic validation
+      √ should validate product exists before deletion (1 ms)
+      √ should prevent deletion of non-existent products (1 ms)
+    error handling
+      √ should propagate repository errors (1 ms)
+      √ should handle network timeouts gracefully (1 ms)
+
+ PASS  src/test/unit/products/toggleWishlistProductUseCase.test.ts
+  ToggleWishlistProductUseCase
+    execute method
+      √ should toggle wishlist status successfully (13 ms)
+      √ should throw error when product not found (18 ms)
+      √ should throw error for empty product ID (8 ms)
+      √ should throw error for null/undefined product ID (3 ms)
+      √ should handle toggling to false (2 ms)
+      √ should handle repository errors during findById (2 ms)
+      √ should handle repository errors during toggleWishlistStatus (2 ms)
+    dependency injection
+      √ should inject repository dependency (1 ms)
+
  PASS  src/test/integration/app.test.ts (5.325 s)
   App Endpoints
     GET /health
@@ -344,8 +391,8 @@ src/test/
     Error Handling
       √ should handle 404 for non-existent routes (7 ms)
 
-Test Suites: 12 passed, 12 total
-Tests:       158 passed, 158 total
+Test Suites: 14 passed, 14 total
+Tests:       178 passed, 178 total
 Snapshots:   0 total
 ```
 
@@ -398,12 +445,12 @@ After running `npm run test:coverage`, view the detailed coverage report at:
 
 ## Summary
 
-✅ **100% test coverage achieved** for all critical application code
-✅ **Tests organized** into unit and integration folders
-✅ **12 comprehensive test suites** created
-✅ **170 test cases** covering all code paths
-✅ **Jest configuration optimized** to focus on testable code
-✅ **All tests passing** with no errors or warnings
+✅ **100% test coverage achieved** for all critical application code  
+✅ **Tests organized** into unit and integration folders  
+✅ **14 comprehensive test suites** created  
+✅ **178 test cases** covering all code paths  
+✅ **Jest configuration optimized** to focus on testable code  
+✅ **All tests passing** with no errors or warnings  
 ✅ **All utility functions implemented** and fully tested
 
 The JollyJet application now has robust test coverage ensuring code quality and reliability! 🎉
