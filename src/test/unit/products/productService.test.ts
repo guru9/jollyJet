@@ -26,7 +26,9 @@ describe('ProductService', () => {
     });
 
     it('should return false when priceRange is null', () => {
-      const result = productService.isValidPriceRange(null as any);
+      const result = productService.isValidPriceRange(
+        null as unknown as { min: number; max: number } | undefined
+      );
       expect(result).toBe(false);
     });
 
