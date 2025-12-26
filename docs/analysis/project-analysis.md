@@ -4,7 +4,7 @@
 
 **Last Updated:** December 24, 2025 - 18:04 UTC
 **Project:** JollyJet E-commerce Application
-**Architecture:** Clean Architecture with TypeScript + Express + MongoDB
+**Architecture:** Clean Architecture with TypeScript + Express + MongoDB (Monolithic)
 
 ---
 
@@ -16,7 +16,7 @@ JollyJet is a **high-performance e-commerce shopping application** built with mo
 
 ---
 
-## 🏗️ Architecture Assessment
+## 🏗️ Architecture Assessment - Monolithic
 
 ### **Clean Architecture Implementation** ⭐⭐⭐⭐⭐
 
@@ -427,6 +427,10 @@ The project is ready to implement the first feature module following the establi
 **Best Practices Documentation:**
 
 - 📚 **[Best Practices Guide](../best-practices/best-practices.md)** - Complete project best practices, do's and don'ts, and architecture guidelines
+
+**Microservices Migration Documentation:**
+
+- 🚀 **[Microservices Migration Plan](../migrations/microservices-migration-plan.md)** - Comprehensive plan for transitioning to microservices architecture
 
 **Planned Implementation Order:**
 

@@ -80,6 +80,12 @@ npm install sequelize sequelize-typescript
 
 # For Prisma
 npm install prisma @prisma/client
+
+# For specific database drivers (choose one):
+npm install pg          # PostgreSQL
+npm install mysql2      # MySQL
+npm install sqlite3     # SQLite
+npm install mssql       # Microsoft SQL Server
 ```
 
 ### 2. Create SQL Models
@@ -258,10 +264,10 @@ config();
 
 export const createTypeORMConnection = async (): Promise<DataSource> => {
   return new DataSource({
-    type: 'postgres', // or 'mysql', 'sqlite', 'mssql', etc.
+    type: (process.env.DB_TYPE as any) || 'postgres', // Can be 'postgres', 'mysql', 'sqlite', 'mssql', etc.
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '5432'),
-    username: process.env.DB_USER || 'postgres',
+    username: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || 'password',
     database: process.env.DB_NAME || 'jollyjet',
     entities: [SqlProductModel],
@@ -493,5 +499,12 @@ describe('SqlProductRepository', () => {
 3. **Tight Coupling**: Ensure repositories depend on abstractions, not concrete models
 4. **Ignoring Transactions**: Implement proper transaction handling for data consistency
 5. **Over-optimizing**: Start with simple implementation, optimize later if needed
+
+## Related Guides
+
+For specific database migrations, refer to:
+
+- [PostgreSQL Migration Guide](./postgresql-migration-guide.md) - Detailed guide for PostgreSQL-specific migration
+- [SQL Integration Findings](./sql-integration-findings.md) - Comprehensive analysis of SQL integration options
 
 This migration guide ensures a smooth transition from MongoDB to SQL while maintaining all the benefits of Clean Architecture.

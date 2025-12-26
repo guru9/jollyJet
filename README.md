@@ -19,6 +19,7 @@
 - 📚 **[Best Practices Guide](./docs/best-practices/best-practices.md)** - Complete project best practices and architecture guidelines
 - 🔄 **[SQL Migration Guide](./docs/migrations/sql-migration-guide.md)** - Comprehensive guide for database migration from MongoDB to SQL
 - 📊 **[SQL Integration Findings](./docs/migrations/sql-integration-findings.md)** - Detailed findings and recommendations for SQL integration
+- 🚀 **[Microservices Migration Plan](./docs/migrations/microservices-migration-plan.md)** - Comprehensive plan for transitioning to microservices architecture
 
 ### 📊 Flowcharts & Visualizations
 
@@ -100,7 +101,7 @@ Once the server is running, access the interactive API documentation:
 
 ---
 
-## 🏛️ Clean Architecture
+## 🏛️ Clean Architecture - Monolithic
 
 The project follows strict Clean Architecture principles to separate concerns and ensure scalability.
 
