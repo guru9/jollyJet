@@ -486,6 +486,8 @@ The Product Module follows a systematic implementation approach based on Clean A
 
 **✅ Critical Dependency Flow:** Step 4.1 (Shared Constants) must come before Step 4.2 (Use Cases) due to DI_TOKENS dependency
 
+**🖼️ Visual Architecture Reference:** For a comprehensive visual representation of the product module architecture and data flow, refer to the **[Product Flowchart](../flowchart/product-flowchart.md)** which illustrates the complete Clean Architecture implementation with all layers and their interactions.
+
 ---
 
 ## 🎯 _Key Objectives_

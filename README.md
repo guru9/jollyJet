@@ -20,6 +20,12 @@
 - 🔄 **[SQL Migration Guide](./docs/migrations/sql-migration-guide.md)** - Comprehensive guide for database migration from MongoDB to SQL
 - 📊 **[SQL Integration Findings](./docs/migrations/sql-integration-findings.md)** - Detailed findings and recommendations for SQL integration
 
+### 📊 Flowcharts & Visualizations
+
+- 🖼️ **[JollyJet E-Commerce Flow](./docs/flowchart/jollyjet-ecommerce-flow.md)** - Visual representation of the complete e-commerce user journey
+
+- 🖼️ **[Product Flowchart](./docs/flowchart/product-flowchart.md)** - Detailed flowchart of the product module architecture and data flow
+
 ### 🏗️ Implementation Plans
 
 > Detailed technical specs for each completed phase:
@@ -205,6 +211,75 @@ src/
 │
 ├── 🚀 app.ts                               # App setup
 └── 🎬 server.ts                            # Entry point
+```
+
+---
+
+## 🛠️ Technology Stack
+
+### **Modern & Robust Stack** ⭐⭐⭐⭐⭐
+
+| Category                 | Technology            | Version         | Purpose                          |
+| ------------------------ | --------------------- | --------------- | -------------------------------- |
+| **Runtime**              | Node.js               | Latest LTS      | JavaScript runtime               |
+| **Language**             | TypeScript            | 5.9.3           | Strict typing & modern features  |
+| **Framework**            | Express.js            | 5.1.0           | Web framework                    |
+| **Database**             | MongoDB + Mongoose    | 9.0.0           | Type-safe ODM                    |
+| **Dependency Injection** | tsyringe              | 4.10.0          | Industry standard DI             |
+| **Validation**           | Zod                   | 4.1.13          | Runtime validation               |
+| **Testing**              | Jest + Supertest      | 30.2.0 + 7.1.4  | Comprehensive testing            |
+| **Documentation**        | Swagger/OpenAPI       | 6.2.8 + 5.0.1   | Auto-generated API docs          |
+| **Logging**              | Pino + Pino-pretty    | 10.1.0 + 13.1.3 | Structured logging               |
+| **Code Quality**         | Prettier + ESLint v9  | 3.7.4 + 9.39.1  | Modern code formatting & linting |
+| **Development**          | Nodemon               | 3.1.11          | Hot reloading                    |
+| **Test Database**        | mongodb-memory-server | 10.4.1          | In-memory testing                |
+
+### **Complete Package List**
+
+**Production Dependencies:**
+
+```json
+{
+  "cors": "^2.8.5",
+  "dotenv": "^17.2.3",
+  "express": "^5.1.0",
+  "mongoose": "^9.0.0",
+  "pino": "^10.1.0",
+  "pino-pretty": "^13.1.3",
+  "reflect-metadata": "^0.2.2",
+  "swagger-jsdoc": "^6.2.8",
+  "swagger-ui-express": "^5.0.1",
+  "tsyringe": "^4.10.0",
+  "zod": "^4.1.13"
+}
+```
+
+**Development Dependencies:**
+
+```json
+{
+  "@eslint/js": "^9.39.1",
+  "@jest/types": "^30.2.0",
+  "@types/cors": "^2.8.19",
+  "@types/dotenv": "^8.2.0",
+  "@types/express": "^5.0.5",
+  "@types/jest": "^30.0.0",
+  "@types/node": "^24.10.1",
+  "@types/supertest": "^6.0.3",
+  "@types/swagger-jsdoc": "^6.0.4",
+  "@types/swagger-ui-express": "^4.1.8",
+  "eslint": "^9.39.1",
+  "eslint-config-prettier": "^10.1.8",
+  "jest": "^30.2.0",
+  "mongodb-memory-server": "^10.4.1",
+  "nodemon": "^3.1.11",
+  "prettier": "^3.7.4",
+  "supertest": "^7.1.4",
+  "ts-jest": "^29.4.6",
+  "ts-node": "^10.9.2",
+  "typescript": "^5.9.3",
+  "typescript-eslint": "^8.48.1"
+}
 ```
 
 ---

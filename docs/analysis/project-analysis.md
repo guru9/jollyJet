@@ -410,6 +410,11 @@ The project is ready to implement the first feature module following the establi
 - 📄 **[Delete Product Use Case Analysis](./products/step4.2-delete-product-usecase.md)** - Comprehensive analysis of the DeleteProductUseCase implementation with input validation and business rule enforcement
 - 📄 **[Toggle Wishlist Product Use Case Analysis](./products/step4.2-toggle-wishlist-product-usecase.md)** - Comprehensive analysis of the ToggleWishlistProductUseCase implementation with wishlist toggle functionality
 
+**Flowcharts & Visualizations:**
+
+- 🖼️ **[JollyJet E-Commerce Flow](../flowchart/jollyjet-ecommerce-flow.md)** - Visual representation of the complete e-commerce user
+- 🖼️ **[Product Flowchart](../flowchart/product-flowchart.md)** - Detailed flowchart of the product module architecture and data flow
+
 **TestCase Documentation:**
 
 - 🧪 **[Main Tests](../tests/test-coverage-walkthrough.md)** - Comprehensive unit tests for the Main testcase
