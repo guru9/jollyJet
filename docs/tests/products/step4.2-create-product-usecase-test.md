@@ -6,7 +6,7 @@ Comprehensive test suite for the `CreateProductUseCase` implementation, ensuring
 
 ## Test File Location
 
-**File:** [`src/test/unit/products/createProductUseCase.test.ts`](file:///e:/Project/jollyJet/src/test/unit/products/createProductUseCase.test.ts)
+**File:** [`src/__tests__/unit/products/createProductUseCase.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/products/createProductUseCase.test.ts)
 
 ## Test Structure
 
@@ -282,13 +282,13 @@ npm test
 ### Run Only CreateProductUseCase Tests
 
 ```bash
-npm test -- src/test/unit/products/createProductUseCase.test.ts
+npm test -- src/__tests__/unit/products/createProductUseCase.test.ts
 ```
 
 ### Run in Watch Mode
 
 ```bash
-npm run test:watch -- src/test/unit/products/createProductUseCase.test.ts
+npm run test:watch -- src/__tests__/unit/products/createProductUseCase.test.ts
 ```
 
 ## Test Results
@@ -296,7 +296,7 @@ npm run test:watch -- src/test/unit/products/createProductUseCase.test.ts
 **Actual Test Execution Output:**
 
 ```
- PASS  src/test/unit/products/createProductUseCase.test.ts
+ PASS  src/__tests__/unit/products/createProductUseCase.test.ts
   CreateProductUseCase
     execute method
       √ should create a product successfully (5 ms)

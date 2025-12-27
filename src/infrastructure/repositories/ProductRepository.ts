@@ -1,5 +1,6 @@
 import { Product } from '../../domain/entities/Product';
 import { IProductRepository, ProductFilter } from '../../domain/interfaces/IProductRepository';
+import { PRODUCT_ERROR_MESSAGES } from '../../shared/constants';
 import { PaginationParams } from '../../types';
 import { Productmodel } from '../models/ProductModel';
 
@@ -46,13 +47,13 @@ export class ProductRepository implements IProductRepository {
    */
   public async update(product: Product): Promise<Product> {
     const productData = product.toProps();
-    if (!productData.id) throw new Error('Product ID is required for update.');
+    if (!productData.id) throw new Error(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_REQ_UPDATE);
 
     //find the updated document, return the updated product
     const updatedProduct = await Productmodel.findByIdAndUpdate(productData.id, productData, {
       new: true,
     });
-    if (!updatedProduct) throw new Error('Product not found for update.');
+    if (!updatedProduct) throw new Error(PRODUCT_ERROR_MESSAGES.PRODUCT_NOT_FOUND_UPDATE);
     return Product.createProduct(updatedProduct.toObject());
   }
 
@@ -140,7 +141,7 @@ export class ProductRepository implements IProductRepository {
 
     //check if product doesn't exist
     if (!updatedProduct) {
-      throw new Error('Product not found');
+      throw new Error(PRODUCT_ERROR_MESSAGES.NOT_FOUND);
     }
 
     return Product.createProduct(updatedProduct.toObject()); // Convert to Product entity

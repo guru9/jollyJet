@@ -439,7 +439,7 @@ DB_TYPE=postgres
 ### 9. Update Tests for PostgreSQL Repository
 
 ```typescript
-// src/test/unit/products/postgresProductRepository.test.ts
+// src/__tests__/unit/products/postgresProductRepository.test.ts
 import { PostgresProductRepository } from '../../../infrastructure/repositories/PostgresProductRepository';
 import { Product } from '../../../domain/entities/Product';
 import { DataSource } from 'typeorm';

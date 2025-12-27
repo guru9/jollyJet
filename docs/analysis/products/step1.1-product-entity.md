@@ -45,7 +45,7 @@ This document provides a comprehensive analysis of the Product Entity implementa
 #### 1. Import Configuration ✅
 
 ```typescript
-// Added to src/test/unit/modules/product.test.ts
+// Added to src/__tests__/unit/modules/product.test.ts
 import { Product } from '../../../domain/entities/Product';
 ```
 
@@ -208,7 +208,7 @@ export interface ProductProps {
 ### Test File Structure
 
 ```
-src/test/unit/modules/product.test.ts
+src/__tests__/unit/modules/product.test.ts
 ├── isInWishlist property tests (3 tests)
 ├── wishlistCount property tests (2 tests)
 └── Comprehensive coverage of all functionality
@@ -332,7 +332,7 @@ src/test/unit/modules/product.test.ts
 
 ```
 src/domain/entities/Product.ts          # Main implementation
-src/test/unit/modules/product.test.ts  # Test suite
+src/__tests__/unit/modules/product.test.ts  # Test suite
 docs/analysis/products/step1.1-product-entity.md  # This analysis
 ```
 

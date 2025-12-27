@@ -31,8 +31,8 @@ describe('ListProductsUseCase', () => {
 
       const result = await listProductsUseCase.execute({});
 
-      expect(result).toEqual({ products: [], total: 0 });
-      expect(mockRepository.findAll).toHaveBeenCalledWith({}, 0, 10);
+      expect(result).toEqual({ products: [], total: 0, page: 1, limit: 10, totalPages: 0 });
+      expect(mockRepository.findAll).toHaveBeenCalledWith({}, { page: 1, limit: 10, skip: 0 });
       expect(mockRepository.count).toHaveBeenCalledWith({});
     });
 
@@ -56,8 +56,14 @@ describe('ListProductsUseCase', () => {
         limit: '20',
       });
 
-      expect(result).toEqual({ products: mockProducts, total: 1 });
-      expect(mockRepository.findAll).toHaveBeenCalledWith({}, 20, 20);
+      expect(result).toEqual({
+        products: mockProducts,
+        total: 1,
+        page: 2,
+        limit: 20,
+        totalPages: 1,
+      });
+      expect(mockRepository.findAll).toHaveBeenCalledWith({}, { page: 2, limit: 20, skip: 20 });
       expect(mockRepository.count).toHaveBeenCalledWith({});
     });
 
@@ -69,7 +75,7 @@ describe('ListProductsUseCase', () => {
         limit: '200',
       });
 
-      expect(mockRepository.findAll).toHaveBeenCalledWith({}, 0, 100);
+      expect(mockRepository.findAll).toHaveBeenCalledWith({}, { page: 1, limit: 100, skip: 0 });
     });
 
     it('should apply category filter when provided', async () => {
@@ -80,7 +86,10 @@ describe('ListProductsUseCase', () => {
         category: 'Electronics',
       });
 
-      expect(mockRepository.findAll).toHaveBeenCalledWith({ category: 'Electronics' }, 0, 10);
+      expect(mockRepository.findAll).toHaveBeenCalledWith(
+        { category: 'Electronics' },
+        { page: 1, limit: 10, skip: 0 }
+      );
       expect(mockRepository.count).toHaveBeenCalledWith({ category: 'Electronics' });
     });
 
@@ -92,7 +101,10 @@ describe('ListProductsUseCase', () => {
         search: 'laptop',
       });
 
-      expect(mockRepository.findAll).toHaveBeenCalledWith({ search: 'laptop' }, 0, 10);
+      expect(mockRepository.findAll).toHaveBeenCalledWith(
+        { search: 'laptop' },
+        { page: 1, limit: 10, skip: 0 }
+      );
     });
 
     it('should apply isActive filter when provided', async () => {
@@ -103,7 +115,10 @@ describe('ListProductsUseCase', () => {
         isActive: true,
       });
 
-      expect(mockRepository.findAll).toHaveBeenCalledWith({ isActive: true }, 0, 10);
+      expect(mockRepository.findAll).toHaveBeenCalledWith(
+        { isActive: true },
+        { page: 1, limit: 10, skip: 0 }
+      );
     });
 
     it('should apply isInWishlist filter when provided', async () => {
@@ -114,7 +129,10 @@ describe('ListProductsUseCase', () => {
         isInWishlist: true,
       });
 
-      expect(mockRepository.findAll).toHaveBeenCalledWith({ isInWishlist: true }, 0, 10);
+      expect(mockRepository.findAll).toHaveBeenCalledWith(
+        { isInWishlist: true },
+        { page: 1, limit: 10, skip: 0 }
+      );
     });
 
     it('should apply valid priceRange filter when provided', async () => {
@@ -127,8 +145,7 @@ describe('ListProductsUseCase', () => {
 
       expect(mockRepository.findAll).toHaveBeenCalledWith(
         { priceRange: { min: 50, max: 200 } },
-        0,
-        10
+        { page: 1, limit: 10, skip: 0 }
       );
     });
 
@@ -140,7 +157,7 @@ describe('ListProductsUseCase', () => {
         priceRange: { min: -10, max: 200 },
       });
 
-      expect(mockRepository.findAll).toHaveBeenCalledWith({}, 0, 10);
+      expect(mockRepository.findAll).toHaveBeenCalledWith({}, { page: 1, limit: 10, skip: 0 });
       expect(mockRepository.count).toHaveBeenCalledWith({});
     });
 
@@ -166,15 +183,20 @@ describe('ListProductsUseCase', () => {
         limit: '5',
       });
 
-      expect(result).toEqual({ products: mockProducts, total: 1 });
+      expect(result).toEqual({
+        products: mockProducts,
+        total: 1,
+        page: 1,
+        limit: 5,
+        totalPages: 1,
+      });
       expect(mockRepository.findAll).toHaveBeenCalledWith(
         {
           category: 'Electronics',
           isActive: true,
           priceRange: { min: 100, max: 300 },
         },
-        0,
-        5
+        { page: 1, limit: 5, skip: 0 }
       );
     });
 
@@ -186,7 +208,7 @@ describe('ListProductsUseCase', () => {
         priceRange: undefined,
       });
 
-      expect(mockRepository.findAll).toHaveBeenCalledWith({}, 0, 10);
+      expect(mockRepository.findAll).toHaveBeenCalledWith({}, { page: 1, limit: 10, skip: 0 });
     });
   });
 
@@ -213,7 +235,7 @@ describe('ListProductsUseCase', () => {
         priceRange: { min: -5, max: 100 },
       });
 
-      expect(mockRepository.findAll).toHaveBeenCalledWith({}, 0, 10);
+      expect(mockRepository.findAll).toHaveBeenCalledWith({}, { page: 1, limit: 10, skip: 0 });
     });
 
     it('should reject priceRange with negative max value', async () => {
@@ -224,7 +246,7 @@ describe('ListProductsUseCase', () => {
         priceRange: { min: 10, max: -5 },
       });
 
-      expect(mockRepository.findAll).toHaveBeenCalledWith({}, 0, 10);
+      expect(mockRepository.findAll).toHaveBeenCalledWith({}, { page: 1, limit: 10, skip: 0 });
     });
   });
 });

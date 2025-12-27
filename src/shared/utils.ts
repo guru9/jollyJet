@@ -38,42 +38,6 @@ export const validateRequest = (schema: ZodType) => {
 };
 
 /**
- * Creates a standardized success response object.
- * @param data - Response data
- * @param message - Optional success message
- * @param statusCode - HTTP status code (default: 200)
- * @returns Standardized response object
- */
-export const createSuccessResponse = <T>(
-  data: T,
-  message?: string,
-  statusCode: number = HTTP_STATUS.OK
-) => ({
-  status: 'success',
-  message,
-  data,
-  statusCode,
-});
-
-/**
- * Creates a standardized error response object.
- * @param message - Error message
- * @param statusCode - HTTP status code (default: 500)
- * @param errors - Optional array of error details
- * @returns Standardized error response object
- */
-export const createErrorResponse = (
-  message: string,
-  statusCode: number = HTTP_STATUS.INTERNAL_SERVER_ERROR,
-  errors?: unknown[]
-) => ({
-  status: 'error',
-  message,
-  errors,
-  statusCode,
-});
-
-/**
  * Safely parses a string to an integer.
  * Returns the default value if parsing fails or input is not a string.
  * @param value - String value to parse
@@ -231,51 +195,6 @@ export const createPaginatedResponse = <T>(
       totalPages,
     },
   };
-};
-
-/**
- * Creates a success response object.
- * @param data - Response data
- * @param message - Optional success message
- * @returns Success response object
- */
-export const successResponse = <T>(data: T, message?: string) => {
-  return {
-    success: true,
-    data,
-    ...(message && { message }),
-  };
-};
-
-/**
- * Creates an error response object.
- * @param message - Error message
- * @param errors - Optional array of error details
- * @returns Error response object
- */
-export const errorResponse = (message: string, errors?: unknown[]) => {
-  return {
-    success: false,
-    message,
-    ...(errors && { errors }),
-  };
-};
-
-/**
- * Removes null and undefined values from an object.
- * @param obj - Object to sanitize
- * @returns New object without null/undefined values
- */
-export const sanitizeObject = <T extends Record<string, unknown>>(obj: T): Partial<T> => {
-  if (!obj || typeof obj !== 'object') return {};
-
-  const result: Partial<T> = {};
-  for (const key in obj) {
-    if (obj[key] !== null && obj[key] !== undefined) {
-      result[key] = obj[key];
-    }
-  }
-  return result;
 };
 
 /**

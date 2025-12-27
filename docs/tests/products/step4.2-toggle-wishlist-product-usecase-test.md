@@ -6,7 +6,7 @@ Comprehensive test suite for the `ToggleWishlistProductUseCase` implementation, 
 
 ## Test File Location
 
-**File:** [`src/test/unit/products/toggleWishlistProductUseCase.test.ts`](file:///e:/Project/jollyJet/src/test/unit/products/toggleWishlistProductUseCase.test.ts)
+**File:** [`src/__tests__/unit/products/toggleWishlistProductUseCase.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/products/toggleWishlistProductUseCase.test.ts)
 
 ## Test Structure
 
@@ -280,13 +280,13 @@ npm test
 ### Run Only ToggleWishlistProductUseCase Tests
 
 ```bash
-npm test -- src/test/unit/products/toggleWishlistProductUseCase.test.ts
+npm test -- src/__tests__/unit/products/toggleWishlistProductUseCase.test.ts
 ```
 
 ### Run in Watch Mode
 
 ```bash
-npm run test:watch -- src/test/unit/products/toggleWishlistProductUseCase.test.ts
+npm run test:watch -- src/__tests__/unit/products/toggleWishlistProductUseCase.test.ts
 ```
 
 ## Test Results
@@ -294,7 +294,7 @@ npm run test:watch -- src/test/unit/products/toggleWishlistProductUseCase.test.t
 **Actual Test Execution Output:**
 
 ```
- PASS  src/test/unit/products/toggleWishlistProductUseCase.test.ts
+ PASS  src/__tests__/unit/products/toggleWishlistProductUseCase.test.ts
   ToggleWishlistProductUseCase
     execute method
       √ should toggle wishlist status successfully (5 ms)

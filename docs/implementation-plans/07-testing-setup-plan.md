@@ -76,14 +76,14 @@ const config: Config.InitialOptions = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
-  setupFilesAfterEnv: ['<rootDir>/src/test/setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
   collectCoverageFrom: [
     'src/app.ts',
     'src/interface/middlewares/**/*.ts',
     'src/shared/utils.ts',
     'src/shared/errors.ts',
     '!src/**/*.d.ts',
-    '!src/test/**',
+    '!src/__tests__/**',
     '!src/server.ts',
     '!src/config/**',
   ],
@@ -96,7 +96,7 @@ export default config;
 
 ---
 
-### ✅ NEW: `src/test/setup.ts`
+### ✅ NEW: `src/__tests__/setup.ts`
 
 **Purpose**: Test environment configuration and global setup
 
@@ -116,7 +116,7 @@ jest.setTimeout(10000);
 
 ---
 
-### ✅ NEW: `src/test/integration/app.test.ts`
+### ✅ NEW: `src/__tests__/integration/app.test.ts`
 
 **Purpose**: Integration tests for application endpoints
 
@@ -162,7 +162,7 @@ describe('App Endpoints', () => {
 
 ---
 
-### ✅ NEW: `src/test/unit/utils.test.ts`
+### ✅ NEW: `src/__tests__/unit/utils.test.ts`
 
 **Purpose**: Unit tests for utility functions
 
@@ -180,7 +180,7 @@ Tests all utility functions including:
 
 ---
 
-### ✅ NEW: `src/test/unit/errors.test.ts`
+### ✅ NEW: `src/__tests__/unit/errors.test.ts`
 
 **Purpose**: Unit tests for custom error classes
 
@@ -198,7 +198,7 @@ Tests all error classes:
 
 ---
 
-### ✅ NEW: `src/test/unit/middleware.test.ts`
+### ✅ NEW: `src/__tests__/unit/middleware.test.ts`
 
 **Purpose**: Unit tests for middleware functions
 
@@ -256,7 +256,7 @@ Tests:
 
 ## Test Organization
 
-### Unit Tests (`src/test/unit/`)
+### Unit Tests (`src/__tests__/unit/`)
 
 Isolated component tests with no external dependencies:
 
@@ -264,7 +264,7 @@ Isolated component tests with no external dependencies:
 - Error classes
 - Middleware functions
 
-### Integration Tests (`src/test/integration/`)
+### Integration Tests (`src/__tests__/integration/`)
 
 Full application tests with all dependencies:
 
@@ -339,7 +339,7 @@ Open `coverage/lcov-report/index.html` in browser
 
 If tests fail:
 
-1. Check test environment setup in `src/test/setup.ts`
+1. Check test environment setup in `src/__tests__/setup.ts`
 2. Verify all dependencies installed: `npm install`
 3. Clear Jest cache: `npx jest --clearCache`
 4. Run tests with verbose output: `npm test -- --verbose`
@@ -395,7 +395,7 @@ If coverage is below 100%:
 ## Current Status
 
 ✅ Jest testing framework installed and configured  
-✅ Test setup file created (`src/test/setup.ts`)  
+✅ Test setup file created (`src/__tests__/setup.ts`)
 ✅ Unit tests created (utils, errors, middleware)  
 ✅ Integration tests created (app endpoints)  
 ✅ Tests organized into unit/integration folders  

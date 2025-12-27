@@ -4,7 +4,7 @@ import { Product } from '../domain/entities/Product';
 import { IProductRepository } from '../domain/interfaces/IProductRepository';
 import { ProductService } from '../domain/services/ProductService';
 import { UpdateProductDTO } from '../interface/dtos';
-import { DI_TOKENS } from '../shared/constants';
+import { DI_TOKENS, PRODUCT_ERROR_MESSAGES } from '../shared/constants';
 import { BadRequestError, NotFoundError } from '../shared/errors';
 
 /**
@@ -33,14 +33,14 @@ export class UpdateProductUseCase {
   public async execute(productId: string, productData: UpdateProductDTO): Promise<Product> {
     // Validate input
     if (!productId?.trim()) {
-      throw new BadRequestError('Product ID is required for updation.');
+      throw new BadRequestError(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_REQ_UPDATE);
     }
 
     // Retrieve the existing product using the repository
     let existingProduct = await this.productRepository.findById(productId);
 
     if (!existingProduct) {
-      throw new NotFoundError('Product not found.');
+      throw new NotFoundError(PRODUCT_ERROR_MESSAGES.NOT_FOUND);
     }
 
     // Apply all updates to the product

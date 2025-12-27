@@ -33,6 +33,16 @@ export enum RESPONSE_STATUS {
 }
 
 /**
+ * Standardized response status strings for API Errors.
+ */
+export const ERROR_STATUS = {
+  INTERNAL_SERVER_ERROR: 'Internal server error',
+  UNAUTHORIZED: 'Unauthorized access',
+  VALIDATION_ERROR: 'Validation error',
+  DATABASE_ERROR: 'Database operation failed',
+};
+/**
+ *
  * Success messages for product-related operations to provide consistent user feedback.
  */
 export const PRODUCT_SUCCESS_MESSAGES = {
@@ -50,12 +60,14 @@ export const PRODUCT_SUCCESS_MESSAGES = {
  * Error messages for product-related operations to provide consistent error responses.
  */
 export const PRODUCT_ERROR_MESSAGES = {
-  INTERNAL_SERVER_ERROR: 'Internal server error',
-  UNAUTHORIZED: 'Unauthorized access',
-  VALIDATION_ERROR: 'Validation error',
-  DATABASE_ERROR: 'Database operation failed',
-  NOT_FOUND: 'Product not found',
   NOT_AVAILABLE: 'Product is not available.',
+  NOT_FOUND: 'Product not found.',
+  PRODUCT_NOT_FOUND_UPDATE: 'Product not found for update.',
+  PRODUCT_ID_REQ_RETRIEVE: 'Product ID is required to retrieve the product.',
+  PRODUCT_ID_REQ_UPDATE: 'Product ID is required for updation.',
+  PRODUCT_ID_REQ_DELETE: 'Product ID is required for deletion.',
+  PRODUCT_ID_REQ_WISHLIST: 'Product ID is required for wishlist toggle.',
+  VALIDATION_ERROR: 'Validation error',
 };
 
 /**

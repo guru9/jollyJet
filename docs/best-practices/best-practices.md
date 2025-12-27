@@ -1039,7 +1039,7 @@ Testing structure and practices.
 - **Unit Tests**: Isolated business logic testing
 - **Integration Tests**: End-to-end API testing with in-memory MongoDB
 - **100% Coverage**: Critical paths fully verified
-- **Test Structure**: Mirror source structure in `src/test/`
+- **Test Structure**: Mirror source structure in `src/__tests__/`
 
 ### Testing Tools
 
@@ -1051,7 +1051,7 @@ Testing structure and practices.
 ### Test Organization
 
 ```
-src/test/
+src/__tests__/
 ├── setup.ts                    # Global test setup
 ├── unit/                       # Unit tests
 │   ├── entities/               # Entity validation tests

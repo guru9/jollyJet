@@ -3,7 +3,7 @@
 **Step:** 5.1 - Product Controller Test Cases  
 **Phase:** Unit Testing - Controller Layer  
 **Status:** ✅ Completed  
-**Test File:** `src/test/unit/products/productController.test.ts`  
+**Test File:** `src/__tests__/unit/products/productController.test.ts`
 **Test Count:** 19 test cases  
 **Coverage:** 100% of controller methods
 
@@ -307,13 +307,13 @@ mockCreateProductUseCase = {
 
 ```bash
 # Run all controller tests
-npm test -- src/test/unit/products/productController.test.ts
+npm test -- src/__tests__/unit/products/productController.test.ts
 
 # Run with coverage
-npm test -- src/test/unit/products/productController.test.ts --coverage
+npm test -- src/__tests__/unit/products/productController.test.ts --coverage
 
 # Run in watch mode
-npm test -- src/test/unit/products/productController.test.ts --watch
+npm test -- src/__tests__/unit/products/productController.test.ts --watch
 ```
 
 ### Test Results

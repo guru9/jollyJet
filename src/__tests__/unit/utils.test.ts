@@ -2,16 +2,13 @@ import { Types } from 'mongoose';
 import {
   calculatePaginationMeta,
   createPaginatedResponse,
-  errorResponse,
   formatDate,
   generateRandomString,
   getPaginationParams,
   isExpired,
   isValidEmail,
   isValidObjectId,
-  sanitizeObject,
   slugify,
-  successResponse,
   toObjectId,
 } from '../../shared/utils';
 
@@ -83,58 +80,6 @@ describe('Utility Functions', () => {
     it('should calculate total pages correctly', () => {
       const result = createPaginatedResponse([], 25, 1, 10);
       expect(result.pagination.totalPages).toBe(3);
-    });
-  });
-
-  describe('successResponse', () => {
-    it('should create success response with data', () => {
-      const data = { id: 1, name: 'Test' };
-      const result = successResponse(data);
-
-      expect(result.success).toBe(true);
-      expect(result.data).toEqual(data);
-      expect(result.message).toBeUndefined();
-    });
-
-    it('should include message when provided', () => {
-      const result = successResponse({ id: 1 }, 'Success message');
-
-      expect(result.success).toBe(true);
-      expect(result.message).toBe('Success message');
-    });
-  });
-
-  describe('errorResponse', () => {
-    it('should create error response with message', () => {
-      const result = errorResponse('Error occurred');
-
-      expect(result.success).toBe(false);
-      expect(result.message).toBe('Error occurred');
-      expect(result.errors).toBeUndefined();
-    });
-
-    it('should include errors array when provided', () => {
-      const errors = [{ field: 'email', message: 'Invalid email' }];
-      const result = errorResponse('Validation failed', errors);
-
-      expect(result.success).toBe(false);
-      expect(result.errors).toEqual(errors);
-    });
-  });
-
-  describe('sanitizeObject', () => {
-    it('should remove null and undefined values', () => {
-      const obj = { a: 1, b: null, c: undefined, d: 'test' };
-      const result = sanitizeObject(obj);
-
-      expect(result).toEqual({ a: 1, d: 'test' });
-    });
-
-    it('should keep falsy values that are not null/undefined', () => {
-      const obj = { a: 0, b: false, c: '', d: null };
-      const result = sanitizeObject(obj);
-
-      expect(result).toEqual({ a: 0, b: false, c: '' });
     });
   });
 

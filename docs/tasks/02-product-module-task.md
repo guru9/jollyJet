@@ -58,7 +58,7 @@ This task follows Clean Architecture principles with clear layer separation:
 
 - **Objective:** Define core Product domain model with validation and Wishlist functionality.
 - **Files:** `src/domain/entities/Product.ts`
-- **Code:** Immutable class with basic validation and Wishlist methods (toggleWishlist, addToWishlist, removeFromWishlist).
+- **Code:** Immutable class with basic validation and wishlist properties.
 
 ### ✅ Step 1.2: Define IProductRepository Interface with Wishlist Filtering
 
@@ -130,7 +130,7 @@ This task follows Clean Architecture principles with clear layer separation:
 
 - **Objective:** HTTP request handler with Wishlist functionality.
 - **Files:** `src/interface/controllers/ProductController.ts`
-- **Code:** Injectable controller with error handling and Wishlist methods (addToWishlist, removeFromWishlist, getWishlist).
+- **Code:** Injectable controller with error handling and wishlist methods (toggleWishlist, getWishlist).
 
 ### ✅ Step 5.2: Set up Product Routes with Wishlist Endpoints
 
@@ -281,28 +281,28 @@ This task follows Clean Architecture principles with clear layer separation:
 
 ### Unit Tests - Domain Layer
 
-- **Step 7.1:** Product Entity Tests (`src/test/unit/product/Product.test.ts`)
+- **Step 7.1:** Product Entity Tests (`src/__tests__/unit/product/Product.test.ts`)
   - Entity validation and business logic including Wishlist functionality
   - Immutable property tests and Wishlist method validation
   - Business rule enforcement for all operations
 
 ### Unit Tests - Infrastructure Layer
 
-- **Step 7.2:** Repository Tests (`src/test/unit/product/MongoProductRepository.test.ts`)
+- **Step 7.2:** Repository Tests (`src/__tests__/unit/product/MongoProductRepository.test.ts`)
   - Mocked MongoDB operations
   - Domain mapping verification
   - Error handling tests
 
 ### Unit Tests - Application Layer
 
-- **Step 7.3:** Use Case Tests (`src/test/unit/product/*UseCase.test.ts`)
+- **Step 7.3:** Use Case Tests (`src/__tests__/unit/product/*UseCase.test.ts`)
   - Business logic validation including Wishlist operations
   - Mocked dependency injection for all use cases
   - Success and failure scenarios for CRUD and Wishlist operations
 
 ### Integration Tests
 
-- **Step 7.4:** Full Flow Tests (`src/test/integration/product/product.test.ts`)
+- **Step 7.4:** Full Flow Tests (`src/__tests__/integration/product/product.test.ts`)
   - End-to-end API testing including Wishlist endpoints
   - Database integration with Wishlist data
   - Complete request/response cycle for all operations

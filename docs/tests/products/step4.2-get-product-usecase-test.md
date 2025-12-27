@@ -4,7 +4,7 @@
 **Related Files:**
 
 - `src/usecases/GetProductUseCase.ts`
-- `src/test/unit/products/getProductUseCase.test.ts`
+- `src/__tests__/unit/products/getProductUseCase.test.ts`
 
 ---
 
@@ -16,7 +16,7 @@ This document provides a detailed walkthrough of the test cases for the `GetProd
 
 ## Test File Structure
 
-The test file `src/test/unit/products/getProductUseCase.test.ts` is organized into the following sections:
+The test file `src/__tests__/unit/products/getProductUseCase.test.ts` is organized into the following sections:
 
 1. **Setup**: Initializes the test environment, including mocking dependencies.
 2. **Execute Method Tests**: Tests the `execute` method with various scenarios.
@@ -199,7 +199,7 @@ npm run test
 ### Actual Test Execution Output
 
 ```
- PASS  src/test/unit/products/getProductUseCase.test.ts
+ PASS  src/__tests__/unit/products/getProductUseCase.test.ts
   GetProductUseCase
     execute method
       √ should retrieve a product by ID successfully (6 ms)

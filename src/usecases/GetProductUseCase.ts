@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
 import { Product } from '../domain/entities/Product';
 import { IProductRepository } from '../domain/interfaces/IProductRepository';
-import { DI_TOKENS } from '../shared/constants';
+import { DI_TOKENS, PRODUCT_ERROR_MESSAGES } from '../shared/constants';
 import { BadRequestError } from '../shared/errors';
 
 /**
@@ -28,7 +28,7 @@ export class GetProductUseCase {
   public async execute(productId: string): Promise<Product | null> {
     // Validate input
     if (!productId?.trim()) {
-      throw new BadRequestError('Product ID is required to retrieve the product.');
+      throw new BadRequestError(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_REQ_RETRIEVE);
     }
     // Retrieve the product using the repository
     // 💡 Dependency Inversion: Use Cases depend on abstractions (interfaces)

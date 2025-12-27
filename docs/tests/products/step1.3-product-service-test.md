@@ -6,7 +6,7 @@ This document outlines the test coverage for the `ProductService` class, ensurin
 
 ## Test File Location
 
-- `src/test/unit/products/productService.test.ts`
+- `src/__tests__/unit/products/productService.test.ts`
 
 ## Test Coverage
 

@@ -231,11 +231,11 @@ npm run lint:fix
 **Files Created:**
 
 - [`jest.config.ts`](file:///e:/Project/jollyJet/jest.config.ts)
-- [`src/test/setup.ts`](file:///e:/Project/jollyJet/src/test/setup.ts)
-- [`src/test/unit/utils.test.ts`](file:///e:/Project/jollyJet/src/test/unit/utils.test.ts)
-- [`src/test/unit/errors.test.ts`](file:///e:/Project/jollyJet/src/test/unit/errors.test.ts)
-- [`src/test/unit/middleware.test.ts`](file:///e:/Project/jollyJet/src/test/unit/middleware.test.ts)
-- [`src/test/integration/app.test.ts`](file:///e:/Project/jollyJet/src/test/integration/app.test.ts)
+- [`src/__tests__/setup.ts`](file:///e:/Project/jollyJet/src/__tests__/setup.ts)
+- [`src/__tests__/unit/utils.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/utils.test.ts)
+- [`src/__tests__/unit/errors.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/errors.test.ts)
+- [`src/__tests__/unit/middleware.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/middleware.test.ts)
+- [`src/__tests__/integration/app.test.ts`](file:///e:/Project/jollyJet/src/__tests__/integration/app.test.ts)
 
 **Modified Files:**
 
@@ -590,7 +590,7 @@ const getProductUseCase = container.resolve(GetProductUseCase);
 const product = await getProductUseCase.execute('product-id-123');
 ```
 
-**Testing:** Comprehensive unit tests available in [`src/test/unit/products/getProductUseCase.test.ts`](file:///e:/Project/jollyJet/src/test/unit/products/getProductUseCase.test.ts)
+**Testing:** Comprehensive unit tests available in [`src/__tests__/unit/products/getProductUseCase.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/products/getProductUseCase.test.ts)
 
 ---
 

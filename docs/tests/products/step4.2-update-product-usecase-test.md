@@ -6,7 +6,7 @@ Comprehensive test suite for the `UpdateProductUseCase` implementation, ensuring
 
 ## Test File Location
 
-**File:** [`src/test/unit/products/updateProductUseCase.test.ts`](file:///e:/Project/jollyJet/src/test/unit/products/updateProductUseCase.test.ts)
+**File:** [`src/__tests__/unit/products/updateProductUseCase.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/products/updateProductUseCase.test.ts)
 
 ## Test Structure
 
@@ -449,13 +449,13 @@ npm test
 ### Run Only UpdateProductUseCase Tests
 
 ```bash
-npm test -- src/test/unit/products/updateProductUseCase.test.ts
+npm test -- src/__tests__/unit/products/updateProductUseCase.test.ts
 ```
 
 ### Run in Watch Mode
 
 ```bash
-npm run test:watch -- src/test/unit/products/updateProductUseCase.test.ts
+npm run test:watch -- src/__tests__/unit/products/updateProductUseCase.test.ts
 ```
 
 ## Test Results
@@ -463,7 +463,7 @@ npm run test:watch -- src/test/unit/products/updateProductUseCase.test.ts
 **Actual Test Execution Output:**
 
 ```
- PASS  src/test/unit/products/updateProductUseCase.test.ts
+ PASS  src/__tests__/unit/products/updateProductUseCase.test.ts
    UpdateProductUseCase
      execute method
        √ should throw error when product not found (22 ms)

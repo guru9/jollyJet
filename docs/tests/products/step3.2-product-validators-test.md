@@ -10,7 +10,7 @@ This document provides detailed information about the test coverage for the prod
 
 The test file for product validators is located at:
 
-[`src/test/unit/products/productValidators.test.ts`](file:///e:/Project/jollyJet/src/test/unit/products/productValidators.test.ts)
+[`src/__tests__/unit/products/productValidators.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/products/productValidators.test.ts)
 
 ---
 
@@ -137,7 +137,7 @@ This suite tests the validation of pagination parameters:
 To run the product validators tests, use the following command:
 
 ```bash
-npm test -- src/test/unit/products/productValidators.test.ts
+npm test -- src/__tests__/unit/products/productValidators.test.ts
 ```
 
 ---

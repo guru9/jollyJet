@@ -6,7 +6,7 @@ This document outlines the comprehensive test coverage for the `ListProductsUseC
 
 ## Test File Location
 
-- `src/test/unit/products/listProductsUseCase.test.ts`
+- `src/__tests__/unit/products/listProductsUseCase.test.ts`
 
 ## Test Coverage
 
@@ -81,7 +81,7 @@ The test suite follows a comprehensive approach:
 **Actual Test Execution Output:**
 
 ```
- PASS  src/test/unit/products/listProductsUseCase.test.ts
+ PASS  src/__tests__/unit/products/listProductsUseCase.test.ts
   ListProductsUseCase
     execute
       √ should handle empty query parameters with defaults (7 ms)
