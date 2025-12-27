@@ -9,6 +9,8 @@ import {
 } from '../../shared/constants';
 import { ApiResponse } from '../../types';
 import {
+  CountProductsQuery,
+  CountProductsUseCase,
   CreateProductUseCase,
   DeleteProductUseCase,
   GetProductUseCase,
@@ -30,6 +32,7 @@ import { CreateProductDTO, ToggleWishlistDTO, UpdateProductDTO } from '../dtos';
  * - POST /products - Create a new product
  * - GET /products/:id - Retrieve a specific product by ID
  * - GET /products - List products with filtering and pagination
+ * - GET /products/count - Count products with filtering
  * - PUT /products/:id - Update an existing product
  * - PATCH /products/:id/wishlist - Toggle product wishlist status
  * - DELETE /products/:id - Delete a product
@@ -45,6 +48,7 @@ export class ProductController {
    * @param createProductUseCase - Use case for creating products
    * @param getProductUseCase - Use case for retrieving single products
    * @param listProductsUseCase - Use case for listing products with filters
+   * @param countProductsUseCase - Use case for counting products with filters
    * @param updateProductUseCase - Use case for updating products
    * @param deleteProductUseCase - Use case for deleting products
    * @param toggleWishlistUseCase - Use case for toggling wishlist status
@@ -53,6 +57,7 @@ export class ProductController {
     private createProductUseCase: CreateProductUseCase,
     private getProductUseCase: GetProductUseCase,
     private listProductsUseCase: ListProductsUseCase,
+    private countProductsUseCase: CountProductsUseCase,
     private updateProductUseCase: UpdateProductUseCase,
     private deleteProductUseCase: DeleteProductUseCase,
     private toggleWishlistUseCase: ToggleWishlistProductUseCase
@@ -210,6 +215,54 @@ export class ProductController {
         status: RESPONSE_STATUS.SUCCESS,
         data: result,
         message: PRODUCT_SUCCESS_MESSAGES.PRODUCTS_RETRIEVED,
+      };
+      res.status(HTTP_STATUS.OK).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Counts products with optional filtering
+   *
+   * @route GET /products/count
+   * @param req - Express request object containing query parameters
+   * @param res - Express response object
+   * @param next - Express next function for error handling
+   * @returns Promise<void>
+   *
+   * @queryParam {string} [category] - Filter by product category
+   * @queryParam {string} [search] - Search term for product name/description
+   * @queryParam {boolean} [isActive] - Filter by active status
+   * @queryParam {boolean} [isWishlistStatus] - Filter by wishlist status
+   * @queryParam {string} [priceRange] - JSON string with min/max price range
+   *
+   * @example
+   * // Query parameters
+   * ?category=electronics&search=phone&isActive=true&priceRange={"min":100,"max":500}
+   *
+   * @example
+   * // Response
+   * {
+   *   "status": "success",
+   *   "data": 42,
+   *   "message": "Products count retrieved successfully"
+   * }
+   */
+  async countProducts(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const queryParams: CountProductsQuery = {
+        category: req.query.category as string,
+        search: req.query.search as string,
+        isActive: req.query.isActive === 'true',
+        isWishlistStatus: req.query.isWishlistStatus === 'true',
+        priceRange: req.query.priceRange ? JSON.parse(req.query.priceRange as string) : undefined,
+      };
+      const count = await this.countProductsUseCase.execute(queryParams);
+      const response: ApiResponse<number> = {
+        status: RESPONSE_STATUS.SUCCESS,
+        data: count,
+        message: PRODUCT_SUCCESS_MESSAGES.PRODUCTS_COUNT_RETRIEVED,
       };
       res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
@@ -410,6 +463,3 @@ export class ProductController {
     }
   }
 }
-
-
-

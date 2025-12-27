@@ -52,6 +52,3 @@ export class CountProductsUseCase {
     return count;
   }
 }
-
-
-

@@ -21,6 +21,3 @@ export interface UpdateProductDTO {
   isActive?: boolean;
   isWishlistStatus?: boolean;
 }
-
-
-

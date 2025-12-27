@@ -74,7 +74,15 @@ The ProductController serves as the HTTP adapter layer in the Clean Architecture
 - **Output:** Paginated product list with metadata
 - **Features:** Full-text search, category filtering, wishlist filtering
 
-### 4. **updateProduct** (PUT /products/:id)
+### 4. **countProducts** (GET /products/count)
+
+- **Purpose:** Count products with optional filtering
+- **Status Code:** 200 OK
+- **Input:** Query parameters (category, search, isActive, isWishlistStatus, priceRange)
+- **Output:** Product count as number
+- **Features:** Same filtering options as listProducts without pagination
+
+### 5. **updateProduct** (PUT /products/:id)
 
 - **Purpose:** Update existing products
 - **Status Code:** 200 OK
@@ -165,6 +173,7 @@ interface ValidationError {
 - **CreateProductUseCase:** For product creation
 - **GetProductUseCase:** For product retrieval
 - **ListProductsUseCase:** For product listing
+- **CountProductsUseCase:** For product counting
 - **UpdateProductUseCase:** For product updates
 - **DeleteProductUseCase:** For product deletion
 - **ToggleWishlistProductUseCase:** For wishlist operations
@@ -236,7 +245,7 @@ listProducts(req: Request, res: Response, next: NextFunction): Promise<void>
 
 ### Test Statistics
 
-- **Total Tests:** 19 test cases
+- **Total Tests:** 22 test cases
 - **Coverage:** 100% of controller methods
 - **Test Types:** Unit tests with mocked dependencies
 - **Framework:** Jest with TypeScript
@@ -252,6 +261,9 @@ describe('ProductController', () => {
     // 3 test cases
   });
   describe('listProducts', () => {
+    // 3 test cases
+  });
+  describe('countProducts', () => {
     // 3 test cases
   });
   describe('updateProduct', () => {
@@ -332,18 +344,15 @@ describe('ProductController', () => {
 
 The ProductController successfully implements the HTTP adapter layer with:
 
-- ✅ **Complete REST API coverage** - All CRUD operations plus wishlist management
+- ✅ **Complete REST API coverage** - All CRUD operations plus wishlist management and counting
 - ✅ **Type-safe API responses** - All methods return properly typed `ApiResponse<T>` objects
 - ✅ **Advanced type system integration** - Full utilization of types from `types/index.d.ts`
 - ✅ **Structured error handling** - Uses `ValidationError` interface for consistent error responses
 - ✅ **Enhanced pagination** - Leverages `PaginationParams` and `PaginationMeta` for consistent pagination
 - ✅ **Enum-based constants** - Uses `HTTP_STATUS` and `RESPONSE_STATUS` enums for type safety
-- ✅ **Comprehensive test coverage** - 19 test cases with 100% coverage
+- ✅ **Comprehensive test coverage** - 22 test cases with 100% coverage
 - ✅ **Clean separation of concerns** - Proper layering between HTTP and business logic
 - ✅ **Dependency injection** - Full DI container integration for testability
 - ✅ **Middleware integration** - Works seamlessly with validation and error handling middleware
 
 The controller follows Clean Architecture principles and provides a robust, type-safe foundation for the product management API with modern TypeScript best practices.
-
-
-

@@ -110,6 +110,3 @@ export class UpdateProductUseCase {
     return product;
   }
 }
-
-
-

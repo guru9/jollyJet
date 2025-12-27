@@ -192,6 +192,3 @@ describe('CreateProductUseCase', () => {
     });
   });
 });
-
-
-

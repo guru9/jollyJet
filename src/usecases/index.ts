@@ -23,6 +23,3 @@ export { ToggleWishlistProductUseCase } from './ToggleWishlistProductUseCase';
 export { UpdateProductUseCase } from './UpdateProductUseCase';
 // Note: Use Cases are TypeScript classes and cannot be used as runtime values.
 // Use individual imports for type checking and documentation purposes.
-
-
-

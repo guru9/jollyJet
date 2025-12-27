@@ -9,6 +9,7 @@ import {
   RESPONSE_STATUS,
 } from '../../../shared/constants';
 import {
+  CountProductsUseCase,
   CreateProductUseCase,
   DeleteProductUseCase,
   GetProductUseCase,
@@ -18,6 +19,7 @@ import {
 } from '../../../usecases';
 
 // Mock the use cases
+jest.mock('../../../usecases/CountProductsUseCase');
 jest.mock('../../../usecases/CreateProductUseCase');
 jest.mock('../../../usecases/GetProductUseCase');
 jest.mock('../../../usecases/ListProductsUseCase');
@@ -27,6 +29,7 @@ jest.mock('../../../usecases/ToggleWishlistProductUseCase');
 
 describe('ProductController', () => {
   let productController: ProductController;
+  let mockCountProductsUseCase: jest.Mocked<CountProductsUseCase>;
   let mockCreateProductUseCase: jest.Mocked<CreateProductUseCase>;
   let mockGetProductUseCase: jest.Mocked<GetProductUseCase>;
   let mockListProductsUseCase: jest.Mocked<ListProductsUseCase>;
@@ -39,6 +42,11 @@ describe('ProductController', () => {
 
   beforeEach(() => {
     // Create mock instances
+
+    mockCountProductsUseCase = {
+      execute: jest.fn(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
 
     mockCreateProductUseCase = {
       execute: jest.fn(),
@@ -75,6 +83,7 @@ describe('ProductController', () => {
       mockCreateProductUseCase,
       mockGetProductUseCase,
       mockListProductsUseCase,
+      mockCountProductsUseCase,
       mockUpdateProductUseCase,
       mockDeleteProductUseCase,
       mockToggleWishlistUseCase
@@ -326,6 +335,94 @@ describe('ProductController', () => {
 
       // Act
       await productController.listProducts(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext
+      );
+
+      // Assert
+      expect(mockNext).toHaveBeenCalledWith(error);
+      expect(mockResponse.status).not.toHaveBeenCalled();
+      expect(mockResponse.json).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('countProducts', () => {
+    it('should count products with default parameters', async () => {
+      // Arrange
+      const count = 42;
+      mockRequest.query = {};
+      mockCountProductsUseCase.execute.mockResolvedValue(count);
+
+      // Act
+      await productController.countProducts(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext
+      );
+
+      // Assert
+      expect(mockCountProductsUseCase.execute).toHaveBeenCalledWith({
+        category: undefined,
+        search: undefined,
+        isActive: false,
+        isWishlistStatus: false,
+        priceRange: undefined,
+      });
+      expect(mockResponse.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        status: RESPONSE_STATUS.SUCCESS,
+        data: count,
+        message: PRODUCT_SUCCESS_MESSAGES.PRODUCTS_COUNT_RETRIEVED,
+      });
+      expect(mockNext).not.toHaveBeenCalled();
+    });
+
+    it('should count products with all query parameters', async () => {
+      // Arrange
+      const count = 15;
+      const queryParams = {
+        category: 'electronics',
+        search: 'phone',
+        isActive: 'true',
+        isWishlistStatus: 'false',
+        priceRange: '{"min":100,"max":500}',
+      };
+
+      mockRequest.query = queryParams;
+      mockCountProductsUseCase.execute.mockResolvedValue(count);
+
+      // Act
+      await productController.countProducts(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext
+      );
+
+      // Assert
+      expect(mockCountProductsUseCase.execute).toHaveBeenCalledWith({
+        category: 'electronics',
+        search: 'phone',
+        isActive: true,
+        isWishlistStatus: false,
+        priceRange: { min: 100, max: 500 },
+      });
+      expect(mockResponse.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        status: RESPONSE_STATUS.SUCCESS,
+        data: count,
+        message: PRODUCT_SUCCESS_MESSAGES.PRODUCTS_COUNT_RETRIEVED,
+      });
+    });
+
+    it('should handle errors and pass them to next middleware', async () => {
+      // Arrange
+      const error = new Error('Database error');
+      mockRequest.query = {};
+      mockCountProductsUseCase.execute.mockRejectedValue(error);
+
+      // Act
+      await productController.countProducts(
         mockRequest as Request,
         mockResponse as Response,
         mockNext
@@ -645,6 +742,3 @@ describe('ProductController', () => {
     });
   });
 });
-
-
-

@@ -67,6 +67,3 @@ describe('GetProductUseCase', () => {
     });
   });
 });
-
-
-

@@ -2,7 +2,7 @@ import { randomBytes } from 'crypto';
 import { NextFunction, Request, Response } from 'express';
 import { Types } from 'mongoose';
 import { ZodError, ZodType } from 'zod';
-import { HTTP_STATUS, PRODUCT_ERROR_MESSAGES } from './constants';
+import { ERROR_STATUS, HTTP_STATUS } from './constants';
 
 /**
  * Validates request data against a Zod schema.
@@ -25,7 +25,7 @@ export const validateRequest = (schema: ZodType) => {
       if (error instanceof ZodError) {
         return res.status(HTTP_STATUS.UNPROCESSABLE_ENTITY).json({
           status: 'error',
-          message: PRODUCT_ERROR_MESSAGES.VALIDATION_ERROR,
+          message: ERROR_STATUS.VALIDATION_ERROR,
           errors: error.issues.map((err) => ({
             field: err.path.join('.'),
             message: err.message,
@@ -146,7 +146,7 @@ export const isValidObjectId = (id: string): boolean => {
  */
 export const toObjectId = (id: string): Types.ObjectId => {
   if (!isValidObjectId(id)) {
-    throw new Error('Invalid ObjectId');
+    throw new Error(ERROR_STATUS.INVALID_OBJECT_ID);
   }
   return new Types.ObjectId(id);
 };
@@ -244,6 +244,3 @@ export const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[\w.-]+@[\w.-]+\.\w+$/;
   return emailRegex.test(email);
 };
-
-
-

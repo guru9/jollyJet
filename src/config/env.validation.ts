@@ -40,6 +40,3 @@ export const validateEnv = (): EnvConfig => {
 
   return result.data;
 };
-
-
-

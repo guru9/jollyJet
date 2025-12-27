@@ -75,6 +75,3 @@ export class ProductService {
     return Product.createProduct(updatedProductProps);
   }
 }
-
-
-

@@ -411,6 +411,3 @@ describe('Product Validators - Unit Tests', () => {
     });
   });
 });
-
-
-

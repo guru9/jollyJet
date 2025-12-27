@@ -42,9 +42,9 @@ export class ToggleWishlistProductUseCase {
     // Toggle the wishlist status using the repository
     // 💡 Repository handles the actual database update
     // 💡 Returns the updated product with new wishlist status
-    return await this.productRepository.toggleWishlistStatus(productId, wishlistData.isWishlistStatus);
+    return await this.productRepository.toggleWishlistStatus(
+      productId,
+      wishlistData.isWishlistStatus
+    );
   }
 }
-
-
-

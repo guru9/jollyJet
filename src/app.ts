@@ -64,6 +64,3 @@ app.get('/health', (req, res) => {
 app.use(errorHandler);
 
 export default app;
-
-
-

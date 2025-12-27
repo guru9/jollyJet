@@ -40,6 +40,7 @@ export const ERROR_STATUS = {
   UNAUTHORIZED: 'Unauthorized access',
   VALIDATION_ERROR: 'Validation error',
   DATABASE_ERROR: 'Database operation failed',
+  INVALID_OBJECT_ID: 'Invalid ObjectId',
 };
 /**
  *
@@ -51,6 +52,7 @@ export const PRODUCT_SUCCESS_MESSAGES = {
   PRODUCTS_RETRIEVED: 'Products retrieved successfully',
   PRODUCT_UPDATED: 'Product updated successfully',
   PRODUCT_DELETED: 'Product deleted successfully',
+  PRODUCTS_COUNT_RETRIEVED: 'Products count retrieved successfully',
   WISHLIST_TOGGLED: 'Product wishlist status updated successfully',
   WISHLIST_RETRIEVED: 'Wishlist products retrieved successfully',
   OPERATION_SUCCESSFUL: 'Operation completed successfully',
@@ -67,7 +69,6 @@ export const PRODUCT_ERROR_MESSAGES = {
   PRODUCT_ID_REQ_UPDATE: 'Product ID is required for updation.',
   PRODUCT_ID_REQ_DELETE: 'Product ID is required for deletion.',
   PRODUCT_ID_REQ_WISHLIST: 'Product ID is required for wishlist toggle.',
-  VALIDATION_ERROR: 'Validation error',
 };
 
 /**
@@ -126,16 +127,6 @@ export const WISHLIST_CONSTANTS = {
 };
 
 /**
- * Error messages specific to wishlist operations for consistent error handling.
- */
-export const WISHLIST_ERRORS = {
-  WISHLIST_ERROR: 'Wishlist operation failed',
-  ALREADY_IN_WISHLIST: 'Product is already in wishlist',
-  NOT_IN_WISHLIST: 'Product is not in wishlist',
-  WISHLIST_LIMIT_EXCEEDED: 'Wishlist limit exceeded',
-};
-
-/**
  * Dependency Injection container tokens for loose coupling between application layers.
  * These string tokens are used to register and resolve dependencies in the DI container.
  */
@@ -143,6 +134,3 @@ export const DI_TOKENS = {
   PRODUCT_REPOSITORY: 'ProductRepository', // Injection token for product repository
   // Future tokens can be added here for other modules
 } as const;
-
-
-

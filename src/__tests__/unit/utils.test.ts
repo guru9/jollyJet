@@ -170,6 +170,3 @@ describe('Utility Functions', () => {
     });
   });
 });
-
-
-

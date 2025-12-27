@@ -29,6 +29,3 @@ export interface ProductResponseDTO {
   isWishlistStatus: boolean;
   wishlistCount: number;
 }
-
-
-

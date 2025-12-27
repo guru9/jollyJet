@@ -165,6 +165,3 @@ describe('CountProductsUseCase', () => {
     });
   });
 });
-
-
-

@@ -7,6 +7,3 @@
 export interface ToggleWishlistDTO {
   isWishlistStatus: boolean;
 }
-
-
-

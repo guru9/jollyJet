@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { ERROR_STATUS, HTTP_STATUS } from '../../shared/constants';
 import { AppError } from '../../shared/errors';
 import logger from '../../shared/logger';
 
@@ -38,11 +39,8 @@ export const errorHandler = (err: Error, req: Request, res: Response, _next: Nex
     })}`
   );
 
-  return res.status(500).json({
+  return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
     status: 'error',
-    message: 'Internal server error',
+    message: ERROR_STATUS.INTERNAL_SERVER_ERROR,
   });
 };
-
-
-

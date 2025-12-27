@@ -30,7 +30,8 @@ export class ProductRepository implements IProductRepository {
     if (filter) {
       if (filter.category) query.where('category', filter.category);
       if (filter.isActive !== undefined) query.where('isActive', filter.isActive);
-      if (filter.isWishlistStatus !== undefined) query.where('isWishlistStatus', filter.isWishlistStatus);
+      if (filter.isWishlistStatus !== undefined)
+        query.where('isWishlistStatus', filter.isWishlistStatus);
       if (filter.search) query.where({ $text: { $search: filter.search } });
       if (filter.priceRange)
         query.where('price').gte(filter.priceRange.min).lte(filter.priceRange.max);
@@ -115,7 +116,8 @@ export class ProductRepository implements IProductRepository {
     if (filter) {
       if (filter.category) countQuery.where('category', filter.category);
       if (filter.isActive !== undefined) countQuery.where('isActive', filter.isActive);
-      if (filter.isWishlistStatus !== undefined) countQuery.where('isWishlistStatus', filter.isWishlistStatus);
+      if (filter.isWishlistStatus !== undefined)
+        countQuery.where('isWishlistStatus', filter.isWishlistStatus);
       if (filter.search) countQuery.where({ $text: { $search: filter.search } });
       if (filter.priceRange)
         countQuery.where('price').gte(filter.priceRange.min).lte(filter.priceRange.max);
@@ -147,6 +149,3 @@ export class ProductRepository implements IProductRepository {
     return Product.createProduct(updatedProduct.toObject()); // Convert to Product entity
   }
 }
-
-
-

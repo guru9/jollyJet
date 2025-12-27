@@ -71,6 +71,3 @@ const productProps = {
 const product = Product.createProduct(productProps);
 console.log(product.isWishlistStatus); // false
 */
-
-
-

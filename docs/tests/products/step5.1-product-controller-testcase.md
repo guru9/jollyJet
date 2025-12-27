@@ -4,12 +4,12 @@
 **Phase:** Unit Testing - Controller Layer  
 **Status:** ✅ Completed  
 **Test File:** `src/__tests__/unit/products/productController.test.ts`
-**Test Count:** 19 test cases  
+**Test Count:** 22 test cases
 **Coverage:** 100% of controller methods
 
 ## Overview
 
-This document provides comprehensive documentation of the test cases for the ProductController, covering all 7 REST API endpoints with thorough validation of functionality, error handling, and integration scenarios.
+This document provides comprehensive documentation of the test cases for the ProductController, covering all 8 REST API endpoints with thorough validation of functionality, error handling, and integration scenarios.
 
 ## Test Structure
 
@@ -38,6 +38,10 @@ describe('ProductController', () => {
   });
 
   describe('listProducts', () => {
+    // 3 test cases
+  });
+
+  describe('countProducts', () => {
     // 3 test cases
   });
 
@@ -143,7 +147,37 @@ describe('ProductController', () => {
 - **Assertions:**
   - Next function called with error
 
-### 4. updateProduct Tests
+### 4. countProducts Tests
+
+#### Test 4.1: Should count products with default parameters
+
+- **Purpose:** Validate counting with no query parameters
+- **Input:** Empty query object
+- **Expected Output:** 200 OK with product count
+- **Assertions:**
+  - Use case execute called with undefined parameters
+  - Response status is 200
+  - Response JSON contains success status and count data
+
+#### Test 4.2: Should count products with all query parameters
+
+- **Purpose:** Validate complex filtering for counting
+- **Input:** Complete query object with all filter options
+- **Expected Output:** 200 OK with filtered count
+- **Assertions:**
+  - Use case execute called with all filter parameters
+  - Proper conversion of string parameters to boolean/number types
+  - Response contains correct count value
+
+#### Test 4.3: Should handle errors and pass them to next middleware
+
+- **Purpose:** Validate error handling for counting failures
+- **Input:** Error thrown by use case
+- **Expected Output:** Error passed to next middleware
+- **Assertions:**
+  - Next function called with error
+
+### 5. updateProduct Tests
 
 #### Test 4.1: Should update a product successfully
 
@@ -281,6 +315,7 @@ mockCreateProductUseCase = {
 - ✅ createProduct: 2/2 test cases (100%)
 - ✅ getProduct: 3/3 test cases (100%)
 - ✅ listProducts: 3/3 test cases (100%)
+- ✅ countProducts: 3/3 test cases (100%)
 - ✅ updateProduct: 3/3 test cases (100%)
 - ✅ toggleWishlist: 2/2 test cases (100%)
 - ✅ deleteProduct: 3/3 test cases (100%)
@@ -318,8 +353,8 @@ npm test -- src/__tests__/unit/products/productController.test.ts --watch
 
 ### Test Results
 
-- **Total Tests:** 19
-- **Passed:** 19 (100%)
+- **Total Tests:** 22
+- **Passed:** 22 (100%)
 - **Failed:** 0
 - **Coverage:** 100% of controller methods
 - **Execution Time:** ~4-5 seconds
@@ -370,9 +405,9 @@ npm test -- src/__tests__/unit/products/productController.test.ts --watch
 
 ## Conclusion
 
-The ProductController test suite provides comprehensive coverage of all 7 REST API endpoints with:
+The ProductController test suite provides comprehensive coverage of all 8 REST API endpoints with:
 
-- ✅ 19 test cases covering all controller methods
+- ✅ 22 test cases covering all controller methods
 - ✅ 100% method coverage
 - ✅ Complete error handling validation
 - ✅ Proper integration testing
@@ -380,6 +415,3 @@ The ProductController test suite provides comprehensive coverage of all 7 REST A
 - ✅ Best practices for unit testing
 
 The test suite ensures the reliability and maintainability of the ProductController implementation and provides confidence in the API's functionality.
-
-
-

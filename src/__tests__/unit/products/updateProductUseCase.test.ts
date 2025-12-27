@@ -361,6 +361,3 @@ describe('UpdateProductUseCase', () => {
     });
   });
 });
-
-
-

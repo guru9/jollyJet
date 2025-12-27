@@ -20,6 +20,3 @@ export interface IProductRepository {
   count(filter?: ProductFilter): Promise<number>; // Get the total count of products matching a filter
   toggleWishlistStatus(id: string, isWishlistStatus: boolean): Promise<Product>; // Toggle the wishlist status of a product
 }
-
-
-

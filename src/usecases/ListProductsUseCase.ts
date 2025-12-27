@@ -76,6 +76,3 @@ export class ListProductsUseCase {
     return { products, total, page, limit, totalPages };
   }
 }
-
-
-
