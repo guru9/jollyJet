@@ -50,3 +50,6 @@ export class CreateProductUseCase {
     return await this.productRepository.create(newProduct);
   }
 }
+
+
+

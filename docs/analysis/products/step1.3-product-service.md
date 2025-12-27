@@ -20,7 +20,7 @@ The current implementation of `ProductService` does not directly interact with `
 - `updateStock(product: Product, quantity: number)`: Updates the stock of a product with validation.
 - `updatePrice(product: Product, newPrice: number)`: Updates the price of a product with validation.
 - `updateProductDetails(product: Product, details: Partial<Omit<ProductProps, 'createdAt' | 'updatedAt'>>)`: Updates multiple product details at once.
-- `updateWishlistStatus(product: Product, isInWishlist: boolean)`: Updates the wishlist status of a product with validation.
+- `updateWishlistStatus(product: Product, isWishlistStatus: boolean)`: Updates the wishlist status of a product with validation.
 - `toggleProductActivation(product: Product)`: Toggles the activation status of a product.
 
 ## Dependencies
@@ -45,3 +45,6 @@ The `ProductService` class does not use dependency injection (DI) decorators (`@
 ## Conclusion
 
 The `ProductService` class is a critical component of the product module, ensuring that business logic is centralized and reusable across the application.
+
+
+

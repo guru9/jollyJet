@@ -41,7 +41,7 @@ describe('ToggleWishlistProductUseCase', () => {
 
 ```typescript
 const productId = '507f1f77bcf86cd799439011';
-const wishlistData: ToggleWishlistDTO = { isInWishlist: true };
+const wishlistData: ToggleWishlistDTO = { isWishlistStatus: true };
 
 const existingProduct = new Product({
   id: productId,
@@ -51,13 +51,13 @@ const existingProduct = new Product({
   stock: 10,
   category: 'Test Category',
   isActive: true,
-  isInWishlist: false,
+  isWishlistStatus: false,
   wishlistCount: 0,
 });
 
 const updatedProduct = new Product({
   ...existingProduct.toProps(),
-  isInWishlist: true,
+  isWishlistStatus: true,
   wishlistCount: 1,
 });
 ```
@@ -72,7 +72,7 @@ const updatedProduct = new Product({
 - ✅ `mockRepository.findById` called with correct productId
 - ✅ `mockRepository.toggleWishlistStatus` called with productId and true
 - ✅ Result is instance of `Product`
-- ✅ Result has `isInWishlist: true`
+- ✅ Result has `isWishlistStatus: true`
 
 ### 2. Successful Wishlist Toggle to False
 
@@ -84,7 +84,7 @@ const updatedProduct = new Product({
 
 ```typescript
 const productId = '507f1f77bcf86cd799439011';
-const wishlistData: ToggleWishlistDTO = { isInWishlist: false };
+const wishlistData: ToggleWishlistDTO = { isWishlistStatus: false };
 
 const existingProduct = new Product({
   id: productId,
@@ -94,13 +94,13 @@ const existingProduct = new Product({
   stock: 10,
   category: 'Test Category',
   isActive: true,
-  isInWishlist: true,
+  isWishlistStatus: true,
   wishlistCount: 5,
 });
 
 const updatedProduct = new Product({
   ...existingProduct.toProps(),
-  isInWishlist: false,
+  isWishlistStatus: false,
   wishlistCount: 4,
 });
 ```
@@ -115,7 +115,7 @@ const updatedProduct = new Product({
 - ✅ `mockRepository.findById` called with correct productId
 - ✅ `mockRepository.toggleWishlistStatus` called with productId and false
 - ✅ Result is instance of `Product`
-- ✅ Result has `isInWishlist: false`
+- ✅ Result has `isWishlistStatus: false`
 
 ### 3. Product Not Found Error Handling
 
@@ -127,7 +127,7 @@ const updatedProduct = new Product({
 
 ```typescript
 const productId = '507f1f77bcf86cd799439011';
-const wishlistData: ToggleWishlistDTO = { isInWishlist: true };
+const wishlistData: ToggleWishlistDTO = { isWishlistStatus: true };
 ```
 
 **Mock Setup:**
@@ -150,7 +150,7 @@ const wishlistData: ToggleWishlistDTO = { isInWishlist: true };
 
 ```typescript
 const productId = '';
-const wishlistData: ToggleWishlistDTO = { isInWishlist: true };
+const wishlistData: ToggleWishlistDTO = { isWishlistStatus: true };
 ```
 
 **Assertions:**
@@ -168,7 +168,7 @@ const wishlistData: ToggleWishlistDTO = { isInWishlist: true };
 **Test Data:**
 
 ```typescript
-const wishlistData: ToggleWishlistDTO = { isInWishlist: true };
+const wishlistData: ToggleWishlistDTO = { isWishlistStatus: true };
 ```
 
 **Test Cases:**
@@ -192,7 +192,7 @@ const wishlistData: ToggleWishlistDTO = { isInWishlist: true };
 
 ```typescript
 const productId = '507f1f77bcf86cd799439011';
-const wishlistData: ToggleWishlistDTO = { isInWishlist: true };
+const wishlistData: ToggleWishlistDTO = { isWishlistStatus: true };
 ```
 
 **Mock Setup:**
@@ -215,7 +215,7 @@ const wishlistData: ToggleWishlistDTO = { isInWishlist: true };
 
 ```typescript
 const productId = '507f1f77bcf86cd799439011';
-const wishlistData: ToggleWishlistDTO = { isInWishlist: true };
+const wishlistData: ToggleWishlistDTO = { isWishlistStatus: true };
 
 const existingProduct = new Product({
   id: productId,
@@ -225,7 +225,7 @@ const existingProduct = new Product({
   stock: 10,
   category: 'Test Category',
   isActive: true,
-  isInWishlist: false,
+  isWishlistStatus: false,
   wishlistCount: 0,
 });
 ```
@@ -385,3 +385,6 @@ This test suite integrates with the overall test coverage strategy:
 ## Conclusion
 
 The `ToggleWishlistProductUseCase` test suite provides comprehensive coverage of the use case implementation, ensuring proper functionality, input validation, and error handling. The tests follow established patterns and integrate seamlessly with the overall test strategy, contributing to the project's test coverage goals. The suite validates both success and failure scenarios, ensuring the use case behaves correctly under all conditions.
+
+
+

@@ -90,7 +90,7 @@ The test suite follows a comprehensive approach:
       √ should apply category filter when provided (1 ms)
       √ should apply search filter when provided (2 ms)
       √ should apply isActive filter when provided (1 ms)
-      √ should apply isInWishlist filter when provided (1 ms)
+      √ should apply isWishlistStatus filter when provided (1 ms)
       √ should apply valid priceRange filter when provided
       √ should not apply invalid priceRange filter (1 ms)
       √ should handle multiple filters simultaneously (2 ms)
@@ -107,3 +107,6 @@ Tests:       14 passed, 14 total
 ## Conclusion
 
 The `ListProductsUseCase` test suite provides comprehensive coverage of all filtering, pagination, and validation logic. The tests ensure that the use case correctly integrates with the service layer and repository, handles edge cases appropriately, and maintains data consistency throughout the product listing process.
+
+
+

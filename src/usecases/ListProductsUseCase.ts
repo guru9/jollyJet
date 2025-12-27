@@ -17,7 +17,7 @@ export interface ListProductsQuery {
   category?: string; // Category filter for product categorization
   search?: string; // Full-text search query for name/description
   isActive?: boolean; // Active status filter (boolean, default: true)
-  isInWishlist?: boolean; // Active status filter (boolean, default: true)
+  isWishlistStatus?: boolean; // Active status filter (boolean, default: true)
   priceRange?: { min: number; max: number }; //Get the products by price range filter. Must be non-negative.
 }
 
@@ -57,7 +57,7 @@ export class ListProductsUseCase {
     if (query.category) filter.category = query.category; //Filter by category
     if (query.search) filter.search = query.search; //Filter by search
     if (query.isActive) filter.isActive = query.isActive; //Filter by active products
-    if (query.isInWishlist) filter.isInWishlist = query.isInWishlist; //Filter by wishlist products
+    if (query.isWishlistStatus) filter.isWishlistStatus = query.isWishlistStatus; //Filter by wishlist products
     if (this.productService.isValidPriceRange(query.priceRange))
       filter.priceRange = query.priceRange; //Get the products by price range filter. Must be non-negative.
 
@@ -76,3 +76,6 @@ export class ListProductsUseCase {
     return { products, total, page, limit, totalPages };
   }
 }
+
+
+

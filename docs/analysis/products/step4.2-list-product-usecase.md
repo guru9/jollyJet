@@ -31,7 +31,7 @@ export interface ListProductsQuery {
   category?: string; // Category filter for product categorization
   search?: string; // Full-text search query for name/description
   isActive?: boolean; // Active status filter (boolean, default: true)
-  isInWishlist?: boolean; // Wishlist status filter (boolean, default: true)
+  isWishlistStatus?: boolean; // Wishlist status filter (boolean, default: true)
   priceRange?: { min: number; max: number }; // Price range filter. Must be non-negative.
 }
 ```
@@ -238,3 +238,6 @@ The `ListProductsUseCase` provides a robust implementation for product listing f
 ✅ **Testability**: Comprehensive test coverage and mock support
 
 This use case serves as a critical component in the product module, enabling efficient and flexible product discovery while maintaining high performance and security standards.
+
+
+

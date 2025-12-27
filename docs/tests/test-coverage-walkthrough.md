@@ -112,7 +112,7 @@ Comprehensive product validators testing:
 - ✅ **updateProductSchema**: Partial updates, multiple field updates, invalid field values, empty body
 - ✅ **productIdSchema**: Valid product ID, empty product ID, missing product ID
 - ✅ **productFilterSchema**: Filter with all optional fields, filter with some fields, empty filter, invalid price range
-- ✅ **toggleWishlistStatusSchema**: Valid wishlist status update, missing product ID, missing isInWishlist field
+- ✅ **toggleWishlistStatusSchema**: Valid wishlist status update, missing product ID, missing isWishlistStatus field
 - ✅ **paginationSchema**: Pagination parameters, pagination with only skip, pagination with only limit, empty pagination, negative skip value, zero limit value
 
 **Test Coverage:** 6 test suites, 47 tests
@@ -336,7 +336,7 @@ src/__tests__/
       √ should apply category filter when provided (1 ms)
       √ should apply search filter when provided (2 ms)
       √ should apply isActive filter when provided (1 ms)
-      √ should apply isInWishlist filter when provided (1 ms)
+      √ should apply isWishlistStatus filter when provided (1 ms)
       √ should apply valid priceRange filter when provided
       √ should not apply invalid priceRange filter (1 ms)
       √ should handle multiple filters simultaneously (2 ms)
@@ -506,3 +506,6 @@ After running `npm run test:coverage`, view the detailed coverage report at:
 ✅ **All utility functions implemented** and fully tested
 
 The JollyJet application now has robust test coverage ensuring code quality and reliability! 🎉
+
+
+

@@ -12,7 +12,7 @@
  * @property {boolean} isActive - Product active status
  * @property {Date} createdAt - Creation timestamp
  * @property {Date} updatedAt - Last update timestamp
- * @property {boolean} isInWishlist - Wishlist status
+ * @property {boolean} isWishlistStatus - Wishlist status
  * @property {number} wishlistCount - Number of users who added this to wishlist
  */
 export interface ProductResponseDTO {
@@ -26,6 +26,9 @@ export interface ProductResponseDTO {
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
-  isInWishlist: boolean;
+  isWishlistStatus: boolean;
   wishlistCount: number;
 }
+
+
+

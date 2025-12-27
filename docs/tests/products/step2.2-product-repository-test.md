@@ -55,7 +55,7 @@ The tests are organized into several main sections:
   });
   await productRepository.createWithWishlistStatus(product, true);
   ```
-- **Expected Output**: Product should be created with `isInWishlist: true` and `wishlistCount: 1`.
+- **Expected Output**: Product should be created with `isWishlistStatus: true` and `wishlistCount: 1`.
 
 ### Wishlist Operations
 
@@ -70,7 +70,7 @@ The tests are organized into several main sections:
     price: 100,
     stock: 10,
     category: 'Test Category',
-    isInWishlist: false,
+    isWishlistStatus: false,
     wishlistCount: 0,
   });
   await productRepository.create(product);
@@ -78,7 +78,7 @@ The tests are organized into several main sections:
   const productId = createdProduct?._id.toString();
   const updatedProduct = await productRepository.toggleWishlistStatus(productId!, true);
   ```
-- **Expected Output**: Product should be updated with `isInWishlist: true` and `wishlistCount: 1`, and the method should return the updated product.
+- **Expected Output**: Product should be updated with `isWishlistStatus: true` and `wishlistCount: 1`, and the method should return the updated product.
 
 #### Test Case 2: Error Handling for Non-existent Product
 
@@ -109,3 +109,6 @@ The `ProductRepository` tests ensure that:
 4. **Method signatures are correct**: All methods return the expected types and handle parameters correctly
 
 The tests reflect the simplified architecture where wishlist operations are handled directly by the repository layer, while the entity remains focused on business rules and validation.
+
+
+

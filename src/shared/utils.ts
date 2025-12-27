@@ -244,3 +244,6 @@ export const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[\w.-]+@[\w.-]+\.\w+$/;
   return emailRegex.test(email);
 };
+
+
+

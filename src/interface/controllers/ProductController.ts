@@ -115,7 +115,7 @@ export class ProductController {
    *     "category": "electronics",
    *     "stock": 100,
    *     "isActive": true,
-   *     "isInWishlist": false
+   *     "isWishlistStatus": false
    *   },
    *   "message": "Product retrieved successfully"
    * }
@@ -173,7 +173,7 @@ export class ProductController {
    * @queryParam {string} [category] - Filter by product category
    * @queryParam {string} [search] - Search term for product name/description
    * @queryParam {boolean} [isActive] - Filter by active status
-   * @queryParam {boolean} [isInWishlist] - Filter by wishlist status
+   * @queryParam {boolean} [isWishlistStatus] - Filter by wishlist status
    * @queryParam {string} [priceRange] - JSON string with min/max price range
    *
    * @example
@@ -202,7 +202,7 @@ export class ProductController {
         category: req.query.category as string,
         search: req.query.search as string,
         isActive: req.query.isActive === 'true',
-        isInWishlist: req.query.isInWishlist === 'true',
+        isWishlistStatus: req.query.isWishlistStatus === 'true',
         priceRange: req.query.priceRange ? JSON.parse(req.query.priceRange as string) : undefined,
       };
       const result = await this.listProductsUseCase.execute(queryParams);
@@ -273,7 +273,7 @@ export class ProductController {
    * @example
    * // Request body
    * {
-   *   "isInWishlist": true
+   *   "isWishlistStatus": true
    * }
    *
    * @example
@@ -288,7 +288,7 @@ export class ProductController {
    *     "category": "electronics",
    *     "stock": 100,
    *     "isActive": true,
-   *     "isInWishlist": true,
+   *     "isWishlistStatus": true,
    *     "wishlistCount": 1
    *   },
    *   "message": "Product wishlist status updated successfully"
@@ -396,7 +396,7 @@ export class ProductController {
       const queryParams: ListProductsQuery = {
         page: req.query.page as string,
         limit: req.query.limit as string,
-        isInWishlist: true, // Filter specifically for wishlist products
+        isWishlistStatus: true, // Filter specifically for wishlist products
       };
       const result = await this.listProductsUseCase.execute(queryParams);
       const response: ApiResponse<typeof result> = {
@@ -410,3 +410,6 @@ export class ProductController {
     }
   }
 }
+
+
+

@@ -148,3 +148,6 @@ While the Product module is currently using MongoDB, other modules that might be
 ## Conclusion
 
 The JollyJet project is currently well-served by MongoDB. The architecture is designed for flexibility, and SQL integration can be implemented smoothly if future requirements change. The existing SQL migration guide provides all necessary steps and best practices for a clean transition. If SQL integration becomes necessary, prioritize modules like Order Management and Payment Processing that require complex transactions and relational data integrity.
+
+
+

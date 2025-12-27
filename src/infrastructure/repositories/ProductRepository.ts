@@ -30,7 +30,7 @@ export class ProductRepository implements IProductRepository {
     if (filter) {
       if (filter.category) query.where('category', filter.category);
       if (filter.isActive !== undefined) query.where('isActive', filter.isActive);
-      if (filter.isInWishlist !== undefined) query.where('isInWishlist', filter.isInWishlist);
+      if (filter.isWishlistStatus !== undefined) query.where('isWishlistStatus', filter.isWishlistStatus);
       if (filter.search) query.where({ $text: { $search: filter.search } });
       if (filter.priceRange)
         query.where('price').gte(filter.priceRange.min).lte(filter.priceRange.max);
@@ -115,7 +115,7 @@ export class ProductRepository implements IProductRepository {
     if (filter) {
       if (filter.category) countQuery.where('category', filter.category);
       if (filter.isActive !== undefined) countQuery.where('isActive', filter.isActive);
-      if (filter.isInWishlist !== undefined) countQuery.where('isInWishlist', filter.isInWishlist);
+      if (filter.isWishlistStatus !== undefined) countQuery.where('isWishlistStatus', filter.isWishlistStatus);
       if (filter.search) countQuery.where({ $text: { $search: filter.search } });
       if (filter.priceRange)
         countQuery.where('price').gte(filter.priceRange.min).lte(filter.priceRange.max);
@@ -128,14 +128,14 @@ export class ProductRepository implements IProductRepository {
   /**
    * Toggles the wishlist status of a product
    * @param id Product ID to update
-   * @param isInWishlist New wishlist status
+   * @param isWishlistStatus New wishlist status
    * @returns Promise<Product> with the updated product
    */
-  public async toggleWishlistStatus(id: string, isInWishlist: boolean): Promise<Product> {
-    // Update the isInWishlist status and adjust wishlistCount accordingly
+  public async toggleWishlistStatus(id: string, isWishlistStatus: boolean): Promise<Product> {
+    // Update the isWishlistStatus status and adjust wishlistCount accordingly
     const updatedProduct = await Productmodel.findByIdAndUpdate(
       id,
-      { isInWishlist: isInWishlist, wishlistCount: isInWishlist ? 1 : 0 },
+      { isWishlistStatus: isWishlistStatus, wishlistCount: isWishlistStatus ? 1 : 0 },
       { new: true }
     );
 
@@ -147,3 +147,6 @@ export class ProductRepository implements IProductRepository {
     return Product.createProduct(updatedProduct.toObject()); // Convert to Product entity
   }
 }
+
+
+

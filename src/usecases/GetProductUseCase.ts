@@ -36,3 +36,6 @@ export class GetProductUseCase {
     return await this.productRepository.findById(productId);
   }
 }
+
+
+

@@ -23,7 +23,7 @@ This document outlines the analysis for the `ProductModel` class, which defines 
 - `createdAt`: Timestamp of product creation (default: now).
 - `updatedAt`: Timestamp of last update (default: now).
 - `wishlistCount`: Number of times the product has been added to wishlists (default: 0, minimum value of 0).
-- `isInWishlist`: Indicates if the product is in the user's wishlist (default: false).
+- `isWishlistStatus`: Indicates if the product is in the user's wishlist (default: false).
 
 ## Schema Definition
 
@@ -32,7 +32,7 @@ The `ProductSchema` is defined using Mongoose and includes the following feature
 - **Required Fields**: `name`, `description`, `price`, `stock`, and `category` are marked as required.
 - **Indexing**: `name` and `category` are indexed for efficient querying. `description` is indexed for full-text search.
 - **Validation**: `price` and `stock` have minimum value constraints to prevent negative values.
-- **Default Values**: `images`, `isActive`, `createdAt`, `updatedAt`, `wishlistCount`, and `isInWishlist` have sensible defaults.
+- **Default Values**: `images`, `isActive`, `createdAt`, `updatedAt`, `wishlistCount`, and `isWishlistStatus` have sensible defaults.
 
 ## Dependencies
 
@@ -54,3 +54,6 @@ The `ProductSchema` is defined using Mongoose and includes the following feature
 ## Conclusion
 
 The `ProductModel` class is a critical component of the infrastructure layer, ensuring that product data is stored and retrieved efficiently from MongoDB. The schema definition aligns with the `Product` entity and provides the necessary validations and optimizations for a production-ready application.
+
+
+

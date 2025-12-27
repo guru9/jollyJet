@@ -70,7 +70,7 @@ The ProductController serves as the HTTP adapter layer in the Clean Architecture
 
 - **Purpose:** List products with filtering and pagination
 - **Status Code:** 200 OK
-- **Input:** Query parameters (page, limit, category, search, isActive, isInWishlist, priceRange)
+- **Input:** Query parameters (page, limit, category, search, isActive, isWishlistStatus, priceRange)
 - **Output:** Paginated product list with metadata
 - **Features:** Full-text search, category filtering, wishlist filtering
 
@@ -344,3 +344,6 @@ The ProductController successfully implements the HTTP adapter layer with:
 - ✅ **Middleware integration** - Works seamlessly with validation and error handling middleware
 
 The controller follows Clean Architecture principles and provides a robust, type-safe foundation for the product management API with modern TypeScript best practices.
+
+
+

@@ -43,7 +43,7 @@ describe('CreateProductUseCase', () => {
 
       mockService.isAvailable.mockReturnValue(true);
       mockRepository.create.mockResolvedValue(
-        new Product({ ...productData, id: '1', isActive: true, isInWishlist: false })
+        new Product({ ...productData, id: '1', isActive: true, isWishlistStatus: false })
       );
 
       const result = await useCase.execute(productData);
@@ -192,3 +192,6 @@ describe('CreateProductUseCase', () => {
     });
   });
 });
+
+
+

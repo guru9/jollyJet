@@ -13,8 +13,8 @@ This document outlines the analysis for the `ProductRepository` class, which imp
 ## Key Methods
 
 - `create(product: Product)`: Creates a new product in the database.
-- `createWithWishlistStatus(product: Product, isInWishlist: boolean)`: Creates a new product with wishlist status.
-- `toggleWishlistStatus(id: string, isInWishlist: boolean)`: Toggles the wishlist status of a product and returns the updated product.
+- `createWithWishlistStatus(product: Product, isWishlistStatus: boolean)`: Creates a new product with wishlist status.
+- `toggleWishlistStatus(id: string, isWishlistStatus: boolean)`: Toggles the wishlist status of a product and returns the updated product.
 - `update(product: Product)`: Updates an existing product in the database.
 - `findById(id: string)`: Retrieves a product by its ID.
 - `findAll(filter?: ProductFilter, skip?: number, limit?: number)`: Retrieves all products with optional filtering and pagination.
@@ -30,7 +30,7 @@ This document outlines the analysis for the `ProductRepository` class, which imp
 ## Implementation Details
 
 - **Mongoose Integration**: Uses the `Productmodel` to interact with the MongoDB database.
-- **Filtering**: Supports filtering by `category`, `isActive`, `isInWishlist`, `search`, and `priceRange`.
+- **Filtering**: Supports filtering by `category`, `isActive`, `isWishlistStatus`, `search`, and `priceRange`.
 - **Pagination**: Supports pagination using `skip` and `limit` parameters.
 - **Mapping**: Converts MongoDB documents to `Product` entities using `Product.createProduct`.
 
@@ -60,3 +60,6 @@ The `ProductRepository` class is thoroughly tested to ensure reliability and cor
 ## Conclusion
 
 The `ProductRepository` class is a critical component of the infrastructure layer, providing a bridge between the domain layer and the database. It ensures that product data is stored and retrieved efficiently while adhering to the principles of Clean Architecture.
+
+
+

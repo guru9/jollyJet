@@ -24,7 +24,7 @@ describe('ToggleWishlistProductUseCase', () => {
   describe('execute method', () => {
     it('should toggle wishlist status successfully', async () => {
       const productId = '507f1f77bcf86cd799439011';
-      const wishlistData: ToggleWishlistDTO = { isInWishlist: true };
+      const wishlistData: ToggleWishlistDTO = { isWishlistStatus: true };
 
       const existingProduct = new Product({
         id: productId,
@@ -34,13 +34,13 @@ describe('ToggleWishlistProductUseCase', () => {
         stock: 10,
         category: 'Test Category',
         isActive: true,
-        isInWishlist: false,
+        isWishlistStatus: false,
         wishlistCount: 0,
       });
 
       const updatedProduct = new Product({
         ...existingProduct.toProps(),
-        isInWishlist: true,
+        isWishlistStatus: true,
         wishlistCount: 1,
       });
 
@@ -52,12 +52,12 @@ describe('ToggleWishlistProductUseCase', () => {
       expect(mockRepository.findById).toHaveBeenCalledWith(productId);
       expect(mockRepository.toggleWishlistStatus).toHaveBeenCalledWith(productId, true);
       expect(result).toBeInstanceOf(Product);
-      expect(result.toProps().isInWishlist).toBe(true);
+      expect(result.toProps().isWishlistStatus).toBe(true);
     });
 
     it('should throw error when product not found', async () => {
       const productId = '507f1f77bcf86cd799439011';
-      const wishlistData: ToggleWishlistDTO = { isInWishlist: true };
+      const wishlistData: ToggleWishlistDTO = { isWishlistStatus: true };
 
       mockRepository.findById.mockResolvedValue(null);
 
@@ -68,7 +68,7 @@ describe('ToggleWishlistProductUseCase', () => {
 
     it('should throw error for empty product ID', async () => {
       const productId = '';
-      const wishlistData: ToggleWishlistDTO = { isInWishlist: true };
+      const wishlistData: ToggleWishlistDTO = { isWishlistStatus: true };
 
       await expect(useCase.execute(productId, wishlistData)).rejects.toThrow(
         'Product ID is required for wishlist toggle.'
@@ -78,7 +78,7 @@ describe('ToggleWishlistProductUseCase', () => {
     });
 
     it('should throw error for null/undefined product ID', async () => {
-      const wishlistData: ToggleWishlistDTO = { isInWishlist: true };
+      const wishlistData: ToggleWishlistDTO = { isWishlistStatus: true };
 
       await expect(useCase.execute(null as unknown as string, wishlistData)).rejects.toThrow(
         'Product ID is required for wishlist toggle.'
@@ -93,7 +93,7 @@ describe('ToggleWishlistProductUseCase', () => {
 
     it('should handle toggling to false', async () => {
       const productId = '507f1f77bcf86cd799439011';
-      const wishlistData: ToggleWishlistDTO = { isInWishlist: false };
+      const wishlistData: ToggleWishlistDTO = { isWishlistStatus: false };
 
       const existingProduct = new Product({
         id: productId,
@@ -103,13 +103,13 @@ describe('ToggleWishlistProductUseCase', () => {
         stock: 10,
         category: 'Test Category',
         isActive: true,
-        isInWishlist: true,
+        isWishlistStatus: true,
         wishlistCount: 5,
       });
 
       const updatedProduct = new Product({
         ...existingProduct.toProps(),
-        isInWishlist: false,
+        isWishlistStatus: false,
         wishlistCount: 4,
       });
 
@@ -121,12 +121,12 @@ describe('ToggleWishlistProductUseCase', () => {
       expect(mockRepository.findById).toHaveBeenCalledWith(productId);
       expect(mockRepository.toggleWishlistStatus).toHaveBeenCalledWith(productId, false);
       expect(result).toBeInstanceOf(Product);
-      expect(result.toProps().isInWishlist).toBe(false);
+      expect(result.toProps().isWishlistStatus).toBe(false);
     });
 
     it('should handle repository errors during findById', async () => {
       const productId = '507f1f77bcf86cd799439011';
-      const wishlistData: ToggleWishlistDTO = { isInWishlist: true };
+      const wishlistData: ToggleWishlistDTO = { isWishlistStatus: true };
 
       mockRepository.findById.mockRejectedValue(new Error('Database connection failed'));
 
@@ -139,7 +139,7 @@ describe('ToggleWishlistProductUseCase', () => {
 
     it('should handle repository errors during toggleWishlistStatus', async () => {
       const productId = '507f1f77bcf86cd799439011';
-      const wishlistData: ToggleWishlistDTO = { isInWishlist: true };
+      const wishlistData: ToggleWishlistDTO = { isWishlistStatus: true };
 
       const existingProduct = new Product({
         id: productId,
@@ -149,7 +149,7 @@ describe('ToggleWishlistProductUseCase', () => {
         stock: 10,
         category: 'Test Category',
         isActive: true,
-        isInWishlist: false,
+        isWishlistStatus: false,
         wishlistCount: 0,
       });
 
@@ -169,3 +169,6 @@ describe('ToggleWishlistProductUseCase', () => {
     });
   });
 });
+
+
+

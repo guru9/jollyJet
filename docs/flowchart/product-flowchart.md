@@ -59,3 +59,6 @@ graph TD
 11. **Response**: The server sends a response back to the frontend, which displays it to the user.
 
 This flowchart provides a comprehensive overview of the flow of data and interactions within the JollyJet e-commerce application.
+
+
+

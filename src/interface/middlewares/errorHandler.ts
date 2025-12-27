@@ -43,3 +43,6 @@ export const errorHandler = (err: Error, req: Request, res: Response, _next: Nex
     message: 'Internal server error',
   });
 };
+
+
+

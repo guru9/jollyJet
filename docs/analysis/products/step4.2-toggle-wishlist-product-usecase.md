@@ -36,7 +36,7 @@ export class ToggleWishlistProductUseCase {
     }
 
     // Toggle the wishlist status using the repository
-    return await this.productRepository.toggleWishlistStatus(productId, wishlistData.isInWishlist);
+    return await this.productRepository.toggleWishlistStatus(productId, wishlistData.isWishlistStatus);
   }
 }
 ```
@@ -167,7 +167,7 @@ describe('ToggleWishlistProductUseCase', () => {
 
   it('should toggle wishlist status successfully', async () => {
     const productId = '507f1f77bcf86cd799439011';
-    const wishlistData: ToggleWishlistDTO = { isInWishlist: true };
+    const wishlistData: ToggleWishlistDTO = { isWishlistStatus: true };
 
     const existingProduct = new Product({
       id: productId,
@@ -177,13 +177,13 @@ describe('ToggleWishlistProductUseCase', () => {
       stock: 10,
       category: 'Test Category',
       isActive: true,
-      isInWishlist: false,
+      isWishlistStatus: false,
       wishlistCount: 0,
     });
 
     const updatedProduct = new Product({
       ...existingProduct.toProps(),
-      isInWishlist: true,
+      isWishlistStatus: true,
       wishlistCount: 1,
     });
 
@@ -195,12 +195,12 @@ describe('ToggleWishlistProductUseCase', () => {
     expect(mockRepository.findById).toHaveBeenCalledWith(productId);
     expect(mockRepository.toggleWishlistStatus).toHaveBeenCalledWith(productId, true);
     expect(result).toBeInstanceOf(Product);
-    expect(result.toProps().isInWishlist).toBe(true);
+    expect(result.toProps().isWishlistStatus).toBe(true);
   });
 
   it('should throw error when product not found', async () => {
     const productId = '507f1f77bcf86cd799439011';
-    const wishlistData: ToggleWishlistDTO = { isInWishlist: true };
+    const wishlistData: ToggleWishlistDTO = { isWishlistStatus: true };
 
     mockRepository.findById.mockResolvedValue(null);
 
@@ -260,3 +260,6 @@ describe('ToggleWishlistProductUseCase', () => {
 ## Conclusion
 
 Step 4.2 successfully implements the ToggleWishlistProductUseCase, providing a clean and maintainable way to toggle product wishlist status while enforcing business rules and maintaining proper error handling. The implementation follows Clean Architecture principles with clear separation between interface, application, and infrastructure layers. The use case properly validates inputs, checks product existence, and delegates the actual toggle operation to the repository interface. This provides a solid foundation for the upcoming controller and route layers.
+
+
+

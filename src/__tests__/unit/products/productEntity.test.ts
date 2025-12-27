@@ -1,7 +1,7 @@
 import { Product } from '../../../domain/entities/Product';
 
 describe('Product', () => {
-  describe('isInWishlist property', () => {
+  describe('isWishlistStatus property', () => {
     it('should be accessible via getter', () => {
       const productProps = {
         name: 'Test Product',
@@ -9,7 +9,7 @@ describe('Product', () => {
         price: 10.99,
         stock: 100,
         category: 'Test Category',
-        isInWishlist: true,
+        isWishlistStatus: true,
         isActive: true,
       };
 
@@ -17,7 +17,7 @@ describe('Product', () => {
 
       // Test that the getter works
       const productData = product.toProps();
-      expect(productData.isInWishlist).toBe(true);
+      expect(productData.isWishlistStatus).toBe(true);
     });
 
     it('should return the correct value from props', () => {
@@ -27,7 +27,7 @@ describe('Product', () => {
         price: 10.99,
         stock: 100,
         category: 'Test Category',
-        isInWishlist: false,
+        isWishlistStatus: false,
         isActive: true,
       };
 
@@ -35,7 +35,7 @@ describe('Product', () => {
 
       // Test that the getter returns the correct value
       const productData = product.toProps();
-      expect(productData.isInWishlist).toBe(false);
+      expect(productData.isWishlistStatus).toBe(false);
     });
 
     it('should default to false when not provided', () => {
@@ -52,7 +52,7 @@ describe('Product', () => {
 
       // Test that the default value is false
       const productData = product.toProps();
-      expect(productData.isInWishlist).toBe(false);
+      expect(productData.isWishlistStatus).toBe(false);
     });
   });
 
@@ -64,7 +64,7 @@ describe('Product', () => {
         price: 10.99,
         stock: 100,
         category: 'Test Category',
-        isInWishlist: false,
+        isWishlistStatus: false,
         wishlistCount: 5,
         isActive: true,
       };
@@ -83,7 +83,7 @@ describe('Product', () => {
         price: 10.99,
         stock: 100,
         category: 'Test Category',
-        isInWishlist: false,
+        isWishlistStatus: false,
         isActive: true,
       };
 
@@ -95,3 +95,6 @@ describe('Product', () => {
     });
   });
 });
+
+
+

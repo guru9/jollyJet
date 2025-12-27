@@ -59,15 +59,15 @@ export class ProductService {
   }
 
   // Updates product wishlist status with validation
-  public updateWishlistStatus(product: Product, isInWishlist: boolean): Product {
+  public updateWishlistStatus(product: Product, isWishlistStatus: boolean): Product {
     const currentWishlistCount = product.toProps().wishlistCount ?? 0;
-    const newWishlistCount = isInWishlist
+    const newWishlistCount = isWishlistStatus
       ? currentWishlistCount + 1
       : Math.max(0, currentWishlistCount - 1); // Prevent negative wishlist count
     // Use the toProps() method to get all properties as an object
     const updatedProductProps: ProductProps = {
       ...product.toProps(),
-      isInWishlist: isInWishlist,
+      isWishlistStatus: isWishlistStatus,
       wishlistCount: newWishlistCount,
       updatedAt: new Date(),
     };
@@ -75,3 +75,6 @@ export class ProductService {
     return Product.createProduct(updatedProductProps);
   }
 }
+
+
+

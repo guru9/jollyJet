@@ -819,3 +819,6 @@ jollyjet-microservices/
 ## Conclusion
 
 This plan provides a comprehensive guide for transitioning the JollyJet project from a monolithic architecture to a microservices architecture. It includes details on communication strategies, infrastructure setup, folder structure, and deployment strategies. Follow the steps outlined in this document to ensure a smooth and successful migration.
+
+
+

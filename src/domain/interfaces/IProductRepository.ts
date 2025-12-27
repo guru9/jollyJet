@@ -5,7 +5,7 @@ import { Product } from '../entities/Product';
 export interface ProductFilter extends QueryFilter {
   category?: string; // Filter by product category
   isActive?: boolean; // Filter by active status
-  isInWishlist?: boolean; // Filter by wishlist status
+  isWishlistStatus?: boolean; // Filter by wishlist status
   search?: string; // Search by product name or description
   priceRange?: { min: number; max: number }; // Filter by price range
 }
@@ -18,5 +18,8 @@ export interface IProductRepository {
   findAll(filter?: ProductFilter, pagination?: PaginationParams): Promise<Product[]>; // Retrieve all products with optional filtering and pagination
   delete(id: string): Promise<boolean>; // Delete a product by its ID
   count(filter?: ProductFilter): Promise<number>; // Get the total count of products matching a filter
-  toggleWishlistStatus(id: string, isInWishlist: boolean): Promise<Product>; // Toggle the wishlist status of a product
+  toggleWishlistStatus(id: string, isWishlistStatus: boolean): Promise<Product>; // Toggle the wishlist status of a product
 }
+
+
+

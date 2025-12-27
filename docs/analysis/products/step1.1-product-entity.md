@@ -56,7 +56,7 @@ import { Product } from '../../../domain/entities/Product';
 constructor(private props: ProductProps) {
   this.props = {
     ...props,
-    isInWishlist: props.isInWishlist ?? false,
+    isWishlistStatus: props.isWishlistStatus ?? false,
     wishlistCount: props.wishlistCount ?? 0,
     isActive: props.isActive ?? true,
     createdAt: props.createdAt ?? new Date(),
@@ -70,8 +70,8 @@ constructor(private props: ProductProps) {
 
 ```typescript
 // Fixed getter methods with proper defaults
-get isInWishlist(): boolean {
-  return this.props.isInWishlist ?? false;
+get isWishlistStatus(): boolean {
+  return this.props.isWishlistStatus ?? false;
 }
 
 get wishlistCount(): number {
@@ -165,7 +165,7 @@ export interface ProductProps {
   createdAt?: Date; // Creation timestamp (auto-generated)
   updatedAt?: Date; // Last update timestamp (auto-generated)
   wishlistCount?: number; // Wishlist count (default: 0)
-  isInWishlist?: boolean; // Wishlist status (default: false)
+  isWishlistStatus?: boolean; // Wishlist status (default: false)
 }
 ```
 
@@ -174,7 +174,7 @@ export interface ProductProps {
 #### Factory Methods
 
 - `Product.create(props: ProductProps): Product`
-- `Product.createWithWishlistStatus(props: ProductProps, isInWishlist: boolean): Product`
+- `Product.createWithWishlistStatus(props: ProductProps, isWishlistStatus: boolean): Product`
 
 #### Wishlist Management
 
@@ -184,14 +184,14 @@ export interface ProductProps {
 
 #### Property Access
 
-- `get isInWishlist(): boolean` - Wishlist status getter
+- `get isWishlistStatus(): boolean` - Wishlist status getter
 - `get wishlistCount(): number` - Wishlist count getter
 
 ### Business Rules Enforcement
 
 1. **Required Fields**: name, description, price, stock, category
 2. **Non-Negative Values**: price, stock, wishlistCount
-3. **Default Values**: isActive (true), wishlistCount (0), isInWishlist (false)
+3. **Default Values**: isActive (true), wishlistCount (0), isWishlistStatus (false)
 4. **Automatic Timestamps**: createdAt, updatedAt
 5. **Wishlist Integrity**: Prevents negative wishlist counts
 
@@ -209,7 +209,7 @@ export interface ProductProps {
 
 ```
 src/__tests__/unit/modules/product.test.ts
-├── isInWishlist property tests (3 tests)
+├── isWishlistStatus property tests (3 tests)
 ├── wishlistCount property tests (2 tests)
 └── Comprehensive coverage of all functionality
 ```
@@ -319,7 +319,7 @@ src/__tests__/unit/modules/product.test.ts
 - **Future**: Add analytics integration
 - **Validation**: Must be non-negative
 
-#### 12. **isInWishlist?: boolean**
+#### 12. **isWishlistStatus?: boolean**
 
 - **Type**: Optional boolean
 - **Purpose**: User-specific wishlist status
@@ -375,7 +375,7 @@ docs/analysis/products/step1.1-product-entity.md  # This analysis
 
 **Optional Fields (Step 1.1):**
 
-- `id`, `images`, `isActive`, `createdAt`, `updatedAt`, `wishlistCount`, `isInWishlist`
+- `id`, `images`, `isActive`, `createdAt`, `updatedAt`, `wishlistCount`, `isWishlistStatus`
 - **Rationale**: Flexible product creation, supports progressive enhancement
 
 **Future Enhancements (Step 1.3+):**
@@ -463,3 +463,6 @@ This analysis document focuses exclusively on **Step 1.1: Product Entity** imple
 _Analysis completed: 2025-12-16_
 _Analyst: Kilo Code Debugger_
 _Status: Production Ready ✅_
+
+
+

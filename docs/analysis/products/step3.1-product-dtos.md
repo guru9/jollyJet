@@ -82,7 +82,7 @@ export interface ProductResponseDTO {
   isActive: boolean; // Product active status
   createdAt: Date; // Creation timestamp
   updatedAt: Date; // Last update timestamp
-  isInWishlist: boolean; // Wishlist status
+  isWishlistStatus: boolean; // Wishlist status
   wishlistCount: number; // Number of users who added this to wishlist
 }
 ```
@@ -227,3 +227,6 @@ export interface ProductResponseDTO {
 ## Conclusion
 
 Step 3.1 successfully implements the DTO layer for the Product Module, providing type-safe contracts for API communication. These DTOs form the foundation for the validation layer (Step 3.2) and enable clean separation between API concerns and business logic.
+
+
+

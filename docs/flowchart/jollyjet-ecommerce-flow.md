@@ -50,3 +50,6 @@ graph TD
 14. **Order Delivered**: The order is delivered to the customer.
 
 This flowchart represents the typical e-commerce flow similar to platforms like Flipkart or Amazon, tailored for JollyJet.
+
+
+

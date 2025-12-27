@@ -1699,7 +1699,7 @@ The project uses different naming conventions for DTOs and entities to maintain 
 
 #### Entity Properties (Domain Layer)
 
-- **Pattern**: `isInWishlist` (camelCase with domain terminology)
+- **Pattern**: `isWishlistStatus` (camelCase with domain terminology)
 - **Purpose**: Business logic and domain state
 - **Usage**: Core business entities and validation
 
@@ -1719,7 +1719,7 @@ interface CreateProductDTO {
 
 // ✅ Entity (Domain Layer)
 interface ProductProps {
-  isInWishlist?: boolean; // Domain state
+  isWishlistStatus?: boolean; // Domain state
 }
 
 // ✅ Use Case (Application Layer)
@@ -1736,13 +1736,13 @@ class UpdateProductUseCase {
 #### Common Pitfalls to Avoid
 
 - ❌ Using `isWishlistStatus` in entity tests
-- ❌ Using `isInWishlist` in DTO validation
+- ❌ Using `isWishlistStatus` in DTO validation
 - ❌ Mixing naming conventions within the same layer
 - ❌ Bypassing proper mapping in use cases
 
 #### Testing Guidelines
 
-- **Unit Tests**: Use entity property names (`isInWishlist`)
+- **Unit Tests**: Use entity property names (`isWishlistStatus`)
 - **Integration Tests**: Use DTO property names (`isWishlistStatus`)
 - **Validation Tests**: Use DTO property names in schemas
 - **Service Tests**: Use entity property names
@@ -1750,3 +1750,6 @@ class UpdateProductUseCase {
 ---
 
 _This guide should be updated as the project evolves and new best practices are established._
+
+
+

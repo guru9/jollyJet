@@ -108,14 +108,14 @@ validateRequest(productIdSchema);
 
 - `category`: String (optional)
 - `isActive`: Boolean (optional)
-- `isInWishlist`: Boolean (optional)
+- `isWishlistStatus`: Boolean (optional)
 - `search`: String (optional)
 - `priceRange`: Object with min/max non-negative integers (optional)
 
 **Usage:**
 
 ```typescript
-// Validates GET /api/products?category=Electronics&isInWishlist=true requests
+// Validates GET /api/products?category=Electronics&isWishlistStatus=true requests
 validateRequest(productFilterSchema);
 ```
 
@@ -127,7 +127,7 @@ validateRequest(productFilterSchema);
 
 **Validation Rules:**
 
-- `isInWishlist`: Boolean (required)
+- `isWishlistStatus`: Boolean (required)
 - `productId`: Non-empty string (required)
 
 **Usage:**
@@ -306,7 +306,7 @@ describe('productFilterSchema', () => {
   it('should validate filter parameters', () => {
     const validFilter = {
       category: 'Electronics',
-      isInWishlist: true,
+      isWishlistStatus: true,
       priceRange: { min: 0, max: 1000 },
     };
     expect(productFilterSchema.parse(validFilter)).toBeDefined();
@@ -317,7 +317,7 @@ describe('productFilterSchema', () => {
 describe('toggleWishlistStatusSchema', () => {
   it('should validate wishlist status update', () => {
     const validWishlist = {
-      isInWishlist: true,
+      isWishlistStatus: true,
       productId: '507f1f77bcf86cd799439011',
     };
     expect(toggleWishlistStatusSchema.parse(validWishlist)).toBeDefined();
@@ -392,3 +392,6 @@ describe('paginationSchema', () => {
 Step 3.2 successfully implements the validation layer for the Product Module, providing comprehensive runtime validation for all API requests. These validators ensure data integrity at the API boundaries and integrate seamlessly with the Express middleware chain. The implementation follows Clean Architecture principles and provides a solid foundation for the upcoming use case and controller layers.
 
 **For detailed test documentation, refer to:** [Product Validators Test Documentation](../../tests/products/step3.2-product-validators-test.md)
+
+
+

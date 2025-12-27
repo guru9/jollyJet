@@ -11,14 +11,14 @@ export interface ProductProps {
   createdAt?: Date; // Timestamp of product creation (Optional)
   updatedAt?: Date; // Timestamp of last update (Optional)
   wishlistCount?: number; // Number of times the product has been added to wishlists (Optional)
-  isInWishlist?: boolean; // Indicates if the product is in the user's wishlist (optional)
+  isWishlistStatus?: boolean; // Indicates if the product is in the user's wishlist (optional)
 }
 
 export class Product {
   constructor(private props: ProductProps) {
     this.props = {
       ...props,
-      isInWishlist: props.isInWishlist ?? false,
+      isWishlistStatus: props.isWishlistStatus ?? false,
       wishlistCount: props.wishlistCount ?? 0,
       isActive: props.isActive ?? true,
       createdAt: props.createdAt ?? new Date(),
@@ -65,9 +65,12 @@ const productProps = {
   price: 29.99,
   stock: 50,
   category: 'Electronics',
-  isInWishlist: false,
+  isWishlistStatus: false,
 };
 
 const product = Product.createProduct(productProps);
-console.log(product.isInWishlist); // false
+console.log(product.isWishlistStatus); // false
 */
+
+
+

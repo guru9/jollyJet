@@ -105,7 +105,7 @@ describe('ProductController', () => {
         ...productData,
         id: 'product-id',
         isActive: true,
-        isInWishlist: false,
+        isWishlistStatus: false,
         wishlistCount: 0,
       });
 
@@ -162,7 +162,7 @@ describe('ProductController', () => {
         stock: 50,
         id: productId,
         isActive: true,
-        isInWishlist: false,
+        isWishlistStatus: false,
         wishlistCount: 0,
       });
 
@@ -258,7 +258,7 @@ describe('ProductController', () => {
         category: undefined,
         search: undefined,
         isActive: false,
-        isInWishlist: false,
+        isWishlistStatus: false,
         priceRange: undefined,
       });
       expect(mockResponse.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
@@ -286,7 +286,7 @@ describe('ProductController', () => {
         category: 'electronics',
         search: 'phone',
         isActive: 'true',
-        isInWishlist: 'false',
+        isWishlistStatus: 'false',
         priceRange: '{"min":100,"max":500}',
       };
 
@@ -307,7 +307,7 @@ describe('ProductController', () => {
         category: 'electronics',
         search: 'phone',
         isActive: true,
-        isInWishlist: false,
+        isWishlistStatus: false,
         priceRange: { min: 100, max: 500 },
       });
       expect(mockResponse.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
@@ -355,7 +355,7 @@ describe('ProductController', () => {
         stock: 50,
         id: productId,
         isActive: true,
-        isInWishlist: false,
+        isWishlistStatus: false,
         wishlistCount: 0,
       });
 
@@ -433,7 +433,7 @@ describe('ProductController', () => {
     it('should toggle wishlist status successfully', async () => {
       // Arrange
       const productId = 'product-id';
-      const wishlistData: ToggleWishlistDTO = { isInWishlist: true };
+      const wishlistData: ToggleWishlistDTO = { isWishlistStatus: true };
 
       const updatedProduct = Product.createProduct({
         name: 'Test Product',
@@ -443,7 +443,7 @@ describe('ProductController', () => {
         stock: 50,
         id: productId,
         isActive: true,
-        isInWishlist: true,
+        isWishlistStatus: true,
         wishlistCount: 1,
       });
 
@@ -473,7 +473,7 @@ describe('ProductController', () => {
       // Arrange
       const error = new Error('Product not found');
       mockRequest.params = { id: 'product-id' };
-      mockRequest.body = { isInWishlist: true };
+      mockRequest.body = { isWishlistStatus: true };
       mockToggleWishlistUseCase.execute.mockRejectedValue(error);
 
       // Act
@@ -580,7 +580,7 @@ describe('ProductController', () => {
       expect(mockListProductsUseCase.execute).toHaveBeenCalledWith({
         page: '1',
         limit: '10',
-        isInWishlist: true,
+        isWishlistStatus: true,
       });
       expect(mockResponse.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -615,7 +615,7 @@ describe('ProductController', () => {
       expect(mockListProductsUseCase.execute).toHaveBeenCalledWith({
         page: undefined,
         limit: undefined,
-        isInWishlist: true,
+        isWishlistStatus: true,
       });
       expect(mockResponse.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -645,3 +645,6 @@ describe('ProductController', () => {
     });
   });
 });
+
+
+

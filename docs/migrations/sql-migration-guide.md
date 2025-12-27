@@ -127,7 +127,7 @@ export class SqlProductModel {
   isActive!: boolean;
 
   @Column('boolean', { default: false })
-  isInWishlist!: boolean;
+  isWishlistStatus!: boolean;
 
   @Column('integer', { default: 0 })
   wishlistCount!: number;
@@ -148,7 +148,7 @@ export class SqlProductModel {
       stock: this.stock,
       category: this.category,
       isActive: this.isActive,
-      isInWishlist: this.isInWishlist,
+      isWishlistStatus: this.isWishlistStatus,
       wishlistCount: this.wishlistCount,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
@@ -165,7 +165,7 @@ export class SqlProductModel {
     model.stock = product.stock;
     model.category = product.category;
     model.isActive = product.isActive;
-    model.isInWishlist = product.isInWishlist;
+    model.isWishlistStatus = product.isWishlistStatus;
     model.wishlistCount = product.wishlistCount;
     return model;
   }
@@ -238,14 +238,14 @@ export class SqlProductRepository implements IProductRepository {
     return query.getCount();
   }
 
-  async toggleWishlistStatus(productId: string, isInWishlist: boolean): Promise<Product> {
+  async toggleWishlistStatus(productId: string, isWishlistStatus: boolean): Promise<Product> {
     const product = await this.findById(productId);
     if (!product) {
       throw new Error('Product not found');
     }
 
-    product.isInWishlist = isInWishlist;
-    product.wishlistCount = isInWishlist ? (product.wishlistCount || 0) + 1 : 0;
+    product.isWishlistStatus = isWishlistStatus;
+    product.wishlistCount = isWishlistStatus ? (product.wishlistCount || 0) + 1 : 0;
 
     return this.update(product);
   }
@@ -358,7 +358,7 @@ export class CreateProductsTable implements MigrationInterface {
             isNullable: false,
           },
           {
-            name: 'isInWishlist',
+            name: 'isWishlistStatus',
             type: 'boolean',
             default: false,
             isNullable: false,
@@ -508,3 +508,6 @@ For specific database migrations, refer to:
 - [SQL Integration Findings](./sql-integration-findings.md) - Comprehensive analysis of SQL integration options
 
 This migration guide ensures a smooth transition from MongoDB to SQL while maintaining all the benefits of Clean Architecture.
+
+
+

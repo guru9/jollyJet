@@ -121,7 +121,7 @@ export class PostgresProductModel {
   isActive!: boolean;
 
   @Column('boolean', { default: false })
-  isInWishlist!: boolean;
+  isWishlistStatus!: boolean;
 
   @Column('integer', { default: 0 })
   wishlistCount!: number;
@@ -142,7 +142,7 @@ export class PostgresProductModel {
       stock: this.stock,
       category: this.category,
       isActive: this.isActive,
-      isInWishlist: this.isInWishlist,
+      isWishlistStatus: this.isWishlistStatus,
       wishlistCount: this.wishlistCount,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
@@ -159,7 +159,7 @@ export class PostgresProductModel {
     model.stock = product.stock;
     model.category = product.category;
     model.isActive = product.isActive;
-    model.isInWishlist = product.isInWishlist;
+    model.isWishlistStatus = product.isWishlistStatus;
     model.wishlistCount = product.wishlistCount;
     return model;
   }
@@ -232,14 +232,14 @@ export class PostgresProductRepository implements IProductRepository {
     return query.getCount();
   }
 
-  async toggleWishlistStatus(productId: string, isInWishlist: boolean): Promise<Product> {
+  async toggleWishlistStatus(productId: string, isWishlistStatus: boolean): Promise<Product> {
     const product = await this.findById(productId);
     if (!product) {
       throw new Error('Product not found');
     }
 
-    product.isInWishlist = isInWishlist;
-    product.wishlistCount = isInWishlist ? (product.wishlistCount || 0) + 1 : 0;
+    product.isWishlistStatus = isWishlistStatus;
+    product.wishlistCount = isWishlistStatus ? (product.wishlistCount || 0) + 1 : 0;
 
     return this.update(product);
   }
@@ -352,7 +352,7 @@ export class CreateProductsTable implements MigrationInterface {
             isNullable: false,
           },
           {
-            name: 'isInWishlist',
+            name: 'isWishlistStatus',
             type: 'boolean',
             default: false,
             isNullable: false,
@@ -495,3 +495,6 @@ describe('PostgresProductRepository', () => {
 5. **Over-optimizing**: Start with simple implementation, optimize later if needed
 
 This migration guide ensures a smooth transition from MongoDB to PostgreSQL while maintaining all the benefits of Clean Architecture.
+
+
+

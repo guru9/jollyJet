@@ -121,16 +121,16 @@ describe('ListProductsUseCase', () => {
       );
     });
 
-    it('should apply isInWishlist filter when provided', async () => {
+    it('should apply isWishlistStatus filter when provided', async () => {
       mockRepository.findAll.mockResolvedValue([]);
       mockRepository.count.mockResolvedValue(0);
 
       await listProductsUseCase.execute({
-        isInWishlist: true,
+        isWishlistStatus: true,
       });
 
       expect(mockRepository.findAll).toHaveBeenCalledWith(
-        { isInWishlist: true },
+        { isWishlistStatus: true },
         { page: 1, limit: 10, skip: 0 }
       );
     });
@@ -250,3 +250,6 @@ describe('ListProductsUseCase', () => {
     });
   });
 });
+
+
+

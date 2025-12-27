@@ -42,7 +42,7 @@ describe('ProductRepository', () => {
         price: 100,
         stock: 10,
         category: 'Test Category',
-        isInWishlist: false,
+        isWishlistStatus: false,
         wishlistCount: 0,
         isActive: true,
       });
@@ -53,7 +53,7 @@ describe('ProductRepository', () => {
       const productId = createdProduct?._id.toString();
 
       const updatedProduct = await productRepository.toggleWishlistStatus(productId!, true);
-      expect(updatedProduct.toProps().isInWishlist).toBe(true);
+      expect(updatedProduct.toProps().isWishlistStatus).toBe(true);
       expect(updatedProduct.toProps().wishlistCount).toBe(1);
     });
 
@@ -252,3 +252,6 @@ describe('ProductRepository', () => {
     });
   });
 });
+
+
+

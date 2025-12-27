@@ -97,7 +97,7 @@ This suite tests the validation of wishlist status update data:
 
 - ✅ Validate wishlist status update with valid data
 - ✅ Reject missing product ID in wishlist update
-- ✅ Reject missing isInWishlist field
+- ✅ Reject missing isWishlistStatus field
 
 **Total Tests:** 3
 
@@ -158,3 +158,6 @@ The product validators test file ensures 100% coverage for the following schemas
 ## Conclusion
 
 The product validators test file provides comprehensive coverage for all product-related validation schemas, ensuring that the application handles product data correctly and reliably.
+
+
+

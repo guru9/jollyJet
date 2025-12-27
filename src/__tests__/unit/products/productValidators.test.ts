@@ -240,7 +240,7 @@ describe('Product Validators - Unit Tests', () => {
         query: {
           category: 'Electronics',
           isActive: true,
-          isInWishlist: true,
+          isWishlistStatus: true,
           search: 'wireless',
           priceRange: {
             min: 0,
@@ -258,7 +258,7 @@ describe('Product Validators - Unit Tests', () => {
       const partialFilter = {
         query: {
           category: 'Electronics',
-          isInWishlist: true,
+          isWishlistStatus: true,
         },
       };
 
@@ -297,7 +297,7 @@ describe('Product Validators - Unit Tests', () => {
     it('should validate wishlist status update with valid data', () => {
       const validWishlist = {
         body: {
-          isInWishlist: true,
+          isWishlistStatus: true,
         },
         params: {
           productId: '507f1f77bcf86cd799439011',
@@ -312,7 +312,7 @@ describe('Product Validators - Unit Tests', () => {
     it('should reject missing product ID in wishlist update', () => {
       const invalidWishlist = {
         body: {
-          isInWishlist: true,
+          isWishlistStatus: true,
         },
         params: {},
       };
@@ -322,7 +322,7 @@ describe('Product Validators - Unit Tests', () => {
       expect(result.error).toBeDefined();
     });
 
-    it('should reject missing isInWishlist field', () => {
+    it('should reject missing isWishlistStatus field', () => {
       const invalidWishlist = {
         body: {},
         params: {
@@ -411,3 +411,6 @@ describe('Product Validators - Unit Tests', () => {
     });
   });
 });
+
+
+

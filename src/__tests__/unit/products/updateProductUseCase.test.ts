@@ -197,7 +197,7 @@ describe('UpdateProductUseCase', () => {
 
       const updatedProduct = new Product({
         ...existingProduct.toProps(),
-        isInWishlist: true,
+        isWishlistStatus: true,
         wishlistCount: 1,
       });
       mockService.updateWishlistStatus.mockReturnValue(updatedProduct);
@@ -208,7 +208,7 @@ describe('UpdateProductUseCase', () => {
       expect(mockRepository.findById).toHaveBeenCalledWith('1');
       expect(mockService.updateWishlistStatus).toHaveBeenCalledWith(existingProduct, true);
       expect(mockRepository.update).toHaveBeenCalledWith(updatedProduct);
-      expect(result.toProps().isInWishlist).toBe(true);
+      expect(result.toProps().isWishlistStatus).toBe(true);
       expect(result.toProps().wishlistCount).toBe(1);
     });
 
@@ -361,3 +361,6 @@ describe('UpdateProductUseCase', () => {
     });
   });
 });
+
+
+

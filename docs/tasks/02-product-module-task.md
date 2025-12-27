@@ -66,7 +66,7 @@ This task follows Clean Architecture principles with clear layer separation:
 
 - **Objective:** Abstract repository interface for CRUD operations with Wishlist filtering support.
 - **Files:** `src/domain/interfaces/IProductRepository.ts`
-- **Code:** Promise-based methods with ProductFilter including isInWishlist parameter.
+- **Code:** Promise-based methods with ProductFilter including isWishlistStatus parameter.
 
 ### ✅ Step 1.3: Create ProductService with Wishlist Business Logic
 
@@ -82,7 +82,7 @@ This task follows Clean Architecture principles with clear layer separation:
 
 - **Objective:** Mongoose schema with indexes, validation, and Wishlist field support.
 - **Files:** `src/infrastructure/models/ProductModel.ts`
-- **Code:** Schema with text indexes for search and Wishlist fields (isInWishlist, wishlistCount).
+- **Code:** Schema with text indexes for search and Wishlist fields (isWishlistStatus, wishlistCount).
 
 ### ✅ Step 2.2: Create MongoProductRepository with Wishlist Support
 
@@ -187,7 +187,7 @@ This task follows Clean Architecture principles with clear layer separation:
 
 - **Step 1.2:** Define IProductRepository Interface with Wishlist filtering (`src/domain/interfaces/IProductRepository.ts`)
   - Abstract CRUD operations with Wishlist support
-  - ProductFilter for querying including isInWishlist parameter
+  - ProductFilter for querying including isWishlistStatus parameter
   - Promise-based async methods with Wishlist filtering
 
 - **Step 1.3:** Create ProductService with Wishlist business logic (`src/domain/services/ProductService.ts`)
@@ -381,3 +381,6 @@ This task follows Clean Architecture principles with clear layer separation:
 
 - [Implementation Plan](../implementation-plans/08-product-module-plan.md)
 - [Main Task List](./01-jollyjet-task.md)
+
+
+

@@ -42,3 +42,6 @@ export class DeleteProductUseCase {
     return await this.productRepository.delete(productId);
   }
 }
+
+
+

@@ -14,6 +14,7 @@
  */
 
 // Individual use case exports for direct import
+export { CountProductsQuery, CountProductsUseCase } from './CountProductsUseCase';
 export { CreateProductUseCase } from './CreateProductUseCase';
 export { DeleteProductUseCase } from './DeleteProductUseCase';
 export { GetProductUseCase } from './GetProductUseCase';
@@ -22,3 +23,6 @@ export { ToggleWishlistProductUseCase } from './ToggleWishlistProductUseCase';
 export { UpdateProductUseCase } from './UpdateProductUseCase';
 // Note: Use Cases are TypeScript classes and cannot be used as runtime values.
 // Use individual imports for type checking and documentation purposes.
+
+
+

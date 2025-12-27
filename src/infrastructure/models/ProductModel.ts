@@ -11,7 +11,7 @@ export interface IProductDocument extends Document {
   createdAt: Date; // Timestamp of product creation (default: now)
   updatedAt: Date; // Timestamp of last update (default: now)
   wishlistCount: number; // Number of times the product has been added to wishlists (default: 0)
-  isInWishlist: boolean; // Indicates if the product is in the user's wishlist (default: false)
+  isWishlistStatus: boolean; // Indicates if the product is in the user's wishlist (default: false)
 }
 
 // Mongoose schema definition for Product
@@ -26,8 +26,11 @@ const ProductSchema: Schema = new Schema({
   createdAt: { type: Date, default: Date.now }, // Default to current date/time
   updatedAt: { type: Date, default: Date.now }, // Default to current date/time
   wishlistCount: { type: Number, default: 0, min: 0 }, // Default value 0 with minimum value of 0
-  isInWishlist: { type: Boolean, default: false }, // Default value false
+  isWishlistStatus: { type: Boolean, default: false }, // Default value false
 });
 
 //create and export ProductModel
 export const Productmodel = mongoose.model<IProductDocument>('Product', ProductSchema);
+
+
+

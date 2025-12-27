@@ -69,7 +69,7 @@ export const productIdSchema = z.object({
  * Allows filtering by various optional criteria.
  * @property {string} category - Filter by product category (optional).
  * @property {boolean} isActive - Filter by active status (optional).
- * @property {boolean} isInWishlist - Filter by wishlist status (optional).
+ * @property {boolean} isWishlistStatus - Filter by wishlist status (optional).
  * @property {string} search - Search by product name or description (optional).
  * @property {{ min: number; max: number }} priceRange - Filter by price range (optional).
  */
@@ -77,7 +77,7 @@ export const productFilterSchema = z.object({
   query: z.object({
     category: z.string().optional(),
     isActive: z.boolean().optional(),
-    isInWishlist: z.boolean().optional(),
+    isWishlistStatus: z.boolean().optional(),
     search: z.string().optional(),
     priceRange: z
       .object({
@@ -90,13 +90,13 @@ export const productFilterSchema = z.object({
 
 /**
  * Validation schema for toggling the wishlist status of a product.
- * Ensures the isInWishlist field is a boolean.
- * @property {boolean} isInWishlist - Wishlist status to be set.
+ * Ensures the isWishlistStatus field is a boolean.
+ * @property {boolean} isWishlistStatus - Wishlist status to be set.
  * @property {string} productId - ID of the product to update.
  */
 export const toggleWishlistStatusSchema = z.object({
   body: z.object({
-    isInWishlist: z.boolean(),
+    isWishlistStatus: z.boolean(),
   }),
   params: z.object({
     productId: z.string().min(1, 'Product ID is required'),
@@ -115,3 +115,6 @@ export const paginationSchema = z.object({
     limit: z.number().int().min(1).optional(),
   }),
 });
+
+
+
