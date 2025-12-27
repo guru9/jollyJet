@@ -3,8 +3,9 @@ import { inject, injectable } from 'tsyringe';
 import { Product } from '../domain/entities/Product';
 import { IProductRepository } from '../domain/interfaces/IProductRepository';
 import { ProductService } from '../domain/services/ProductService';
-import { CreateProductDTO } from '../interface/dtos/CreateProductDTO';
-import { DI_TOKENS } from '../shared/constants';
+import { CreateProductDTO } from '../interface/dtos';
+import { DI_TOKENS, PRODUCT_ERROR_MESSAGES } from '../shared/constants';
+import { BadRequestError } from '../shared/errors';
 
 /**
  * Usecase for creating new products
@@ -40,7 +41,7 @@ export class CreateProductUseCase {
     });
 
     if (!this.productService.isAvailable(newProduct)) {
-      throw new Error('Product is not available.');
+      throw new BadRequestError(PRODUCT_ERROR_MESSAGES.NOT_AVAILABLE);
     }
 
     // Persist the new product using the repository

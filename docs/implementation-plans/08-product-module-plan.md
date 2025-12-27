@@ -295,6 +295,32 @@ We will strictly follow **Clean Architecture**, ensuring our business rules (Dom
 > - **Integration Points:** Used by ProductController (Step 5.1) for API operations
 > - **Benefits:** Centralized business logic, easy testing, framework independence
 
+**Error Handling Implementation:**
+
+All use cases have been updated to use proper error classes from `src/shared/errors.ts` for better error classification and API responses:
+
+1. **CreateProductUseCase**:
+   - **Error**: `throw new BadRequestError('Product is not available.')`
+   - **Import Added**: `import { BadRequestError } from '../shared/errors';`
+
+2. **GetProductUseCase**:
+   - **Error**: `throw new BadRequestError('Product ID is required to retrieve the product.')`
+   - **Import Added**: `import { BadRequestError } from '../shared/errors';`
+
+3. **DeleteProductUseCase**:
+   - **Error**: `throw new BadRequestError('Product ID is required for deletion.')`
+   - **Import Added**: `import { BadRequestError } from '../shared/errors';`
+
+4. **ToggleWishlistProductUseCase**:
+   - **Error 1**: `throw new BadRequestError('Product ID is required for wishlist toggle.')`
+   - **Error 2**: `throw new NotFoundError('Product not found.')`
+   - **Import Added**: `import { BadRequestError, NotFoundError } from '../shared/errors';`
+
+5. **UpdateProductUseCase**:
+   - **Error 1**: `throw new BadRequestError('Product ID is required for updation.')`
+   - **Error 2**: `throw new NotFoundError('Product not found.')`
+   - **Import Added**: `import { BadRequestError, NotFoundError } from '../shared/errors';`
+
 **Completed Use Cases:**
 
 1. **CreateProductUseCase**: Handles the creation of new products with validation and dependency injection.
@@ -304,7 +330,7 @@ We will strictly follow **Clean Architecture**, ensuring our business rules (Dom
 5. **DeleteProductUseCase**: Deletes a product by its ID.
 6. **ToggleWishlistProductUseCase**: Specifically handles toggling the wishlist status of a product.
 
-All use cases follow best practices such as dependency injection, separation of concerns, and proper error handling. The wishlist functionality is integrated into both the `UpdateProductUseCase` and the dedicated `ToggleWishlistProductUseCase`.
+All use cases follow best practices such as dependency injection, separation of concerns, and proper error handling. The wishlist functionality is integrated into both the `UpdateProductUseCase` and the dedicated `ToggleWishlistProductUseCase`. The error handling has been standardized to use appropriate error classes for better API consumer experience and consistent error responses.
 
 ### ✅ _Step 5.1: Build ProductController_
 

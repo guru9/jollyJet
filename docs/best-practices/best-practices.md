@@ -329,6 +329,38 @@ The interface layer handles HTTP requests and external communications.
 - **Type Safety**: TypeScript interfaces matching Zod schemas
 - **Separation**: Separate input and output DTOs
 - **Naming**: Suffix with `DTO` (e.g., `CreateProductDTO`)
+- **Documentation**: Use JSDoc comments for all DTO interfaces and properties
+- **Consistent Naming**: Use camelCase for all property names (e.g., `isWishlistStatus` not `iswishliststatus`)
+- **Optional Fields**: Mark optional fields with `[fieldName]` in JSDoc and `?` in TypeScript
+- **Field Alignment**: Align DTO field names with validator schemas and database models
+
+**Example DTO Structure:**
+
+```typescript
+/**
+ * Data Transfer Object for creating new products
+ *
+ * @interface CreateProductDTO
+ * @property {string} name - Product name (required, min 3 chars)
+ * @property {string} description - Product description (required, min 10 chars)
+ * @property {number} price - Product price (required, non-negative)
+ * @property {number} stock - Initial stock quantity (required, non-negative integer)
+ * @property {string} category - Product category (required, min 1 char)
+ * @property {string[]} [images] - Product image URLs (optional, validated as URLs)
+ * @property {boolean} [isActive] - Product active status (optional, default: true)
+ * @property {boolean} [isWishlistStatus] - Product wishlist status (optional, default: false)
+ */
+export interface CreateProductDTO {
+  name: string;
+  description: string;
+  price: number;
+  stock: number;
+  category: string;
+  images?: string[];
+  isActive?: boolean;
+  isWishlistStatus?: boolean;
+}
+```
 
 #### Validators (`src/interface/validators`)
 
@@ -336,6 +368,594 @@ The interface layer handles HTTP requests and external communications.
 - **Error Messages**: Provide clear, user-friendly error messages
 - **Type Inference**: Use Zod's type inference for TypeScript types
 - **Composition**: Build complex schemas from simpler ones
+
+#### Controllers (`src/interface/controllers`)
+
+- **Separation of Concerns**: One controller per resource
+- **Error Propagation**: Pass errors to global error handler using `next(error)`
+- **Request Validation**: Validate inputs before processing
+- **Response Formatting**: Consistent response structures
+- **DTO Integration**: Use TypeScript DTO interfaces for request/response typing
+- **Error Handling**: Use try-catch blocks with proper error propagation
+- **HTTP Methods**: Use appropriate HTTP methods and status codes
+
+**DTO Usage in Controllers: Best Practice**
+
+**✅ DTOs are ALWAYS RECOMMENDED for controllers**
+
+Using DTOs in controllers is considered a best practice regardless of operation complexity. DTOs provide consistent type safety, better documentation, and improved maintainability throughout your application.
+
+**Key Benefits of Always Using DTOs:**
+
+1. **Type Safety**: Compile-time validation and IDE autocomplete support
+2. **Consistency**: Uniform approach across all endpoints
+3. **Documentation**: Self-documenting API contracts
+4. **Maintainability**: Easier to update and refactor
+5. **Validation**: Clear validation contracts for all inputs
+6. **IDE Support**: Better developer experience with type hints
+
+**Example: DTO Usage for All Operations**
+
+```typescript
+// ✅ Best Practice: Create operations with DTO
+async createProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const productData: CreateProductDTO = req.body;
+    const product = await this.createProductUseCase.execute(productData);
+    res.status(201).json(product);
+  } catch (error) {
+    next(error);
+  }
+}
+
+// ✅ Best Practice: Update operations with DTO
+async updateProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const productId = req.params.id;
+    const productData: UpdateProductDTO = req.body;
+    const product = await this.updateProductUseCase.execute(productId, productData);
+    res.json(product);
+  } catch (error) {
+    next(error);
+  }
+}
+
+// ✅ Best Practice: Read operations with DTO (even for simple parameters)
+async getProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const productId: string = req.params.id; // Type-safe parameter
+    const product = await this.getProductUseCase.execute(productId);
+    if (product) {
+      res.json(product);
+    } else {
+      res.status(404).json({ message: 'Product not found' });
+    }
+  } catch (error) {
+    next(error);
+  }
+}
+
+// ✅ Best Practice: List operations with Query DTO
+interface ListProductsQuery {
+  page?: string;
+  limit?: string;
+  category?: string;
+  search?: string;
+}
+
+async listProducts(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const queryParams: ListProductsQuery = {
+      page: req.query.page as string,
+      limit: req.query.limit as string,
+      category: req.query.category as string,
+      search: req.query.search as string,
+    };
+    const result = await this.listProductsUseCase.execute(queryParams);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+```
+
+**Why Always Use DTOs:**
+
+```typescript
+// ❌ Not Recommended: Direct parameter access without typing
+async getProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const productId = req.params.id; // No type safety
+    // ... rest of the code
+  } catch (error) {
+    next(error);
+  }
+}
+
+// ✅ Best Practice: Always use typing, even for simple parameters
+async getProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const productId: string = req.params.id; // Type-safe
+    // ... rest of the code
+  } catch (error) {
+    next(error);
+  }
+}
+```
+
+**Exception Cases (Rare):**
+
+While DTOs are always recommended, there might be rare exceptions:
+
+- Simple health check endpoints
+- Internal monitoring endpoints
+- Legacy code migration scenarios
+
+Even in these cases, consider using minimal typing for better maintainability.
+
+**Example Controller Structure:**
+
+```typescript
+import { NextFunction, Request, Response } from 'express';
+import { injectable } from 'tsyringe';
+import { CreateProductUseCase } from '../../usecases/CreateProductUseCase';
+import { UpdateProductUseCase } from '../../usecases/UpdateProductUseCase';
+import { CreateProductDTO } from '../dtos/CreateProductDTO';
+import { UpdateProductDTO } from '../dtos/UpdateProductDTO';
+
+@injectable()
+export class ProductController {
+  constructor(
+    private createProductUseCase: CreateProductUseCase,
+    private updateProductUseCase: UpdateProductUseCase
+  ) {}
+
+  async createProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const productData: CreateProductDTO = req.body;
+      const product = await this.createProductUseCase.execute(productData);
+      res.status(201).json(product);
+    } catch (error) {
+      next(error); // Proper error propagation to global error handler
+    }
+  }
+
+  async updateProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const productId = req.params.id;
+      const productData: UpdateProductDTO = req.body;
+      const product = await this.updateProductUseCase.execute(productId, productData);
+      if (product) {
+        res.json(product);
+      } else {
+        res.status(404).json({ message: 'Product not found' });
+      }
+    } catch (error) {
+      next(error); // Proper error propagation to global error handler
+    }
+  }
+}
+```
+
+**Best Practices for `next()` Function:**
+
+1. **Error Propagation**: Always use `next(error)` to pass errors to the global error handler
+2. **Async/Await**: Use try-catch blocks in async methods to catch and propagate errors
+3. **Error Types**: Pass appropriate error types (DomainError, ValidationError, etc.)
+4. **HTTP Status**: Let the error handler determine the appropriate HTTP status code
+5. **Error Context**: Include relevant context in errors for better debugging
+
+**Example Error Handling:**
+
+```typescript
+// ✅ Correct: Proper error propagation
+try {
+  const result = await this.useCase.execute(input);
+  res.json(result);
+} catch (error) {
+  next(error); // Pass to global error handler
+}
+
+// ❌ Incorrect: Manual error handling
+try {
+  const result = await this.useCase.execute(input);
+  res.json(result);
+} catch (error) {
+  res.status(500).json({ error: error.message }); // ❌ Bypasses global error handler
+}
+
+// ✅ Correct: Using next() with custom errors
+try {
+  if (!req.params.id) {
+    throw new ValidationError('Product ID is required');
+  }
+  const result = await this.useCase.execute(req.params.id, req.body);
+  res.json(result);
+} catch (error) {
+  next(error); // Global error handler will set appropriate status code
+}
+
+// ❌ Incorrect: Manual status code handling
+try {
+  if (!req.params.id) {
+    return res.status(400).json({ error: 'Product ID is required' }); // ❌ Manual error handling
+  }
+  const result = await this.useCase.execute(req.params.id, req.body);
+  res.json(result);
+} catch (error) {
+  res.status(500).json({ error: 'Internal Server Error' }); // ❌ Manual status code
+}
+```
+
+**When to Use `res.status(500)`:**
+
+While `next()` is preferred for error handling, there are rare cases where `res.status(500)` might be appropriate:
+
+1. **Fallback Error Handler**: As a last resort in middleware when no other error handling is available
+2. **Health Check Endpoints**: For simple health check endpoints where minimal error handling is needed
+3. **Legacy Code**: When working with legacy code that hasn't been migrated to use global error handlers
+
+**Example of Appropriate `res.status(500)` Usage:**
+
+```typescript
+// ✅ Acceptable: Simple health check endpoint
+app.get('/health', (req, res) => {
+  try {
+    // Simple health check logic
+    res.json({ status: 'healthy', timestamp: new Date() });
+  } catch (error) {
+    // Minimal error handling for health check
+    res.status(500).json({ status: 'unhealthy', error: 'Health check failed' });
+  }
+});
+
+// ❌ Not Recommended: Complex endpoint with manual error handling
+app.post('/products', async (req, res) => {
+  try {
+    // Complex business logic
+    const product = await createProduct(req.body);
+    res.status(201).json(product);
+  } catch (error) {
+    // ❌ Should use next() instead for complex endpoints
+    res.status(500).json({ error: 'Failed to create product' });
+  }
+});
+```
+
+**Best Practice Summary:**
+
+- ✅ **Use `next(error)`** for all business logic and complex endpoints
+- ✅ **Let global error handler** determine HTTP status codes and error responses
+- ✅ **Use custom error types** (ValidationError, DomainError, etc.) for better error classification
+- ✅ **Use HTTP status constants** from `HTTP_STATUS` for consistent status codes
+- ❌ **Avoid `res.status(500)`** in business logic - reserve for simple cases only
+- ❌ **Don't bypass** the global error handling mechanism
+- ❌ **Avoid hardcoded status codes** like `201`, `404`, etc.
+
+**Using HTTP Status Constants:**
+
+Always use the `HTTP_STATUS` constants from `src/shared/constants.ts` instead of hardcoded status codes for better maintainability and consistency.
+
+**Available Constants:**
+
+```typescript
+// src/shared/constants.ts
+export const HTTP_STATUS = {
+  OK: 200,
+  CREATED: 201,
+  NO_CONTENT: 204,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  CONFLICT: 409,
+  UNPROCESSABLE_ENTITY: 422,
+  INTERNAL_SERVER_ERROR: 500,
+  SERVICE_UNAVAILABLE: 503,
+};
+```
+
+**Example: Using HTTP Status Constants**
+
+```typescript
+// ✅ Best Practice: Use HTTP status constants
+import { HTTP_STATUS } from '../../shared/constants';
+
+async createProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const productData: CreateProductDTO = req.body;
+    const product = await this.createProductUseCase.execute(productData);
+    res.status(HTTP_STATUS.CREATED).json(product); // ✅ Use constant
+  } catch (error) {
+    next(error);
+  }
+}
+
+async getProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const productId: string = req.params.id;
+    const product = await this.getProductUseCase.execute(productId);
+    if (product) {
+      res.json(product);
+    } else {
+      res.status(HTTP_STATUS.NOT_FOUND).json({ message: 'Product not found' }); // ✅ Use constant
+    }
+  } catch (error) {
+    next(error);
+  }
+}
+
+async deleteProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const productId = req.params.id;
+    const success = await this.deleteProductUseCase.execute(productId);
+    if (success) {
+      res.status(HTTP_STATUS.NO_CONTENT).send(); // ✅ Use constant
+    } else {
+      res.status(HTTP_STATUS.NOT_FOUND).json({ message: 'Product not found' }); // ✅ Use constant
+    }
+  } catch (error) {
+    next(error);
+  }
+}
+```
+
+**Why Use HTTP Status Constants:**
+
+1. **Maintainability**: Easy to update status codes in one place
+2. **Consistency**: Ensures same status codes are used throughout the application
+3. **Readability**: More descriptive than magic numbers
+4. **Type Safety**: IDE autocomplete and type checking
+5. **Documentation**: Self-documenting code
+
+**Example: Before and After**
+
+```typescript
+// ❌ Not Recommended: Hardcoded status codes
+async createProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const product = await this.createProductUseCase.execute(req.body);
+    res.status(201).json(product); // ❌ Magic number
+  } catch (error) {
+    next(error);
+  }
+}
+
+// ✅ Best Practice: Use HTTP status constants
+async createProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const productData: CreateProductDTO = req.body;
+    const product = await this.createProductUseCase.execute(productData);
+    res.status(HTTP_STATUS.CREATED).json(product); // ✅ Descriptive constant
+  } catch (error) {
+    next(error);
+  }
+}
+```
+
+**Using Response Message Constants:**
+
+Always use response message constants from `src/shared/constants.ts` for consistent error and success messages across the application.
+
+**Available Constants:**
+
+```typescript
+// src/shared/constants.ts
+export const RESPONSE_STATUS = {
+  SUCCESS: 'success',
+  ERROR: 'error',
+};
+
+export const PRODUCT_SUCCESS_MESSAGES = {
+  PRODUCT_CREATED: 'Product created successfully',
+  PRODUCT_RETRIEVED: 'Product retrieved successfully',
+  PRODUCTS_RETRIEVED: 'Products retrieved successfully',
+  PRODUCT_UPDATED: 'Product updated successfully',
+  PRODUCT_DELETED: 'Product deleted successfully',
+  OPERATION_SUCCESSFUL: 'Operation completed successfully',
+};
+
+export const PRODUCT_ERROR_MESSAGES = {
+  INTERNAL_SERVER_ERROR: 'Internal server error',
+  NOT_FOUND: 'Resource not found',
+  UNAUTHORIZED: 'Unauthorized access',
+  VALIDATION_ERROR: 'Validation error',
+  DATABASE_ERROR: 'Database operation failed',
+};
+```
+
+**Example: Using Response Message Constants**
+
+```typescript
+// ✅ Best Practice: Use response message constants
+import {
+  HTTP_STATUS,
+  PRODUCT_ERROR_MESSAGES,
+  PRODUCT_SUCCESS_MESSAGES,
+  RESPONSE_STATUS,
+} from '../../shared/constants';
+
+async createProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const productData: CreateProductDTO = req.body;
+    const product = await this.createProductUseCase.execute(productData);
+
+    res.status(HTTP_STATUS.CREATED).json({
+      status: RESPONSE_STATUS.SUCCESS, // ✅ Use constant
+      data: product,
+      message: PRODUCT_SUCCESS_MESSAGES.PRODUCT_CREATED, // ✅ Use constant
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async getProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const productId: string = req.params.id;
+    const product = await this.getProductUseCase.execute(productId);
+
+    if (product) {
+      res.status(HTTP_STATUS.OK).json({
+        status: RESPONSE_STATUS.SUCCESS, // ✅ Use constant
+        data: product,
+        message: PRODUCT_SUCCESS_MESSAGES.PRODUCT_RETRIEVED, // ✅ Use constant
+      });
+    } else {
+      res.status(HTTP_STATUS.NOT_FOUND).json({
+        status: RESPONSE_STATUS.ERROR, // ✅ Use constant
+        message: PRODUCT_ERROR_MESSAGES.NOT_FOUND, // ✅ Use constant
+        errors: [{ field: 'id', message: 'Product with specified ID does not exist' }],
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+}
+```
+
+**Why Use Response Message Constants:**
+
+1. **Consistency**: Ensures same messages are used throughout the application
+2. **Maintainability**: Easy to update messages in one place
+3. **Internationalization**: Foundation for future i18n support
+4. **Type Safety**: IDE autocomplete and type checking
+5. **Documentation**: Self-documenting code
+
+**Example: Before and After**
+
+```typescript
+// ❌ Not Recommended: Hardcoded response messages
+async createProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const product = await this.createProductUseCase.execute(req.body);
+    res.status(201).json({
+      status: 'success', // ❌ Magic string
+      data: product,
+      message: 'Product created successfully', // ❌ Hardcoded message
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// ✅ Best Practice: Use response message constants
+async createProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const productData: CreateProductDTO = req.body;
+    const product = await this.createProductUseCase.execute(productData);
+
+    res.status(HTTP_STATUS.CREATED).json({
+      status: RESPONSE_STATUS.SUCCESS, // ✅ Descriptive constant
+      data: product,
+      message: PRODUCT_SUCCESS_MESSAGES.PRODUCT_CREATED, // ✅ Descriptive constant
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+```
+
+**Standardized Response Formats:**
+
+For consistency across the API, use standardized response formats for success and error responses.
+
+**Success Response Format:**
+
+```typescript
+// ✅ Best Practice: Standardized success response
+res.status(HTTP_STATUS.OK).json({
+  status: 'success',
+  data: product,
+  message: 'Product retrieved successfully',
+});
+
+// ✅ Best Practice: Success response with data only (for simple cases)
+res.status(HTTP_STATUS.CREATED).json(product);
+
+// ✅ Best Practice: Success response for operations without return data
+res.status(HTTP_STATUS.NO_CONTENT).send();
+```
+
+**Error Response Format:**
+
+```typescript
+// ✅ Best Practice: Standardized error response
+res.status(HTTP_STATUS.NOT_FOUND).json({
+  status: 'error',
+  message: 'Product not found',
+  errors: [{ field: 'id', message: 'Product with specified ID does not exist' }],
+});
+
+// ✅ Best Practice: Simple error response
+res.status(HTTP_STATUS.NOT_FOUND).json({ message: 'Product not found' });
+```
+
+**Response Format Guidelines:**
+
+1. **Success Responses**:
+   - Use `status: 'success'` for explicit success responses
+   - Include `data` field for the main response content
+   - Optional `message` field for descriptive success messages
+   - Use appropriate HTTP status codes (200, 201, 204, etc.)
+
+2. **Error Responses**:
+   - Use `status: 'error'` for explicit error responses
+   - Include `message` field with clear error description
+   - Optional `errors` array for detailed validation errors
+   - Let global error handler handle exception cases via `next()`
+
+3. **Consistency**:
+   - Maintain consistent response structure across all endpoints
+   - Use the same field names (`status`, `data`, `message`, `errors`)
+   - Follow RESTful conventions for response formats
+
+**Example: Complete Controller with Standardized Responses**
+
+```typescript
+import { HTTP_STATUS } from '../../shared/constants';
+import { successResponse, errorResponse } from '../../shared/utils';
+
+async createProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const productData: CreateProductDTO = req.body;
+    const product = await this.createProductUseCase.execute(productData);
+
+    // ✅ Standardized success response
+    res.status(HTTP_STATUS.CREATED).json(successResponse(
+      'Product created successfully',
+      product,
+      HTTP_STATUS.CREATED
+    ));
+  } catch (error) {
+    next(error); // Let global error handler format the error response
+  }
+}
+
+async getProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const productId: string = req.params.id;
+    const product = await this.getProductUseCase.execute(productId);
+
+    if (product) {
+      // ✅ Standardized success response
+      res.status(HTTP_STATUS.OK).json(successResponse(
+        'Product retrieved successfully',
+        product
+      ));
+    } else {
+      // ✅ Standardized error response
+      res.status(HTTP_STATUS.NOT_FOUND).json(errorResponse(
+        'Product not found',
+        HTTP_STATUS.NOT_FOUND,
+        [{ field: 'id', message: 'Product with specified ID does not exist' }]
+      ));
+    }
+  } catch (error) {
+    next(error);
+  }
+}
+```
 
 #### Middlewares (`src/interface/middlewares`)
 
@@ -1062,6 +1682,70 @@ When implementing new features, ensure:
 - **Refactoring**: Regular code improvements
 
 </details>
+
+---
+
+## 🔄 Naming Consistency Best Practices
+
+### DTO vs Entity Property Naming
+
+The project uses different naming conventions for DTOs and entities to maintain clear separation of concerns:
+
+#### DTO Properties (Interface Layer)
+
+- **Pattern**: `isWishlistStatus` (camelCase with descriptive names)
+- **Purpose**: API contract and input validation
+- **Usage**: Request/response objects, validation schemas
+
+#### Entity Properties (Domain Layer)
+
+- **Pattern**: `isInWishlist` (camelCase with domain terminology)
+- **Purpose**: Business logic and domain state
+- **Usage**: Core business entities and validation
+
+#### Mapping Strategy
+
+- **Use Cases**: Handle DTO-to-entity mapping
+- **Services**: Domain services work with entity properties
+- **Tests**: Use correct property names for each layer
+
+#### Example Implementation
+
+```typescript
+// ✅ DTO (Interface Layer)
+interface CreateProductDTO {
+  isWishlistStatus?: boolean; // API contract
+}
+
+// ✅ Entity (Domain Layer)
+interface ProductProps {
+  isInWishlist?: boolean; // Domain state
+}
+
+// ✅ Use Case (Application Layer)
+class UpdateProductUseCase {
+  execute(productId: string, updates: UpdateProductDTO): Promise<Product> {
+    // Map DTO to entity operations
+    if (updates.isWishlistStatus !== undefined) {
+      product = this.productService.updateWishlistStatus(product, updates.isWishlistStatus);
+    }
+  }
+}
+```
+
+#### Common Pitfalls to Avoid
+
+- ❌ Using `isWishlistStatus` in entity tests
+- ❌ Using `isInWishlist` in DTO validation
+- ❌ Mixing naming conventions within the same layer
+- ❌ Bypassing proper mapping in use cases
+
+#### Testing Guidelines
+
+- **Unit Tests**: Use entity property names (`isInWishlist`)
+- **Integration Tests**: Use DTO property names (`isWishlistStatus`)
+- **Validation Tests**: Use DTO property names in schemas
+- **Service Tests**: Use entity property names
 
 ---
 

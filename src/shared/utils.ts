@@ -2,7 +2,7 @@ import { randomBytes } from 'crypto';
 import { NextFunction, Request, Response } from 'express';
 import { Types } from 'mongoose';
 import { ZodError, ZodType } from 'zod';
-import { ERROR_MESSAGES, HTTP_STATUS } from './constants';
+import { HTTP_STATUS, PRODUCT_ERROR_MESSAGES } from './constants';
 
 /**
  * Validates request data against a Zod schema.
@@ -25,7 +25,7 @@ export const validateRequest = (schema: ZodType) => {
       if (error instanceof ZodError) {
         return res.status(HTTP_STATUS.UNPROCESSABLE_ENTITY).json({
           status: 'error',
-          message: ERROR_MESSAGES.VALIDATION_ERROR,
+          message: PRODUCT_ERROR_MESSAGES.VALIDATION_ERROR,
           errors: error.issues.map((err) => ({
             field: err.path.join('.'),
             message: err.message,

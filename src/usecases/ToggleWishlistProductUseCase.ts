@@ -2,8 +2,9 @@ import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
 import { Product } from '../domain/entities/Product';
 import { IProductRepository } from '../domain/interfaces/IProductRepository';
-import { ToggleWishlistDTO } from '../interface/dtos/ToggleWishlistDTO';
+import { ToggleWishlistDTO } from '../interface/dtos';
 import { DI_TOKENS } from '../shared/constants';
+import { BadRequestError, NotFoundError } from '../shared/errors';
 
 /**
  * Use case for toggling a product's wishlist status
@@ -29,13 +30,13 @@ export class ToggleWishlistProductUseCase {
   public async execute(productId: string, wishlistData: ToggleWishlistDTO): Promise<Product> {
     // Validate input
     if (!productId?.trim()) {
-      throw new Error('Product ID is required for wishlist toggle.');
+      throw new BadRequestError('Product ID is required for wishlist toggle.');
     }
 
     // Check if product exists before attempting to toggle
     const existingProduct = await this.productRepository.findById(productId);
     if (!existingProduct) {
-      throw new Error('Product not found.');
+      throw new NotFoundError('Product not found.');
     }
 
     // Toggle the wishlist status using the repository

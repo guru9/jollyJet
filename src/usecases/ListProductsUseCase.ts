@@ -4,6 +4,7 @@ import { Product } from '../domain/entities/Product';
 import { IProductRepository, ProductFilter } from '../domain/interfaces/IProductRepository';
 import { ProductService } from '../domain/services/ProductService';
 import { DI_TOKENS } from '../shared/constants';
+import { PaginationParams } from '../types';
 
 /**
  * Query parameters for listing products with filtering
@@ -35,7 +36,13 @@ export class ListProductsUseCase {
     // 💡 This enables loose coupling and easy testing
   ) {}
 
-  public async execute(query: ListProductsQuery): Promise<{ products: Product[]; total: number }> {
+  public async execute(query: ListProductsQuery): Promise<{
+    products: Product[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
     // Parse and validate pagination parameters with safe defaults
     // 💡 Business Rule: Prevent excessive page sizes (max 100)
     // 💡 Security: Protect against potential DoS attacks with large limits
@@ -54,14 +61,18 @@ export class ListProductsUseCase {
     if (this.productService.isValidPriceRange(query.priceRange))
       filter.priceRange = query.priceRange; //Get the products by price range filter. Must be non-negative.
 
+    // Create pagination parameters object
+    const pagination: PaginationParams = { page, limit, skip };
+
     // Execute parallel queries for efficiency
     // 💡 Performance: Parallel execution reduces total response time
     // 💡 Benefits: Faster API responses for better user experience
     const [products, total] = await Promise.all([
-      this.productRepository.findAll(filter, skip, limit), //Get paginated products
+      this.productRepository.findAll(filter, pagination), //Get paginated products
       this.productRepository.count(filter), //Get total count for pagination
     ]);
 
-    return { products, total };
+    const totalPages = Math.ceil(total / limit);
+    return { products, total, page, limit, totalPages };
   }
 }

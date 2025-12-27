@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
 import { IProductRepository } from '../domain/interfaces/IProductRepository';
 import { DI_TOKENS } from '../shared/constants';
+import { BadRequestError } from '../shared/errors';
 
 /**
  * Use case for deleting existing products
@@ -26,7 +27,7 @@ export class DeleteProductUseCase {
   public async execute(productId: string): Promise<boolean> {
     // Validate input
     if (!productId?.trim()) {
-      throw new Error('Product ID is required for deletion.');
+      throw new BadRequestError('Product ID is required for deletion.');
     }
 
     // Check if product exists before attempting deletion

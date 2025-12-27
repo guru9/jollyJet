@@ -1,5 +1,18 @@
-import express from 'express';
+/**
+ * Express application configuration and setup for the JollyJet E-commerce API.
+ * This file configures the main Express application with middleware, routes, and error handling.
+ *
+ * Features:
+ * - CORS support for cross-origin requests
+ * - JSON and URL-encoded body parsing
+ * - Request logging middleware
+ * - Swagger API documentation
+ * - Health check endpoint
+ * - Centralized error handling
+ */
+
 import cors from 'cors';
+import express from 'express';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
 import { errorHandler, requestLogger } from './interface/middlewares';

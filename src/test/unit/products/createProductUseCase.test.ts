@@ -1,7 +1,7 @@
 import { Product } from '../../../domain/entities/Product';
 import { IProductRepository } from '../../../domain/interfaces/IProductRepository';
 import { ProductService } from '../../../domain/services/ProductService';
-import { CreateProductDTO } from '../../../interface/dtos/CreateProductDTO';
+import { CreateProductDTO } from '../../../interface/dtos';
 import { CreateProductUseCase } from '../../../usecases/CreateProductUseCase';
 
 describe('CreateProductUseCase', () => {
@@ -42,7 +42,9 @@ describe('CreateProductUseCase', () => {
       };
 
       mockService.isAvailable.mockReturnValue(true);
-      mockRepository.create.mockResolvedValue(new Product({ ...productData, id: '1' }));
+      mockRepository.create.mockResolvedValue(
+        new Product({ ...productData, id: '1', isActive: true, isInWishlist: false })
+      );
 
       const result = await useCase.execute(productData);
 
@@ -123,7 +125,9 @@ describe('CreateProductUseCase', () => {
       };
 
       mockService.isAvailable.mockReturnValue(true);
-      mockRepository.create.mockResolvedValue(new Product({ ...productData, id: '1' }));
+      mockRepository.create.mockResolvedValue(
+        new Product({ ...productData, id: '1', isActive: true })
+      );
 
       await useCase.execute(productData);
 

@@ -1,11 +1,23 @@
-// Data Transfer Object for creating new products
+/**
+ * Data Transfer Object for creating new products
+ *
+ * @interface CreateProductDTO
+ * @property {string} name - Product name (required, min 3 chars)
+ * @property {string} description - Product description (required, min 10 chars)
+ * @property {number} price - Product price (required, non-negative)
+ * @property {number} stock - Initial stock quantity (required, non-negative integer)
+ * @property {string} category - Product category (required, min 1 char)
+ * @property {string[]} [images] - Product image URLs (optional, validated as URLs)
+ * @property {boolean} [isActive] - Product active status (optional, default: true)
+ * @property {boolean} [isWishlistStatus] - Product wishlist status (optional, default: false)
+ */
 export interface CreateProductDTO {
-  name: string; // Product name (required, min 3 chars)
-  description: string; // Product description (required, min 10 chars)
-  price: number; // Product price (required, non-negative)
-  stock: number; // Initial stock quantity (required, non-negative integer)
-  category: string; // Product category (required, min 1 char)
-  images?: string[]; // Product image URLs (optional, validated as URLs)
-  isActive: boolean; // Product active status (optional, default: true)
-  iswishliststatus?: boolean; // Product wishlist status (optional, default: false)
+  name: string;
+  description: string;
+  price: number;
+  stock: number;
+  category: string;
+  images?: string[];
+  isActive?: boolean;
+  isWishlistStatus?: boolean;
 }

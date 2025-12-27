@@ -1,11 +1,23 @@
-// Data Transfer Object for updating existing products (all fields optional)
+/**
+ * Data Transfer Object for updating existing products (all fields optional)
+ *
+ * @interface UpdateProductDTO
+ * @property {string} [name] - Product name (optional, min 3 chars if provided)
+ * @property {string} [description] - Product description (optional, min 10 chars if provided)
+ * @property {number} [price] - Product price (optional, non-negative if provided)
+ * @property {number} [stock] - Stock quantity (optional, non-negative integer if provided)
+ * @property {string} [category] - Product category (optional, min 1 char if provided)
+ * @property {string[]} [images] - Product image URLs (optional, validated as URLs if provided)
+ * @property {boolean} [isActive] - Product active status (optional)
+ * @property {boolean} [isWishlistStatus] - Product wishlist status (optional)
+ */
 export interface UpdateProductDTO {
-  name?: string; // Product name (optional, min 3 chars if provided)
-  description?: string; // Product description (optional, min 10 chars if provided)
-  price?: number; // Product price (optional, non-negative if provided)
-  stock?: number; // Stock quantity (optional, non-negative integer if provided)
-  category?: string; // Product category (optional, min 1 char if provided)
-  images?: string[]; // Product image URLs (optional, validated as URLs if provided)
-  isActive?: boolean; // Product active status (optional)
-  iswishliststatus?: boolean; // Product wishlist status (optional)
+  name?: string;
+  description?: string;
+  price?: number;
+  stock?: number;
+  category?: string;
+  images?: string[];
+  isActive?: boolean;
+  isWishlistStatus?: boolean;
 }

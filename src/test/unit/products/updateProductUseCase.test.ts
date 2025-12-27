@@ -1,7 +1,7 @@
 import { Product } from '../../../domain/entities/Product';
 import { IProductRepository } from '../../../domain/interfaces/IProductRepository';
 import { ProductService } from '../../../domain/services/ProductService';
-import { UpdateProductDTO } from '../../../interface/dtos/UpdateProductDTO';
+import { UpdateProductDTO } from '../../../interface/dtos';
 import { UpdateProductUseCase } from '../../../usecases/UpdateProductUseCase';
 
 describe('UpdateProductUseCase', () => {
@@ -192,7 +192,7 @@ describe('UpdateProductUseCase', () => {
       mockRepository.findById.mockResolvedValue(existingProduct);
 
       const productData: UpdateProductDTO = {
-        iswishliststatus: true,
+        isWishlistStatus: true,
       };
 
       const updatedProduct = new Product({

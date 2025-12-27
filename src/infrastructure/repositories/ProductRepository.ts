@@ -1,5 +1,6 @@
 import { Product } from '../../domain/entities/Product';
 import { IProductRepository, ProductFilter } from '../../domain/interfaces/IProductRepository';
+import { PaginationParams } from '../../types';
 import { Productmodel } from '../models/ProductModel';
 
 export class ProductRepository implements IProductRepository {
@@ -72,17 +73,18 @@ export class ProductRepository implements IProductRepository {
   /**
    * Retrieves all products with optional filtering and pagination
    * @param filter Optional filter criteria
-   * @param skip Number of records to skip (for pagination)
-   * @param limit Maximum number of records to return
+   * @param pagination Optional pagination parameters
    * @returns Promise with array of Product entities
    */
-  public async findAll(filter?: ProductFilter, skip?: number, limit?: number): Promise<Product[]> {
+  public async findAll(filter?: ProductFilter, pagination?: PaginationParams): Promise<Product[]> {
     // Build the query with filters applied
     const query = this.buildFilteredQuery(filter);
 
     // Apply pagination if provided
-    if (skip !== undefined) query.skip(skip);
-    if (limit !== undefined) query.limit(limit);
+    if (pagination) {
+      query.skip(pagination.skip);
+      query.limit(pagination.limit);
+    }
 
     // Execute the query and convert documents to Product entities
     const productDocuments = await query.exec();

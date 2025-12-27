@@ -1,6 +1,6 @@
 import { Product } from '../../../domain/entities/Product';
 import { IProductRepository } from '../../../domain/interfaces/IProductRepository';
-import { ToggleWishlistDTO } from '../../../interface/dtos/ToggleWishlistDTO';
+import { ToggleWishlistDTO } from '../../../interface/dtos';
 import { ToggleWishlistProductUseCase } from '../../../usecases/ToggleWishlistProductUseCase';
 
 describe('ToggleWishlistProductUseCase', () => {

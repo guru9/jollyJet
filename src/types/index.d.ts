@@ -6,34 +6,51 @@
 // API Response Types
 // ============================================================================
 
+/**
+ * Standard API response wrapper for all endpoints.
+ * @template T - The type of data being returned
+ */
 export interface ApiResponse<T> {
-  success: boolean;
+  status: string;
   data?: T;
   message?: string;
   errors?: ValidationError[];
 }
 
+/**
+ * Represents a validation error for a specific field.
+ */
+export interface ValidationError {
+  field: string;
+  message: string;
+}
+
+/**
+ * API response wrapper for paginated endpoints.
+ * @template T - The type of items in the data array
+ */
 export interface PaginatedResponse<T> {
   success: boolean;
   data: T[];
   pagination: PaginationMeta;
 }
 
-export interface ValidationError {
-  field: string;
-  message: string;
-}
-
 // ============================================================================
 // Pagination Types
 // ============================================================================
 
+/**
+ * Parameters for pagination queries.
+ */
 export interface PaginationParams {
   page: number;
   limit: number;
   skip: number;
 }
 
+/**
+ * Metadata information for paginated responses.
+ */
 export interface PaginationMeta {
   total: number;
   page: number;
@@ -45,29 +62,9 @@ export interface PaginationMeta {
 // Domain-Specific Enums
 // ============================================================================
 
-export enum ProductStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  OUT_OF_STOCK = 'out_of_stock',
-  DISCONTINUED = 'discontinued',
-}
-
-export enum OrderStatus {
-  PENDING = 'pending',
-  CONFIRMED = 'confirmed',
-  PROCESSING = 'processing',
-  SHIPPED = 'shipped',
-  DELIVERED = 'delivered',
-  CANCELLED = 'cancelled',
-}
-
-export enum PaymentStatus {
-  PENDING = 'pending',
-  COMPLETED = 'completed',
-  FAILED = 'failed',
-  REFUNDED = 'refunded',
-}
-
+/**
+ * Enumeration of possible user role values for authorization.
+ */
 export enum UserRole {
   ADMIN = 'admin',
   CUSTOMER = 'customer',
@@ -94,12 +91,19 @@ declare global {
 // Repository Base Types
 // ============================================================================
 
+/**
+ * Base interface for all domain entities with common audit fields.
+ */
 export interface BaseEntity {
   id: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
+/**
+ * Base repository interface providing standard CRUD operations.
+ * @template T - The entity type this repository manages
+ */
 export interface IBaseRepository<T> {
   findById(id: string): Promise<T | null>;
   findAll(params?: PaginationParams): Promise<T[]>;
@@ -113,10 +117,16 @@ export interface IBaseRepository<T> {
 // Query Filter Types
 // ============================================================================
 
+/**
+ * Generic query filter interface for database queries.
+ */
 export interface QueryFilter {
   [key: string]: unknown;
 }
 
+/**
+ * Sorting options for query results.
+ */
 export interface SortOptions {
   field: string;
   order: 'asc' | 'desc';

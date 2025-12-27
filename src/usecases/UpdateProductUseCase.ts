@@ -3,8 +3,9 @@ import { inject, injectable } from 'tsyringe';
 import { Product } from '../domain/entities/Product';
 import { IProductRepository } from '../domain/interfaces/IProductRepository';
 import { ProductService } from '../domain/services/ProductService';
-import { UpdateProductDTO } from '../interface/dtos/UpdateProductDTO';
+import { UpdateProductDTO } from '../interface/dtos';
 import { DI_TOKENS } from '../shared/constants';
+import { BadRequestError, NotFoundError } from '../shared/errors';
 
 /**
  * Usecase for updating existing products
@@ -32,14 +33,14 @@ export class UpdateProductUseCase {
   public async execute(productId: string, productData: UpdateProductDTO): Promise<Product> {
     // Validate input
     if (!productId?.trim()) {
-      throw new Error('Product ID is required for updation.');
+      throw new BadRequestError('Product ID is required for updation.');
     }
 
     // Retrieve the existing product using the repository
     let existingProduct = await this.productRepository.findById(productId);
 
     if (!existingProduct) {
-      throw new Error('Product not found.');
+      throw new NotFoundError('Product not found.');
     }
 
     // Apply all updates to the product
@@ -71,10 +72,10 @@ export class UpdateProductUseCase {
     }
 
     // Apply wishlist status update if provided
-    if (updates.iswishliststatus !== undefined) {
+    if (updates.isWishlistStatus !== undefined) {
       updatedProduct = this.productService.updateWishlistStatus(
         updatedProduct,
-        updates.iswishliststatus
+        updates.isWishlistStatus
       );
     }
 
