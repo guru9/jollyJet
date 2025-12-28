@@ -1,12 +1,8 @@
 import 'reflect-metadata';
-import app from './app';
+import { jollyJetApp } from './app';
 import config from './config';
-import { initializeDIContainer } from './config/di-container';
 import mongoDBConnection from './infrastructure/database/mongodb';
 import logger from './shared/logger';
-
-// Initialize DI container
-initializeDIContainer();
 
 // Graceful shutdown handler
 const gracefulShutdown = async (signal: string) => {
@@ -38,6 +34,8 @@ process.on('unhandledRejection', (reason: unknown) => {
 
 //Start server
 const startServer = async () => {
+  const app = await jollyJetApp();
+
   try {
     // Try to connect to MongoDB first
     await mongoDBConnection.connect();
