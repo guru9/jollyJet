@@ -58,7 +58,7 @@ This task follows Clean Architecture principles with clear layer separation:
 
 - **Objective:** Define core Product domain model with validation and Wishlist functionality.
 - **Files:** `src/domain/entities/Product.ts`
-- **Code:** Immutable class with basic validation and Wishlist methods (toggleWishlist, addToWishlist, removeFromWishlist).
+- **Code:** Immutable class with basic validation and wishlist properties.
 
 ### ✅ Step 1.2: Define IProductRepository Interface with Wishlist Filtering
 
@@ -66,7 +66,7 @@ This task follows Clean Architecture principles with clear layer separation:
 
 - **Objective:** Abstract repository interface for CRUD operations with Wishlist filtering support.
 - **Files:** `src/domain/interfaces/IProductRepository.ts`
-- **Code:** Promise-based methods with ProductFilter including isInWishlist parameter.
+- **Code:** Promise-based methods with ProductFilter including isWishlistStatus parameter.
 
 ### ✅ Step 1.3: Create ProductService with Wishlist Business Logic
 
@@ -82,7 +82,7 @@ This task follows Clean Architecture principles with clear layer separation:
 
 - **Objective:** Mongoose schema with indexes, validation, and Wishlist field support.
 - **Files:** `src/infrastructure/models/ProductModel.ts`
-- **Code:** Schema with text indexes for search and Wishlist fields (isInWishlist, wishlistCount).
+- **Code:** Schema with text indexes for search and Wishlist fields (isWishlistStatus, wishlistCount).
 
 ### ✅ Step 2.2: Create MongoProductRepository with Wishlist Support
 
@@ -130,7 +130,7 @@ This task follows Clean Architecture principles with clear layer separation:
 
 - **Objective:** HTTP request handler with Wishlist functionality.
 - **Files:** `src/interface/controllers/ProductController.ts`
-- **Code:** Injectable controller with error handling and Wishlist methods (addToWishlist, removeFromWishlist, getWishlist).
+- **Code:** Injectable controller with error handling and wishlist methods (toggleWishlist, getWishlist).
 
 ### ✅ Step 5.2: Set up Product Routes with Wishlist Endpoints
 
@@ -187,7 +187,7 @@ This task follows Clean Architecture principles with clear layer separation:
 
 - **Step 1.2:** Define IProductRepository Interface with Wishlist filtering (`src/domain/interfaces/IProductRepository.ts`)
   - Abstract CRUD operations with Wishlist support
-  - ProductFilter for querying including isInWishlist parameter
+  - ProductFilter for querying including isWishlistStatus parameter
   - Promise-based async methods with Wishlist filtering
 
 - **Step 1.3:** Create ProductService with Wishlist business logic (`src/domain/services/ProductService.ts`)
@@ -281,28 +281,28 @@ This task follows Clean Architecture principles with clear layer separation:
 
 ### Unit Tests - Domain Layer
 
-- **Step 7.1:** Product Entity Tests (`src/test/unit/product/Product.test.ts`)
+- **Step 7.1:** Product Entity Tests (`src/__tests__/unit/product/Product.test.ts`)
   - Entity validation and business logic including Wishlist functionality
   - Immutable property tests and Wishlist method validation
   - Business rule enforcement for all operations
 
 ### Unit Tests - Infrastructure Layer
 
-- **Step 7.2:** Repository Tests (`src/test/unit/product/MongoProductRepository.test.ts`)
+- **Step 7.2:** Repository Tests (`src/__tests__/unit/product/MongoProductRepository.test.ts`)
   - Mocked MongoDB operations
   - Domain mapping verification
   - Error handling tests
 
 ### Unit Tests - Application Layer
 
-- **Step 7.3:** Use Case Tests (`src/test/unit/product/*UseCase.test.ts`)
+- **Step 7.3:** Use Case Tests (`src/__tests__/unit/product/*UseCase.test.ts`)
   - Business logic validation including Wishlist operations
   - Mocked dependency injection for all use cases
   - Success and failure scenarios for CRUD and Wishlist operations
 
 ### Integration Tests
 
-- **Step 7.4:** Full Flow Tests (`src/test/integration/product/product.test.ts`)
+- **Step 7.4:** Full Flow Tests (`src/__tests__/integration/product/product.test.ts`)
   - End-to-end API testing including Wishlist endpoints
   - Database integration with Wishlist data
   - Complete request/response cycle for all operations
@@ -381,3 +381,6 @@ This task follows Clean Architecture principles with clear layer separation:
 
 - [Implementation Plan](../implementation-plans/08-product-module-plan.md)
 - [Main Task List](./01-jollyjet-task.md)
+
+
+

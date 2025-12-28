@@ -36,7 +36,7 @@
   // Quick suggestions - enable auto-suggestions as you type
   "editor.quickSuggestions": {
     "other": "on",
-    "comments": "off",
+    "comments": "on",
     "strings": "on"
   },
   "editor.suggestOnTriggerCharacters": true,

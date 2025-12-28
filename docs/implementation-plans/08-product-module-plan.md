@@ -3,7 +3,7 @@
 **Plan:** 08-product-module-plan  
 **Related Task:** [02-product-module-task](../tasks/02-product-module-task.md) (for more details)  
 **Branch:** `feature/jollyjet-08-product-module`  
-**Status:** 🚧 In Progress
+**Status:** ✅ **COMPLETED WITH ENHANCED TYPE SYSTEM INTEGRATION**
 
 ---
 
@@ -33,7 +33,7 @@ We will strictly follow **Clean Architecture**, ensuring our business rules (Dom
 > - **Fields:**
 >   - Core properties: id, name, description, price, stock, category
 >   - Optional properties: images, isActive, createdAt, updatedAt
->   - Wishlist properties: isInWishlist, wishlistCount (new additions)
+>   - Wishlist properties: isWishlistStatus, wishlistCount (new additions)
 > - **Validation:** TypeScript ensures all required fields are present
 > - **Extensibility:** Optional fields allow for flexible product definitions
 >
@@ -41,7 +41,7 @@ We will strictly follow **Clean Architecture**, ensuring our business rules (Dom
 >
 > - **Design Pattern:** Immutable entity with factory methods
 > - **ProductProps Interface Enhancements:** All readonly to enforce immutability
->   - Added `isInWishlist?: boolean` field for tracking wishlist status (default: false)
+>   - Added `isWishlistStatus?: boolean` field for tracking wishlist status (default: false)
 >   - Added `wishlistCount?: number` field for tracking popularity (default: 0)
 >   - Both fields are optional to maintain backward compatibility
 > - **Constructor:** Private to enforce factory method pattern
@@ -49,10 +49,8 @@ We will strictly follow **Clean Architecture**, ensuring our business rules (Dom
 >   - `create()`: Standard product creation
 >   - `createWithWishlistStatus()`: Product with specific wishlist status
 > - **Wishlist Methods:**
->   - `toggleWishlist()`: Toggles wishlist status and updates count accordingly
->   - `addToWishlist()`: Add product to wishlist. Sets wishlist status to true and increments count
->   - `removeFromWishlist()`: Remove product from wishlist. Sets wishlist status to false and decrements count
->   - `createWithWishlistStatus()`: Factory method for creating products with specific wishlist status
+>   - `toggleWishlist()`: Toggles wishlist status via repository
+>   - Basic validation and wishlist properties support
 > - **Validation:** Private validate() method enforces business rules
 > - **Helper Methods:** toProps() converts entity to interface
 >
@@ -68,7 +66,7 @@ We will strictly follow **Clean Architecture**, ensuring our business rules (Dom
 >
 > _<u>**Wishlist Feature Integration:**</u>_
 >
-> - isInWishlist: Boolean flag for wishlist status
+> - isWishlistStatus: Boolean flag for wishlist status
 > - wishlistCount: Counter for wishlist popularity
 > - Wishlist methods maintain data consistency
 > - All wishlist operations return new instances
@@ -95,7 +93,7 @@ We will strictly follow **Clean Architecture**, ensuring our business rules (Dom
 > **Wishlist Integration in Repository Interface:**
 >
 > - **ProductFilter Interface Enhancements:**
->   - Added `isInWishlist?: boolean` field to support wishlist filtering
+>   - Added `isWishlistStatus?: boolean` field to support wishlist filtering
 >   - Enables querying products by wishlist status across all repository methods
 > - **Repository Method Updates:**
 >   - `findAll()`: Supports wishlist filtering via ProductFilter parameter
@@ -156,7 +154,7 @@ We will strictly follow **Clean Architecture**, ensuring our business rules (Dom
 > **Wishlist Integration in MongoDB Schema:**
 
 > - **Schema Field Enhancements:**
->   - Added `isInWishlist` field with boolean type and default false
+>   - Added `isWishlistStatus` field with boolean type and default false
 >   - Added `wishlistCount` field with number type, default 0, and min 0 validation
 >   - Integrated wishlist fields with existing schema structure
 > - **Validation Rules:**
@@ -230,7 +228,7 @@ We will strictly follow **Clean Architecture**, ensuring our business rules (Dom
 >   - Ensured proper type validation for wishlist boolean fields
 >   - Integrated wishlist validation with existing product validation rules
 > - **Wishlist Validation Rules:**
->   - Boolean type validation for isInWishlist field
+>   - Boolean type validation for isWishlistStatus field
 >   - Optional field handling with proper defaults
 >   - Integration with existing validation patterns
 > - **Error Handling:**
@@ -295,11 +293,49 @@ We will strictly follow **Clean Architecture**, ensuring our business rules (Dom
 > - **Integration Points:** Used by ProductController (Step 5.1) for API operations
 > - **Benefits:** Centralized business logic, easy testing, framework independence
 
+**Error Handling Implementation:**
+
+All use cases have been updated to use proper error classes from `src/shared/errors.ts` for better error classification and API responses:
+
+1. **CreateProductUseCase**:
+   - **Error**: `throw new BadRequestError('Product is not available.')`
+   - **Import Added**: `import { BadRequestError } from '../shared/errors';`
+
+2. **GetProductUseCase**:
+   - **Error**: `throw new BadRequestError('Product ID is required to retrieve the product.')`
+   - **Import Added**: `import { BadRequestError } from '../shared/errors';`
+
+3. **DeleteProductUseCase**:
+   - **Error**: `throw new BadRequestError('Product ID is required for deletion.')`
+   - **Import Added**: `import { BadRequestError } from '../shared/errors';`
+
+4. **ToggleWishlistProductUseCase**:
+   - **Error 1**: `throw new BadRequestError('Product ID is required for wishlist toggle.')`
+   - **Error 2**: `throw new NotFoundError('Product not found.')`
+   - **Import Added**: `import { BadRequestError, NotFoundError } from '../shared/errors';`
+
+5. **UpdateProductUseCase**:
+   - **Error 1**: `throw new BadRequestError('Product ID is required for updation.')`
+   - **Error 2**: `throw new NotFoundError('Product not found.')`
+   - **Import Added**: `import { BadRequestError, NotFoundError } from '../shared/errors';`
+
+**Completed Use Cases:**
+
+1. **CreateProductUseCase**: Handles the creation of new products with validation and dependency injection.
+2. **GetProductUseCase**: Retrieves a product by its ID.
+3. **ListProductsUseCase**: Lists products with support for pagination, filtering, and parallel queries for efficiency.
+4. **UpdateProductUseCase**: Updates existing products, including support for wishlist status updates.
+5. **DeleteProductUseCase**: Deletes a product by its ID.
+6. **ToggleWishlistProductUseCase**: Specifically handles toggling the wishlist status of a product.
+
+All use cases follow best practices such as dependency injection, separation of concerns, and proper error handling. The wishlist functionality is integrated into both the `UpdateProductUseCase` and the dedicated `ToggleWishlistProductUseCase`. The error handling has been standardized to use appropriate error classes for better API consumer experience and consistent error responses.
+
 ### ✅ _Step 5.1: Build ProductController_
 
-- **Objective:** Create Express controller class handling HTTP requests, using use cases, and returning appropriate responses with error handling
-- **Implementation:** Controller with methods for create, getOne, list, update, delete operations using dependency injection
-- **Dependencies:** Product Use Cases (Step 4.2), Validators (Step 3.2)
+- **Objective:** Create Express controller class handling HTTP requests, using use cases, and returning properly typed `ApiResponse<T>` objects with error handling
+- **Implementation:** Controller with methods for create, getOne, list, update, delete operations using dependency injection and type-safe API responses
+- **Type Integration:** Full utilization of `ApiResponse<T>`, `ValidationError`, and enums from `types/index.d.ts`
+- **Dependencies:** Product Use Cases (Step 4.2), Validators (Step 3.2), Types (types/index.d.ts)
 - **Files:** `src/interface/controllers/ProductController.ts`
 
 > **🔥 DETAILED WISHLIST EXPLANATION FOR STEP 5.1:**
@@ -307,12 +343,11 @@ We will strictly follow **Clean Architecture**, ensuring our business rules (Dom
 > **Wishlist Integration in ProductController:**
 >
 > - **Controller Method Enhancements:**
->   - Added `addToWishlist()`, `removeFromWishlist()`, `getWishlist()` methods
+>   - Added `toggleWishlist()`, `getWishlist()` methods
 >   - Extended existing methods to handle wishlist operations
 >   - Implemented comprehensive error handling for wishlist endpoints
 > - **Wishlist API Endpoints:**
->   - POST /api/products/{id}/wishlist - Add product to wishlist
->   - DELETE /api/products/{id}/wishlist - Remove product from wishlist
+>   - PATCH /api/products/{id}/wishlist - Toggle product wishlist status
 >   - GET /api/products/wishlist - Get all wishlist products
 > - **Request/Response Handling:**
 >   - Proper HTTP status codes for wishlist operations
@@ -342,8 +377,7 @@ We will strictly follow **Clean Architecture**, ensuring our business rules (Dom
 >   - Integrated wishlist endpoints with existing product routes
 >   - Added comprehensive Swagger documentation for wishlist endpoints
 > - **Wishlist API Endpoints:**
->   - POST /api/products/{id}/wishlist - Add product to wishlist
->   - DELETE /api/products/{id}/wishlist - Remove product from wishlist
+>   - PATCH /api/products/{id}/wishlist - Toggle product wishlist status
 >   - GET /api/products/wishlist - Get all wishlist products
 > - **Swagger Documentation:**
 >   - Complete OpenAPI annotations for wishlist endpoints
@@ -422,6 +456,106 @@ We will strictly follow **Clean Architecture**, ensuring our business rules (Dom
 - **Dependencies:** Routes (Step 5.2)
 - **Files:** `src/app.ts`
 
+---
+
+## 🔗 _Enhanced Type System Integration_
+
+### **Post-Implementation Type System Enhancements**
+
+Following the initial implementation, comprehensive type system integration was added to improve type safety and consistency across the entire product module:
+
+#### **Types from `types/index.d.ts` Integration**
+
+1. **`ApiResponse<T>` Interface**
+   - **Purpose:** Standardized API response wrapper for all endpoints
+   - **Usage:** All ProductController methods now return properly typed `ApiResponse<T>` objects
+   - **Implementation:** Success responses with data, error responses with `ValidationError` arrays
+   - **Benefits:** Type-safe API responses, consistent response structure, better IDE support
+
+2. **`ValidationError` Interface**
+   - **Purpose:** Structured validation error information for field-level errors
+   - **Usage:** Error responses include detailed validation information with field names and messages
+   - **Implementation:** `{ field: string; message: string }` structure for all validation errors
+   - **Benefits:** Client-friendly error handling, consistent error reporting
+
+3. **`PaginationParams` & `PaginationMeta` Interfaces**
+   - **Purpose:** Standardized pagination handling across the application
+   - **Usage:** Repository methods use `PaginationParams` for input, use cases return enhanced metadata
+   - **Implementation:** Structured pagination with page, limit, skip, and totalPages
+   - **Benefits:** Consistent pagination patterns, type safety for pagination logic
+
+4. **`QueryFilter` Base Interface**
+   - **Purpose:** Base filter interface for consistent querying patterns
+   - **Usage:** `ProductFilter` extends `QueryFilter` for standardized filtering
+   - **Implementation:** Extensible filter pattern used across repository methods
+   - **Benefits:** Consistent query interfaces, type-safe filtering
+
+5. **`IBaseRepository<T>` Pattern**
+   - **Purpose:** Reference pattern for repository design consistency
+   - **Usage:** Guides the design of `IProductRepository` interface
+   - **Implementation:** Standard CRUD operations pattern with proper typing
+   - **Benefits:** Consistent repository interfaces across the application
+
+#### **Enum Enhancements**
+
+1. **`HTTP_STATUS` Enum**
+   - **Purpose:** Type-safe HTTP status codes
+   - **Usage:** All controller responses use enum values instead of magic numbers
+   - **Benefits:** Prevents typos, better IDE support, consistent status codes
+
+2. **`RESPONSE_STATUS` Enum**
+   - **Purpose:** Standardized response status strings
+   - **Usage:** All API responses use enum values for status field
+   - **Benefits:** Type safety, prevents typos, consistent response format
+
+#### **Controller Type Safety**
+
+All ProductController methods now use properly typed responses:
+
+```typescript
+// Before: Untyped responses
+res.status(200).json({ status: 'success', data: product });
+
+// After: Fully typed ApiResponse
+const response: ApiResponse<Product> = {
+  status: RESPONSE_STATUS.SUCCESS,
+  data: product,
+  message: PRODUCT_SUCCESS_MESSAGES.PRODUCT_CREATED,
+};
+res.status(HTTP_STATUS.CREATED).json(response);
+```
+
+#### **Repository Type Enhancements**
+
+```typescript
+// Enhanced repository interface with structured types
+export interface IProductRepository {
+  findAll(filter?: ProductFilter, pagination?: PaginationParams): Promise<Product[]>;
+  // ... other methods
+}
+
+// ProductFilter extends base QueryFilter
+export interface ProductFilter extends QueryFilter {
+  category?: string;
+  isActive?: boolean;
+  isWishlistStatus?: boolean;
+  // ... product-specific filters
+}
+```
+
+#### **Benefits of Type System Integration**
+
+- **Compile-Time Safety:** TypeScript catches type errors at compile time
+- **IDE Support:** Better autocomplete, refactoring, and error detection
+- **API Consistency:** Standardized response formats across all endpoints
+- **Maintainability:** Self-documenting code with clear type contracts
+- **Developer Experience:** Improved development workflow with type hints
+- **Runtime Safety:** Reduced potential for runtime errors through proper typing
+
+---
+
+## 🌟 _Final Implementation Status_
+
 > **🔥 DETAILED WISHLIST EXPLANATION FOR STEP 6.3:**
 >
 > **Wishlist Integration in Application Wiring:**
@@ -450,13 +584,13 @@ We will strictly follow **Clean Architecture**, ensuring our business rules (Dom
 
 The Product Module follows a systematic implementation approach based on Clean Architecture principles with proper dependency flow:
 
-1. **Domain Layer (Steps 1.1-1.3)**: Create core business entities, interfaces, and services
-2. **Infrastructure Layer (Steps 2.1-2.2)**: Implement external adapters
-3. **Interface Layer - DTOs/Validators (Steps 3.1-3.2)**: Develop data transfer objects and validation
-4. **Shared Layer - Constants (Step 4.1)**: Define dependency injection tokens (no dependencies)
-5. **Application Layer - Use Cases (Step 4.2)**: Build use cases that orchestrate domain logic ← Depends on DTOs (3.1) and DI_TOKENS (4.1)
-6. **Interface Layer - Controllers/Routes (Steps 5.1-5.2)**: Develop HTTP adapters ← Depends on Use Cases (4.2)
-7. **Configuration Layer (Steps 6.1-6.2)**: Wire everything together
+1. **🟣 Domain Layer (Steps 1.1-1.3)**: Create core business entities, interfaces, and services
+2. **🟠 Infrastructure Layer (Steps 2.1-2.2)**: Implement external adapters
+3. **🟡 Interface Layer - DTOs/Validators (Steps 3.1-3.2)**: Develop data transfer objects and validation
+4. **🟢 Shared Layer - Constants (Step 4.1)**: Define dependency injection tokens (no dependencies)
+5. **🔵 Application Layer - Use Cases (Step 4.2)**: Build use cases that orchestrate domain logic ← Depends on DTOs (3.1) and DI_TOKENS (4.1)
+6. **🟡 Interface Layer - Controllers/Routes (Steps 5.1-5.2)**: Develop HTTP adapters ← Depends on Use Cases (4.2)
+7. **🟢 Configuration Layer (Steps 6.1-6.3)**: Wire everything together
 
 > **🔥 CRITICAL DEPENDENCY FLOW NOTES:**
 >
@@ -474,6 +608,8 @@ The Product Module follows a systematic implementation approach based on Clean A
 **✅ Proper Clean Architecture Layer Ordering:** Domain → Infrastructure → Interface (DTOs/Validators) → Shared → Application → Interface (Controllers/Routes) → Configuration
 
 **✅ Critical Dependency Flow:** Step 4.1 (Shared Constants) must come before Step 4.2 (Use Cases) due to DI_TOKENS dependency
+
+**🖼️ Visual Architecture Reference:** For a comprehensive visual representation of the product module architecture and data flow, refer to the **[Product Flowchart](../flowchart/product-flowchart.md)** which illustrates the complete Clean Architecture implementation with all layers and their interactions.
 
 ---
 
@@ -666,7 +802,7 @@ _<u>**ProductProps Interface:**</u>_
 - **Fields:**
   - Core properties: id, name, description, price, stock, category
   - Optional properties: images, isActive, createdAt, updatedAt
-  - Wishlist properties: isInWishlist, wishlistCount (new additions)
+  - Wishlist properties: isWishlistStatus, wishlistCount (new additions)
 - **Validation:** TypeScript ensures all required fields are present
 - **Extensibility:** Optional fields allow for flexible product definitions
 
@@ -679,9 +815,7 @@ _<u>**Product Class:**</u>_
   - `create()`: Standard product creation
   - `createWithWishlistStatus()`: Product with specific wishlist status
 - **Wishlist Methods:**
-  - `toggleWishlist()`: Toggle wishlist status
-  - `addToWishlist()`: Add product to wishlist
-  - `removeFromWishlist()`: Remove product from wishlist
+  - `toggleWishlistStatus()`: Toggle wishlist status in database
 - **Validation:** Private validate() method enforces business rules
 - **Helper Methods:** toProps() converts entity to interface
 
@@ -697,7 +831,7 @@ _<u>**Business Rules Enforcement:**</u>_
 
 _<u>**Wishlist Feature Integration:**</u>_
 
-- isInWishlist: Boolean flag for wishlist status
+- isWishlistStatus: Boolean flag for wishlist status
 - wishlistCount: Counter for wishlist popularity
 - Wishlist methods maintain data consistency
 - All wishlist operations return new instances
@@ -714,9 +848,8 @@ _<u>**Benefits:**</u>_
 
 _<u>**Usage Examples:**</u>_
 
-- const product = Product.create({ name: 'Laptop', price: 999, ... });
-- const wishlistProduct = product.addToWishlist();
-- const updatedProduct = product.updatePrice(899);
+- const product = Product.createProduct({ name: 'Laptop', price: 999, ... });
+- // Wishlist operations handled via repository/use case layer
 - const toggledProduct = product.toggleWishlist();
 
 ---
@@ -734,7 +867,7 @@ export interface ProductProps {
   isActive?: boolean; // Product active status (default: true)
   createdAt?: Date; // Creation timestamp (auto-generated)
   updatedAt?: Date; // Last update timestamp (auto-generated)
-  isInWishlist?: boolean; // Wishlist status (default: false)
+  isWishlistStatus?: boolean; // Wishlist status (default: false)
   wishlistCount?: number; // Number of users who added this to wishlist (default: 0)
 }
 
@@ -750,7 +883,7 @@ export class Product {
   public readonly isActive: boolean;
   public readonly createdAt: Date;
   public readonly updatedAt: Date;
-  public readonly isInWishlist: boolean;
+  public readonly isWishlistStatus: boolean;
   public readonly wishlistCount: number;
 
   // Private constructor enforces factory method pattern
@@ -765,7 +898,7 @@ export class Product {
     this.isActive = props.isActive ?? true; // Default to active
     this.createdAt = props.createdAt || new Date(); // Auto-set current date
     this.updatedAt = props.updatedAt || new Date(); // Auto-set current date
-    this.isInWishlist = props.isInWishlist ?? false; // Default to not in wishlist
+    this.isWishlistStatus = props.isWishlistStatus ?? false; // Default to not in wishlist
     this.wishlistCount = props.wishlistCount ?? 0; // Default to 0
 
     this.validate(); // Enforce business rules
@@ -777,10 +910,10 @@ export class Product {
   }
 
   // Factory method for creating a product with wishlist status
-  public static createWithWishlistStatus(props: ProductProps, isInWishlist: boolean): Product {
+  public static createWithWishlistStatus(props: ProductProps, isWishlistStatus: boolean): Product {
     return new Product({
       ...props,
-      isInWishlist: isInWishlist,
+      isWishlistStatus: isWishlistStatus,
     });
   }
 
@@ -788,20 +921,20 @@ export class Product {
   public toggleWishlist(): Product {
     return Product.create({
       ...this.toProps(),
-      isInWishlist: !this.isInWishlist,
-      wishlistCount: this.isInWishlist ? this.wishlistCount - 1 : this.wishlistCount + 1,
+      isWishlistStatus: !this.isWishlistStatus,
+      wishlistCount: this.isWishlistStatus ? this.wishlistCount - 1 : this.wishlistCount + 1,
       updatedAt: new Date(),
     });
   }
 
   // Method to add to wishlist
   public addToWishlist(): Product {
-    if (this.isInWishlist) {
+    if (this.isWishlistStatus) {
       return this; // Already in wishlist
     }
     return Product.create({
       ...this.toProps(),
-      isInWishlist: true,
+      isWishlistStatus: true,
       wishlistCount: this.wishlistCount + 1,
       updatedAt: new Date(),
     });
@@ -809,12 +942,12 @@ export class Product {
 
   // Method to remove from wishlist
   public removeFromWishlist(): Product {
-    if (!this.isInWishlist) {
+    if (!this.isWishlistStatus) {
       return this; // Not in wishlist
     }
     return Product.create({
       ...this.toProps(),
-      isInWishlist: false,
+      isWishlistStatus: false,
       wishlistCount: this.wishlistCount - 1,
       updatedAt: new Date(),
     });
@@ -850,7 +983,7 @@ _<u>**ProductFilter Interface:**</u>_
   - `category?: string` - Filter products by category
   - `search?: string` - Full-text search in name and description
   - `isActive?: boolean` - Filter by active/inactive status
-  - `isInWishlist?: boolean` - Filter by wishlist status (wishlist integration)
+  - `isWishlistStatus?: boolean` - Filter by wishlist status (wishlist integration)
 - **Benefits:** Enables comprehensive product filtering across all repository methods
 
 _<u>**IProductRepository Interface Methods:**</u>_
@@ -912,7 +1045,7 @@ _<u>**Benefits:**</u>_
 
 _<u>**Wishlist Integration:**</u>_
 
-- **Filter Support:** `isInWishlist` field in ProductFilter enables wishlist queries
+- **Filter Support:** `isWishlistStatus` field in ProductFilter enables wishlist queries
 - **Data Consistency:** All methods maintain wishlist field integrity
 - **Counting:** `count()` method supports wishlist product counting
 - **Flexibility:** Wishlist filtering integrated with other filter criteria
@@ -934,7 +1067,7 @@ class ListProductsUseCase {
 
   async getWishlistProducts(): Promise<Product[]> {
     // Find all products in wishlist
-    return this.productRepository.findAll({ isInWishlist: true });
+    return this.productRepository.findAll({ isWishlistStatus: true });
   }
 }
 ```
@@ -948,7 +1081,7 @@ export interface ProductFilter {
   category?: string; // Filter by product category
   search?: string; // Full-text search in name and description
   isActive?: boolean; // Filter by active/inactive status
-  isInWishlist?: boolean; // Filter by wishlist status
+  isWishlistStatus?: boolean; // Filter by wishlist status
 }
 
 // Repository interface defining the data persistence contract
@@ -1005,7 +1138,7 @@ _<u>**Core Business Methods:**</u>_
   - **Returns:** New Product instance with updated attributes and timestamp
   - **Use Case:** Product catalog updates, bulk edits
 
-- **`updateWishlistStatus(product: Product, isInWishlist: boolean): Product`**
+- **`updateWishlistStatus(product: Product, isWishlistStatus: boolean): Product`**
   - Updates product wishlist status with business logic
   - **Validation:** Ensures proper wishlist state transitions
   - **Business Rule:** Automatically updates wishlist count
@@ -1072,9 +1205,9 @@ _<u>**Usage Example:**</u>_
 class UpdateProductUseCase {
   constructor(private productService: ProductService) {}
 
-  async updateWishlistStatus(product: Product, isInWishlist: boolean): Promise<Product> {
+  async updateWishlistStatus(product: Product, isWishlistStatus: boolean): Promise<Product> {
     // Use the service to update wishlist status with business logic
-    return this.productService.updateWishlistStatus(product, isInWishlist);
+    return this.productService.updateWishlistStatus(product, isWishlistStatus);
   }
 
   async updatePriceWithValidation(product: Product, newPrice: number): Promise<Product> {
@@ -1140,11 +1273,11 @@ export class ProductService {
   /**
    * Updates product wishlist status with validation
    */
-  public updateWishlistStatus(product: Product, isInWishlist: boolean): Product {
+  public updateWishlistStatus(product: Product, isWishlistStatus: boolean): Product {
     return Product.create({
       ...this.toProps(product),
-      isInWishlist: isInWishlist,
-      wishlistCount: isInWishlist ? product.wishlistCount + 1 : product.wishlistCount - 1,
+      isWishlistStatus: isWishlistStatus,
+      wishlistCount: isWishlistStatus ? product.wishlistCount + 1 : product.wishlistCount - 1,
       updatedAt: new Date(),
     });
   }
@@ -1164,7 +1297,7 @@ export class ProductService {
       isActive: product.isActive,
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,
-      isInWishlist: product.isInWishlist,
+      isWishlistStatus: product.isWishlistStatus,
       wishlistCount: product.wishlistCount,
     };
   }
@@ -1195,7 +1328,7 @@ _<u>**Document Interface (IProductDocument):**</u>_
   - Core properties: name, description, price, stock, category
   - Optional properties: images, isActive
   - Auto-generated: createdAt, updatedAt
-  - Wishlist properties: isInWishlist, wishlistCount
+  - Wishlist properties: isWishlistStatus, wishlistCount
 - **Type Safety:** Full TypeScript interface for document operations
 
 _<u>**Schema Definition:**</u>_
@@ -1207,7 +1340,7 @@ _<u>**Schema Definition:**</u>_
 - **Data Types:**
   - String: name, description, category
   - Number: price, stock, wishlistCount
-  - Boolean: isActive, isInWishlist
+  - Boolean: isActive, isWishlistStatus
   - Array: images (string URLs)
   - Date: createdAt, updatedAt (auto-managed)
 - **Special Features:**
@@ -1251,9 +1384,9 @@ _<u>**Benefits:**</u>_
 
 _<u>**Wishlist Integration:**</u>_
 
-- **Schema Fields:** isInWishlist (boolean), wishlistCount (number)
+- **Schema Fields:** isWishlistStatus (boolean), wishlistCount (number)
 - **Validation:** Non-negative wishlistCount constraint
-- **Default Values:** isInWishlist defaults to false, wishlistCount to 0
+- **Default Values:** isWishlistStatus defaults to false, wishlistCount to 0
 - **Indexing:** Wishlist fields included in query optimization
 - **Data Consistency:** Proper type validation for wishlist operations
 
@@ -1269,13 +1402,13 @@ const newProduct = new ProductModel({
   category: 'Electronics',
   images: ['https://example.com/headphones.jpg'],
   isActive: true,
-  isInWishlist: true, // Product starts in wishlist
+  isWishlistStatus: true, // Product starts in wishlist
   wishlistCount: 5, // 5 users have this in their wishlist
 });
 
 // Querying products in wishlist
 const wishlistProducts = await ProductModel.find({
-  isInWishlist: true,
+  isWishlistStatus: true,
   wishlistCount: { $gt: 0 },
 }).sort({ wishlistCount: -1 }); // Most popular first
 ```
@@ -1307,7 +1440,7 @@ const ProductSchema: Schema = new Schema(
     category: { type: String, required: true, index: true }, // Indexed for efficient filtering
     images: { type: [String], default: [] }, // Array of image URLs
     isActive: { type: Boolean, default: true }, // Default to active products
-    isInWishlist: { type: Boolean, default: false }, // Default to not in wishlist
+    isWishlistStatus: { type: Boolean, default: false }, // Default to not in wishlist
     wishlistCount: { type: Number, default: 0, min: 0 }, // Non-negative wishlist count
   },
   {
@@ -1395,7 +1528,7 @@ _<u>**Query Building Logic:**</u>_
 - **Filter Construction:** Dynamic MongoDB filter from ProductFilter
   - Category filtering: `filter.category`
   - Active status filtering: `filter.isActive`
-  - Wishlist status filtering: `filter.isInWishlist`
+  - Wishlist status filtering: `filter.isWishlistStatus`
   - Full-text search: `filter.search` using MongoDB text index
 - **Pagination:** Skip/limit parameters for efficient data retrieval
 - **Performance:** Optimized queries with proper indexing
@@ -1473,7 +1606,7 @@ export class MongoProductRepository implements IProductRepository {
       category: product.category,
       images: product.images,
       isActive: product.isActive,
-      isInWishlist: product.isInWishlist,
+      isWishlistStatus: product.isWishlistStatus,
       wishlistCount: product.wishlistCount,
     };
 
@@ -1522,8 +1655,8 @@ export class MongoProductRepository implements IProductRepository {
     if (filter.isActive !== undefined) {
       mongoFilter.isActive = filter.isActive; // Filter by active status
     }
-    if (filter.isInWishlist !== undefined) {
-      mongoFilter.isInWishlist = filter.isInWishlist; // Filter by wishlist status
+    if (filter.isWishlistStatus !== undefined) {
+      mongoFilter.isWishlistStatus = filter.isWishlistStatus; // Filter by wishlist status
     }
     if (filter.search) {
       mongoFilter.$text = { $search: filter.search }; // Full-text search
@@ -1554,7 +1687,7 @@ export class MongoProductRepository implements IProductRepository {
       category: product.category,
       images: product.images,
       isActive: product.isActive,
-      isInWishlist: product.isInWishlist,
+      isWishlistStatus: product.isWishlistStatus,
       wishlistCount: product.wishlistCount,
       updatedAt: new Date(), // Update timestamp
     };
@@ -1597,8 +1730,8 @@ export class MongoProductRepository implements IProductRepository {
     if (filter.isActive !== undefined) {
       mongoFilter.isActive = filter.isActive; // Filter by active status
     }
-    if (filter.isInWishlist !== undefined) {
-      mongoFilter.isInWishlist = filter.isInWishlist; // Filter by wishlist status
+    if (filter.isWishlistStatus !== undefined) {
+      mongoFilter.isWishlistStatus = filter.isWishlistStatus; // Filter by wishlist status
     }
     if (filter.search) {
       mongoFilter.$text = { $search: filter.search }; // Full-text search
@@ -1623,7 +1756,7 @@ export class MongoProductRepository implements IProductRepository {
       category: doc.category,
       images: doc.images,
       isActive: doc.isActive,
-      isInWishlist: doc.isInWishlist,
+      isWishlistStatus: doc.isWishlistStatus,
       wishlistCount: doc.wishlistCount,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
@@ -1838,7 +1971,7 @@ _<u>**Interface Structure:**</u>_
   - `isActive: boolean` - Product active status
   - `createdAt: Date` - Creation timestamp
   - `updatedAt: Date` - Last update timestamp
-  - `isInWishlist: boolean` - Wishlist status
+  - `isWishlistStatus: boolean` - Wishlist status
   - `wishlistCount: number` - Number of users who added this to wishlist
 
 _<u>**Validation Rules:**</u>_
@@ -1896,7 +2029,7 @@ const productResponse: ProductResponseDTO = {
   isActive: true,
   createdAt: new Date('2023-01-01'),
   updatedAt: new Date('2023-01-15'),
-  isInWishlist: false,
+  isWishlistStatus: false,
   wishlistCount: 0,
 };
 ```
@@ -1914,7 +2047,7 @@ export interface ProductResponseDTO {
   isActive: boolean; // Product active status
   createdAt: Date; // Creation timestamp
   updatedAt: Date; // Last update timestamp
-  isInWishlist: boolean; // Wishlist status
+  isWishlistStatus: boolean; // Wishlist status
   wishlistCount: number; // Number of users who added this to wishlist
 }
 ```
@@ -2265,14 +2398,14 @@ export const VALIDATION_RULES = {
 >
 > **Product Entity Enhancements (Lines 356-448):**
 >
-> - **ProductProps Interface:** Added `isInWishlist` and `wishlistCount` fields
+> - **ProductProps Interface:** Added `isWishlistStatus` and `wishlistCount` fields
 > - **Wishlist Methods:** `toggleWishlist()`, `addToWishlist()`, `removeFromWishlist()`
 > - **Validation:** Ensures wishlist count remains non-negative
 > - **Immutable Design:** All methods return new Product instances
 >
 > **Repository Layer Updates:**
 >
-> - **ProductFilter Interface:** Added `isInWishlist` filter option (Line 465)
+> - **ProductFilter Interface:** Added `isWishlistStatus` filter option (Line 465)
 > - **MongoDB Schema:** Added wishlist fields with proper validation (Lines 605-606)
 > - **Repository Methods:** Updated create, update, findAll, and count methods
 > - **Filter Integration:** Full support for wishlist filtering in queries
@@ -2533,7 +2666,7 @@ const { products, total } = await listProductsUseCase.execute({
   page: '2',
   limit: '20',
   category: 'Electronics',
-  isInWishlist: 'true',
+  isWishlistStatus: 'true',
 });
 
 // Testing with mock repository
@@ -2609,8 +2742,8 @@ export class ListProductsUseCase {
     if (query.isActive !== undefined) {
       filter.isActive = query.isActive === 'true'; // Convert string to boolean
     }
-    if (query.isInWishlist !== undefined) {
-      filter.isInWishlist = query.isInWishlist === 'true'; // Convert string to boolean
+    if (query.isWishlistStatus !== undefined) {
+      filter.isWishlistStatus = query.isWishlistStatus === 'true'; // Convert string to boolean
     }
 
     // Execute parallel queries for efficiency
@@ -2945,21 +3078,21 @@ _<u>**Wishlist Controller Methods:**</u>_
   - Handles POST requests for adding products to wishlist
   - **Flow:** Request → UpdateProductUseCase → Response
   - **Status:** 200 OK on success
-  - **Business Logic:** Sets isInWishlist to true via UpdateProductUseCase
+  - **Business Logic:** Sets isWishlistStatus to true via UpdateProductUseCase
   - **Response:** Standardized JSON format with updated product data
 
 - **`removeFromWishlist(req, res, next)`**
   - Handles DELETE requests for removing products from wishlist
   - **Flow:** Request → UpdateProductUseCase → Response
   - **Status:** 200 OK on success
-  - **Business Logic:** Sets isInWishlist to false via UpdateProductUseCase
+  - **Business Logic:** Sets isWishlistStatus to false via UpdateProductUseCase
   - **Response:** Standardized JSON format with updated product data
 
 - **`getWishlist(req, res, next)`**
   - Handles GET requests for retrieving wishlist products
   - **Flow:** Request → ListProductsUseCase → Response
   - **Status:** 200 OK on success
-  - **Filtering:** Uses isInWishlist filter parameter
+  - **Filtering:** Uses isWishlistStatus filter parameter
   - **Response:** Standardized JSON format with products array and metadata
 
 _<u>**Design Patterns Applied:**</u>_
@@ -3198,7 +3331,7 @@ export class ProductController {
     try {
       // Execute use case with product ID
       const product = await this.updateProductUseCase.execute(req.params.id, {
-        isInWishlist: true,
+        isWishlistStatus: true,
       });
 
       // Return success response with updated product
@@ -3224,7 +3357,7 @@ export class ProductController {
     try {
       // Execute use case with product ID
       const product = await this.updateProductUseCase.execute(req.params.id, {
-        isInWishlist: false,
+        isWishlistStatus: false,
       });
 
       // Return success response with updated product
@@ -3251,7 +3384,7 @@ export class ProductController {
       // Execute use case with wishlist filter
       const { products, total } = await this.listProductsUseCase.execute({
         ...req.query,
-        isInWishlist: 'true',
+        isWishlistStatus: 'true',
       });
 
       // Return success response with metadata
@@ -3730,7 +3863,7 @@ _<u>**Product Schema Details:**</u>_
 - **Field Definitions:** Comprehensive property definitions with examples
 - **Validation Rules:** Type constraints, minimum lengths, format specifications
 - **Required Fields:** Explicit required field specification
-- **Wishlist Integration:** isInWishlist and wishlistCount fields included
+- **Wishlist Integration:** isWishlistStatus and wishlistCount fields included
 - **Timestamp Fields:** createdAt and updatedAt with date-time format
 
 _<u>**Error Response Schema:**</u>_
@@ -3902,7 +4035,7 @@ const swaggerConfig: OpenAPIV3.Document = {
             description: 'Product active status',
             example: true,
           },
-          isInWishlist: {
+          isWishlistStatus: {
             type: 'boolean',
             description: 'Wishlist status',
             example: false,
@@ -3934,7 +4067,7 @@ const swaggerConfig: OpenAPIV3.Document = {
           'stock',
           'category',
           'isActive',
-          'isInWishlist',
+          'isWishlistStatus',
           'wishlistCount',
           'createdAt',
           'updatedAt',
@@ -4391,11 +4524,8 @@ curl -X PUT http://localhost:3000/api/products/{id} -H "Content-Type: applicatio
 # Delete Product
 curl -X DELETE http://localhost:3000/api/products/{id}
 
-# Add Product to Wishlist
-curl -X POST http://localhost:3000/api/products/{id}/wishlist
-
-# Remove Product from Wishlist
-curl -X DELETE http://localhost:3000/api/products/{id}/wishlist
+# Toggle Product Wishlist Status
+curl -X PATCH http://localhost:3000/api/products/{id}/wishlist -H "Content-Type: application/json" -d '{"isWishlistStatus": true}'
 
 # Get All Wishlist Products
 curl http://localhost:3000/api/products/wishlist
@@ -4412,28 +4542,28 @@ curl "http://localhost:3000/api/products/wishlist?page=1&limit=5"
 
 ```
 ┌─────────────────────────────────────────┐
-│    Configuration Layer (Setup)          │
-│  swagger.ts, di-container.ts, app.ts    │
+│    🟢 Configuration Layer (Setup)         │
+│  📄 swagger.ts, di-container.ts, app.ts │
 └─────────────────┬───────────────────────┘
                   │
 ┌─────────────────▼───────────────────────┐
-│         Interface Layer (API)           │
-│  controllers/ routes/ validators/       │
+│    🟡 Interface Layer (API)              │
+│  📡 controllers/ routes/ validators/    │
 └─────────────────┬───────────────────────┘
                   │
 ┌─────────────────▼───────────────────────┐
-│        Use Cases Layer (Business)       │
-│         usecases/ (application)         │
+│    🔵 Use Cases Layer (Business)         │
+│  ⚙️ usecases/ (application)             │
 └─────────────────┬───────────────────────┘
                   │
 ┌─────────────────▼───────────────────────┐
-│      Domain Layer (Core Business)      │
-│   entities/ interfaces/ services/      │
+│    🟣 Domain Layer (Core Business)       │
+│  💎 entities/ interfaces/ services/     │
 └─────────────────┬───────────────────────┘
                   │
 ┌─────────────────▼───────────────────────┐
-│    Infrastructure Layer (External)     │
-│  models/ repositories/                 │
+│    🟠 Infrastructure Layer (External)    │
+│  💾 models/ repositories/               │
 └─────────────────────────────────────────┘
 ```
 
@@ -4473,14 +4603,14 @@ The Product Entity implementation (`Product.ts`) forms the core of the domain la
 1. **ProductProps Interface**: Comprehensive TypeScript interface defining all product attributes:
    - Required fields: name, description, price, stock, category
    - Optional fields: images, isActive, createdAt, updatedAt
-   - Wishlist integration: isInWishlist, wishlistCount fields
+   - Wishlist integration: isWishlistStatus, wishlistCount fields
    - Type safety: Full TypeScript coverage with proper typing
 
 2. **Immutable Product Class**: Business rule enforcement with immutability:
    - Private constructor enforcing factory method pattern
    - Readonly properties preventing direct modification
-   - Factory methods: create(), createWithWishlistStatus()
-   - Wishlist methods: toggleWishlist(), addToWishlist(), removeFromWishlist()
+   - Factory method: createProduct()
+   - Wishlist properties: isWishlistStatus, wishlistCount
    - Comprehensive validation in private validate() method
 
 3. **Business Rule Implementation**:
@@ -4564,7 +4694,7 @@ The `ProductService` class encapsulates all core business logic for product oper
    - Preserves immutable patterns through new instance creation
 
 4. **Wishlist Management**:
-   - `updateWishlistStatus(product: Product, isInWishlist: boolean): Product`
+   - `updateWishlistStatus(product: Product, isWishlistStatus: boolean): Product`
    - Manages wishlist state transitions
    - Automatically updates wishlist counts
    - Enforces business rules for wishlist operations
@@ -4851,8 +4981,7 @@ The routing layer defines RESTful endpoints and integrates them with the control
    - `DELETE /api/products/{id}`: Remove products
 
 2. **Wishlist Endpoints**: Specialized wishlist routes:
-   - `POST /api/products/{id}/wishlist`: Add to wishlist
-   - `DELETE /api/products/{id}/wishlist`: Remove from wishlist
+   - `PATCH /api/products/{id}/wishlist`: Toggle product wishlist status
    - `GET /api/products/wishlist`: Get wishlist products
 
 3. **Middleware Integration**: Request processing pipeline:

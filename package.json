@@ -1,9 +1,9 @@
 {
   "scripts": {
-    "start": "node dist/server.js",
+    "start": "node dist/src/server.js",
     "build": "tsc",
     "dev": "nodemon src/server.ts",
-    "predev": "npm run format",
+    "predev": "echo 'Formatting...' && npm run format && echo 'Linting...' && npm run lint && echo 'Building...' && npm run build",
     "format": "prettier --write \"src/**/*.{ts,js,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,json}\"",
     "lint": "eslint \"src/**/*.{ts,js}\"",
@@ -12,7 +12,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },
-  "main": "dist/server.js",
+  "main": "dist/src/server.js",
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@jest/types": "^30.2.0",
@@ -57,7 +57,7 @@
     "url": "git+https://github.com/guru9/jollyJet.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Gururaj Moger",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/guru9/jollyJet/issues"
