@@ -14,53 +14,63 @@
 import cors from 'cors';
 import express from 'express';
 import swaggerUi from 'swagger-ui-express';
+import { initializeDIContainer } from './config/di-container';
 import { swaggerSpec } from './config/swagger';
 import { errorHandler, requestLogger } from './interface/middlewares';
+import createProductRoutes from './interface/routes/productRoutes';
 
-const app = express();
+export const jollyJetApp = async () => {
+  // Initialize DI container BEFORE importing app to ensure dependencies are registered
+  // before any container resolutions occur during module loading
+  initializeDIContainer();
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(requestLogger);
+  const app = express();
 
-// API Documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  // Middleware
+  app.use(cors());
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use(requestLogger);
 
-// Swagger JSON endpoint
-app.get('/api-docs.json', (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.send(swaggerSpec);
-});
+  app.use('/api/products', createProductRoutes());
 
-// Health check route
-/**
- * @openapi
- * /health:
- *   get:
- *     summary: Health check endpoint
- *     tags: [Health]
- *     responses:
- *       200:
- *         description: Server is healthy
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: ok
- *                 timestamp:
- *                   type: string
- *                   format: date-time
- */
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+  // API Documentation
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// Error handler (must be last)
-app.use(errorHandler);
+  // Swagger JSON endpoint
+  app.get('/api-docs.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+  });
 
-export default app;
+  // Health check route
+  /**
+   * @openapi
+   * /health:
+   *   get:
+   *     summary: Health check endpoint
+   *     tags: [Health]
+   *     responses:
+   *       200:
+   *         description: Server is healthy
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: ok
+   *                 timestamp:
+   *                   type: string
+   *                   format: date-time
+   */
+  app.get('/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
+  // Error handler (must be last)
+  app.use(errorHandler);
+
+  return app;
+};
