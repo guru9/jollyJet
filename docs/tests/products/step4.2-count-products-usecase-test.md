@@ -6,7 +6,7 @@ Comprehensive test suite for the `CountProductsUseCase` implementation, ensuring
 
 ## Test File Location
 
-**File:** [`src/__tests__/unit/products/countProductsUseCase.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/products/countProductsUseCase.test.ts)
+**File:** [`src/__tests__/unit/products/countProductsUseCase.test.ts`](src/__tests__/unit/products/countProductsUseCase.test.ts)
 
 ## Test Structure
 

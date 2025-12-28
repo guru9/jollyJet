@@ -234,6 +234,29 @@ export const calculatePaginationMeta = (total: number, page: number, limit: numb
 };
 
 /**
+ * Safely converts a value to a string.
+ * Returns the string if input is a string, undefined otherwise.
+ * @param value - Value to convert
+ * @returns String or undefined
+ */
+export const safeParseString = (value: unknown): string | undefined => {
+  return typeof value === 'string' ? value : undefined;
+};
+
+/**
+ * Safely parses a string to a boolean.
+ * Returns true for 'true', false for 'false', undefined for other values or non-strings.
+ * @param value - String value to parse
+ * @returns Parsed boolean or undefined
+ */
+export const safeParseBoolean = (value: unknown): boolean | undefined => {
+  if (typeof value !== 'string') return undefined;
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  return undefined;
+};
+
+/**
  * Validates if a string is a valid email address.
  * @param email - Email string to validate
  * @returns True if valid email, false otherwise

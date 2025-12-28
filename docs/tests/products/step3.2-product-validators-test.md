@@ -10,7 +10,7 @@ This document provides detailed information about the test coverage for the prod
 
 The test file for product validators is located at:
 
-[`src/__tests__/unit/products/productValidators.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/products/productValidators.test.ts)
+[`src/__tests__/unit/products/productValidators.test.ts`](src/__tests__/unit/products/productValidators.test.ts)
 
 ---
 
@@ -30,7 +30,7 @@ The product validators test file includes the following test suites:
 ### Total Tests
 
 - **Total Test Suites:** 6
-- **Total Tests:** 47
+- **Total Tests:** 28
 
 ---
 
@@ -128,7 +128,7 @@ This suite tests the validation of pagination parameters:
 | productFilterSchema        | 4      | Validates product filter data         |
 | toggleWishlistStatusSchema | 3      | Validates wishlist status update data |
 | paginationSchema           | 6      | Validates pagination parameters       |
-| **Total**                  | **47** | **Total test cases**                  |
+| **Total**                  | **28** | **Total test cases**                  |
 
 ---
 
@@ -158,6 +158,3 @@ The product validators test file ensures 100% coverage for the following schemas
 ## Conclusion
 
 The product validators test file provides comprehensive coverage for all product-related validation schemas, ensuring that the application handles product data correctly and reliably.
-
-
-

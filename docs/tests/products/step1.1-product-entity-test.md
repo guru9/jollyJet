@@ -7,21 +7,21 @@ This document outlines the unit tests for the `Product` entity, focusing on the 
 The tests are organized into two main sections:
 
 1. **isWishlistStatus Property Tests**
-   - Tests the accessibility of the `isWishlistStatus` property via a getter.
-   - Validates that the getter returns the correct value from the provided props.
+   - Tests the accessibility of the `isWishlistStatus` property via the `toProps()` method.
+   - Validates that the `toProps()` method returns the correct value from the provided props.
    - Tests that the property defaults to `false` when not provided.
 
 2. **wishlistCount Property Tests**
-   - Tests the accessibility of the `wishlistCount` property via a getter.
-   - Validates that the getter returns a default value of `0` if the property is not provided.
+   - Tests the accessibility of the `wishlistCount` property via the `toProps()` method.
+   - Validates that the `toProps()` method returns a default value of `0` if the property is not provided.
 
 ## Test Cases
 
 ### isWishlistStatus Property
 
-#### Test Case 1: Accessibility via Getter
+#### Test Case 1: Accessibility via toProps()
 
-- **Description**: Ensures that the `isWishlistStatus` property is accessible via a getter.
+- **Description**: Ensures that the `isWishlistStatus` property is accessible via the `toProps()` method.
 - **Input**:
   ```typescript
   const productProps = {
@@ -31,10 +31,12 @@ The tests are organized into two main sections:
     stock: 100,
     category: 'Test Category',
     isWishlistStatus: true,
+    isActive: true,
   };
   const product = new Product(productProps);
+  const productData = product.toProps();
   ```
-- **Expected Output**: `product.isWishlistStatus` should return `true`.
+- **Expected Output**: `productData.isWishlistStatus` should return `true`.
 
 #### Test Case 2: Correct Value from Props
 
@@ -109,6 +111,3 @@ The tests are organized into two main sections:
 ## Summary
 
 The `Product` entity tests ensure that the `isWishlistStatus` and `wishlistCount` properties are accessible and return the correct values. The tests cover direct initialization of the properties, default value behavior, and basic property access to ensure robustness and correctness. The entity has been simplified to focus on core product properties and validation, with wishlist operations handled by the repository layer.
-
-
-

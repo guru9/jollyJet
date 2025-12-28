@@ -16,7 +16,7 @@ JollyJet is a **high-performance e-commerce shopping application** built with mo
 
 ---
 
-## 🏗️ Architecture Assessment - Monolithic
+## 🏗️ Architecture Assessment - Monolithic (NodeJS-Express)
 
 ### **Clean Architecture Implementation** ⭐⭐⭐⭐⭐
 

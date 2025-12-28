@@ -115,7 +115,7 @@ Comprehensive product validators testing:
 - ✅ **toggleWishlistStatusSchema**: Valid wishlist status update, missing product ID, missing isWishlistStatus field
 - ✅ **paginationSchema**: Pagination parameters, pagination with only skip, pagination with only limit, empty pagination, negative skip value, zero limit value
 
-**Test Coverage:** 6 test suites, 47 tests
+**Test Coverage:** 6 test suites, 28 tests
 
 ---
 

@@ -202,7 +202,7 @@ describe('Product Validators - Unit Tests', () => {
     it('should validate valid product ID', () => {
       const validId = {
         params: {
-          productId: '507f1f77bcf86cd799439011',
+          id: '507f1f77bcf86cd799439011',
         },
       };
 
@@ -214,7 +214,7 @@ describe('Product Validators - Unit Tests', () => {
     it('should reject empty product ID', () => {
       const invalidId = {
         params: {
-          productId: '',
+          id: '',
         },
       };
 
@@ -300,7 +300,7 @@ describe('Product Validators - Unit Tests', () => {
           isWishlistStatus: true,
         },
         params: {
-          productId: '507f1f77bcf86cd799439011',
+          id: '507f1f77bcf86cd799439011',
         },
       };
 
@@ -326,7 +326,7 @@ describe('Product Validators - Unit Tests', () => {
       const invalidWishlist = {
         body: {},
         params: {
-          productId: '507f1f77bcf86cd799439011',
+          id: '507f1f77bcf86cd799439011',
         },
       };
 

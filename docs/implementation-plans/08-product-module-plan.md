@@ -347,8 +347,7 @@ All use cases follow best practices such as dependency injection, separation of 
 >   - Extended existing methods to handle wishlist operations
 >   - Implemented comprehensive error handling for wishlist endpoints
 > - **Wishlist API Endpoints:**
->   - POST /api/products/{id}/wishlist - Add product to wishlist
->   - DELETE /api/products/{id}/wishlist - Remove product from wishlist
+>   - PATCH /api/products/{id}/wishlist - Toggle product wishlist status
 >   - GET /api/products/wishlist - Get all wishlist products
 > - **Request/Response Handling:**
 >   - Proper HTTP status codes for wishlist operations
@@ -378,8 +377,7 @@ All use cases follow best practices such as dependency injection, separation of 
 >   - Integrated wishlist endpoints with existing product routes
 >   - Added comprehensive Swagger documentation for wishlist endpoints
 > - **Wishlist API Endpoints:**
->   - POST /api/products/{id}/wishlist - Add product to wishlist
->   - DELETE /api/products/{id}/wishlist - Remove product from wishlist
+>   - PATCH /api/products/{id}/wishlist - Toggle product wishlist status
 >   - GET /api/products/wishlist - Get all wishlist products
 > - **Swagger Documentation:**
 >   - Complete OpenAPI annotations for wishlist endpoints
@@ -4526,11 +4524,8 @@ curl -X PUT http://localhost:3000/api/products/{id} -H "Content-Type: applicatio
 # Delete Product
 curl -X DELETE http://localhost:3000/api/products/{id}
 
-# Add Product to Wishlist
-curl -X POST http://localhost:3000/api/products/{id}/wishlist
-
-# Remove Product from Wishlist
-curl -X DELETE http://localhost:3000/api/products/{id}/wishlist
+# Toggle Product Wishlist Status
+curl -X PATCH http://localhost:3000/api/products/{id}/wishlist -H "Content-Type: application/json" -d '{"isWishlistStatus": true}'
 
 # Get All Wishlist Products
 curl http://localhost:3000/api/products/wishlist
@@ -4986,8 +4981,7 @@ The routing layer defines RESTful endpoints and integrates them with the control
    - `DELETE /api/products/{id}`: Remove products
 
 2. **Wishlist Endpoints**: Specialized wishlist routes:
-   - `POST /api/products/{id}/wishlist`: Add to wishlist
-   - `DELETE /api/products/{id}/wishlist`: Remove from wishlist
+   - `PATCH /api/products/{id}/wishlist`: Toggle product wishlist status
    - `GET /api/products/wishlist`: Get wishlist products
 
 3. **Middleware Integration**: Request processing pipeline:
@@ -5102,6 +5096,3 @@ The application wiring integrates all components into a cohesive application, se
 🚧 **In Progress**
 
 **Phase 08: Product Module** - Feature implementation in progress
-
-
-

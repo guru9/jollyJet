@@ -55,12 +55,12 @@ export const updateProductSchema = z.object({
 
 /**
  * Validation schema for retrieving a product by ID.
- * Ensures the productId is a non-empty string.
- * @property {string} productId - ID of the product.
+ * Ensures the id is a non-empty string.
+ * @property {string} id - ID of the product.
  */
 export const productIdSchema = z.object({
   params: z.object({
-    productId: z.string().min(1, 'Product ID is required'),
+    id: z.string().min(1, 'Product ID is required'),
   }),
 });
 
@@ -92,14 +92,14 @@ export const productFilterSchema = z.object({
  * Validation schema for toggling the wishlist status of a product.
  * Ensures the isWishlistStatus field is a boolean.
  * @property {boolean} isWishlistStatus - Wishlist status to be set.
- * @property {string} productId - ID of the product to update.
+ * @property {string} id - ID of the product to update.
  */
 export const toggleWishlistStatusSchema = z.object({
   body: z.object({
     isWishlistStatus: z.boolean(),
   }),
   params: z.object({
-    productId: z.string().min(1, 'Product ID is required'),
+    id: z.string().min(1, 'Product ID is required'),
   }),
 });
 

@@ -7,6 +7,7 @@ import {
   PRODUCT_SUCCESS_MESSAGES,
   RESPONSE_STATUS,
 } from '../../shared/constants';
+import { safeParseBoolean, safeParseString } from '../../shared/utils';
 import { ApiResponse } from '../../types';
 import {
   CountProductsQuery,
@@ -202,13 +203,15 @@ export class ProductController {
   async listProducts(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const queryParams: ListProductsQuery = {
-        page: req.query.page as string,
-        limit: req.query.limit as string,
-        category: req.query.category as string,
-        search: req.query.search as string,
-        isActive: req.query.isActive === 'true',
-        isWishlistStatus: req.query.isWishlistStatus === 'true',
-        priceRange: req.query.priceRange ? JSON.parse(req.query.priceRange as string) : undefined,
+        page: safeParseString(req.query.page),
+        limit: safeParseString(req.query.limit),
+        category: safeParseString(req.query.category),
+        search: safeParseString(req.query.search),
+        isActive: safeParseBoolean(req.query.isActive) ?? false,
+        isWishlistStatus: safeParseBoolean(req.query.isWishlistStatus) ?? false,
+        priceRange: req.query.priceRange
+          ? JSON.parse(safeParseString(req.query.priceRange) || '')
+          : undefined,
       };
       const result = await this.listProductsUseCase.execute(queryParams);
       const response: ApiResponse<typeof result> = {
@@ -252,11 +255,13 @@ export class ProductController {
   async countProducts(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const queryParams: CountProductsQuery = {
-        category: req.query.category as string,
-        search: req.query.search as string,
-        isActive: req.query.isActive === 'true',
-        isWishlistStatus: req.query.isWishlistStatus === 'true',
-        priceRange: req.query.priceRange ? JSON.parse(req.query.priceRange as string) : undefined,
+        category: safeParseString(req.query.category),
+        search: safeParseString(req.query.search),
+        isActive: safeParseBoolean(req.query.isActive) ?? false,
+        isWishlistStatus: safeParseBoolean(req.query.isWishlistStatus) ?? false,
+        priceRange: req.query.priceRange
+          ? JSON.parse(safeParseString(req.query.priceRange) || '')
+          : undefined,
       };
       const count = await this.countProductsUseCase.execute(queryParams);
       const response: ApiResponse<number> = {
@@ -309,70 +314,6 @@ export class ProductController {
         };
         res.status(HTTP_STATUS.NOT_FOUND).json(response);
       }
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  /**
-   * Toggles a product's wishlist status
-   *
-   * @route PATCH /products/:id/wishlist
-   * @param req - Express request object containing product ID in params and wishlist status in body
-   * @param res - Express response object
-   * @param next - Express next function for error handling
-   * @returns Promise<void>
-   *
-   * @example
-   * // Request body
-   * {
-   *   "isWishlistStatus": true
-   * }
-   *
-   * @example
-   * // Response for successful toggle
-   * {
-   *   "status": "success",
-   *   "data": {
-   *     "id": "product-id",
-   *     "name": "Product Name",
-   *     "description": "Product description",
-   *     "price": 99.99,
-   *     "category": "electronics",
-   *     "stock": 100,
-   *     "isActive": true,
-   *     "isWishlistStatus": true,
-   *     "wishlistCount": 1
-   *   },
-   *   "message": "Product wishlist status updated successfully"
-   * }
-   *
-   * @example
-   * // Product not found
-   * {
-   *   "status": "error",
-   *   "message": "Product not found",
-   *   "errors": [
-   *     {
-   *       "field": "id",
-   *       "message": "Product with specified ID does not exist"
-   *     }
-   *   ]
-   * }
-   *
-   * @throws Will pass validation errors to error middleware
-   */
-  async toggleWishlist(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const productId = req.params.id;
-      const wishlistData: ToggleWishlistDTO = req.body;
-      const product = await this.toggleWishlistUseCase.execute(productId, wishlistData);
-      const response: ApiResponse<Product> = {
-        status: RESPONSE_STATUS.SUCCESS,
-        data: product,
-        message: PRODUCT_SUCCESS_MESSAGES.WISHLIST_TOGGLED,
-      };
-      res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
       next(error);
     }
@@ -447,8 +388,8 @@ export class ProductController {
   async getWishlist(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const queryParams: ListProductsQuery = {
-        page: req.query.page as string,
-        limit: req.query.limit as string,
+        page: safeParseString(req.query.page),
+        limit: safeParseString(req.query.limit),
         isWishlistStatus: true, // Filter specifically for wishlist products
       };
       const result = await this.listProductsUseCase.execute(queryParams);
@@ -456,6 +397,70 @@ export class ProductController {
         status: RESPONSE_STATUS.SUCCESS,
         data: result,
         message: PRODUCT_SUCCESS_MESSAGES.WISHLIST_RETRIEVED,
+      };
+      res.status(HTTP_STATUS.OK).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Toggles a product's wishlist status
+   *
+   * @route PATCH /products/:id/wishlist
+   * @param req - Express request object containing product ID in params and wishlist status in body
+   * @param res - Express response object
+   * @param next - Express next function for error handling
+   * @returns Promise<void>
+   *
+   * @example
+   * // Request body
+   * {
+   *   "isWishlistStatus": true
+   * }
+   *
+   * @example
+   * // Response for successful toggle
+   * {
+   *   "status": "success",
+   *   "data": {
+   *     "id": "product-id",
+   *     "name": "Product Name",
+   *     "description": "Product description",
+   *     "price": 99.99,
+   *     "category": "electronics",
+   *     "stock": 100,
+   *     "isActive": true,
+   *     "isWishlistStatus": true,
+   *     "wishlistCount": 1
+   *   },
+   *   "message": "Product wishlist status updated successfully"
+   * }
+   *
+   * @example
+   * // Product not found
+   * {
+   *   "status": "error",
+   *   "message": "Product not found",
+   *   "errors": [
+   *     {
+   *       "field": "id",
+   *       "message": "Product with specified ID does not exist"
+   *     }
+   *   ]
+   * }
+   *
+   * @throws Will pass validation errors to error middleware
+   */
+  async toggleWishlist(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const productId = req.params.id;
+      const wishlistData: ToggleWishlistDTO = req.body;
+      const product = await this.toggleWishlistUseCase.execute(productId, wishlistData);
+      const response: ApiResponse<Product> = {
+        status: RESPONSE_STATUS.SUCCESS,
+        data: product,
+        message: PRODUCT_SUCCESS_MESSAGES.WISHLIST_TOGGLED,
       };
       res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {

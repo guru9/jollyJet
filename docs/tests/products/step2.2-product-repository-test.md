@@ -1,31 +1,39 @@
 # Product Repository Test Documentation
 
-This document outlines the unit tests for the `ProductRepository` class, focusing on the wishlist-related functionality and basic CRUD operations.
+This document outlines the unit tests for the `ProductRepository` class, focusing on CRUD operations and wishlist functionality.
 
 ## Test Structure
 
 The tests are organized into several main sections:
 
-1. **Create Operations**
+1. **create**
    - Tests basic product creation
-   - Tests product creation with wishlist status
 
-2. **Wishlist Operations**
+2. **toggleWishlistStatus**
    - Tests toggling wishlist status
-   - Tests error handling for non-existent products
 
-3. **Basic CRUD Operations**
+3. **update**
    - Tests product updates
+
+4. **findById**
    - Tests product retrieval by ID
-   - Tests retrieving all products with filtering
+
+5. **findAll**
+   - Tests retrieving all products
+   - Tests retrieving products with filters
+
+6. **delete**
    - Tests product deletion
-   - Tests product counting with filtering
+
+7. **count**
+   - Tests counting all products
+   - Tests counting products with filters
 
 ## Test Cases
 
-### Create Operations
+### create
 
-#### Test Case 1: Basic Product Creation
+#### Test Case 1: should create a product
 
 - **Description**: Ensures that a product can be created in the database.
 - **Input**:
@@ -36,32 +44,17 @@ The tests are organized into several main sections:
     price: 100,
     stock: 10,
     category: 'Test Category',
+    isActive: true,
   });
   await productRepository.create(product);
   ```
 - **Expected Output**: Product should be created in the database and retrievable by name.
 
-#### Test Case 2: Product Creation with Wishlist Status
+### toggleWishlistStatus
 
-- **Description**: Tests creating a product with wishlist status using the new `createWithWishlistStatus` method.
-- **Input**:
-  ```typescript
-  const product = Product.createProduct({
-    name: 'Test Product with Wishlist',
-    description: 'Test Description',
-    price: 100,
-    stock: 10,
-    category: 'Test Category',
-  });
-  await productRepository.createWithWishlistStatus(product, true);
-  ```
-- **Expected Output**: Product should be created with `isWishlistStatus: true` and `wishlistCount: 1`.
+#### Test Case 1: should toggle the wishlist status of a product
 
-### Wishlist Operations
-
-#### Test Case 1: Toggle Wishlist Status
-
-- **Description**: Tests toggling the wishlist status of a product using the updated `toggleWishlistStatus` method.
+- **Description**: Tests toggling the wishlist status of a product.
 - **Input**:
   ```typescript
   const product = Product.createProduct({
@@ -72,43 +65,138 @@ The tests are organized into several main sections:
     category: 'Test Category',
     isWishlistStatus: false,
     wishlistCount: 0,
+    isActive: true,
   });
   await productRepository.create(product);
   const createdProduct = await Productmodel.findOne({ name: 'Test Product for Wishlist' });
   const productId = createdProduct?._id.toString();
   const updatedProduct = await productRepository.toggleWishlistStatus(productId!, true);
   ```
-- **Expected Output**: Product should be updated with `isWishlistStatus: true` and `wishlistCount: 1`, and the method should return the updated product.
+- **Expected Output**: Product should be updated with `isWishlistStatus: true` and `wishlistCount: 1`.
 
-#### Test Case 2: Error Handling for Non-existent Product
+### update
 
-- **Description**: Tests that `toggleWishlistStatus` throws an error when the product is not found.
+#### Test Case 1: should update a product
+
+- **Description**: Tests updating an existing product.
 - **Input**:
   ```typescript
-  await productRepository.toggleWishlistStatus('invalid-id', true);
+  const product = Product.createProduct({
+    name: 'Test Product for Update',
+    description: 'Test Description',
+    price: 100,
+    stock: 10,
+    category: 'Test Category',
+    isActive: true,
+  });
+  await productRepository.create(product);
+  const createdProduct = await Productmodel.findOne({ name: 'Test Product for Update' });
+  const productId = createdProduct?._id.toString();
+  const updatedProduct = Product.createProduct({
+    ...product.toProps(),
+    id: productId,
+    name: 'Updated Test Product',
+  });
+  await productRepository.update(updatedProduct);
   ```
-- **Expected Output**: Should throw an error with message 'Product not found'.
+- **Expected Output**: Product should be updated in the database.
 
-### Basic CRUD Operations
+### findById
 
-The repository tests also cover standard CRUD operations:
+#### Test Case 1: should retrieve a product by its ID
 
-- **Update**: Tests updating an existing product
-- **Find by ID**: Tests retrieving a product by its ID
-- **Find All**: Tests retrieving all products with optional filtering
-- **Delete**: Tests deleting a product by ID
-- **Count**: Tests counting products with optional filtering
+- **Description**: Tests retrieving a product by its ID.
+- **Input**:
+  ```typescript
+  const product = Product.createProduct({
+    name: 'Test Product for Retrieval',
+    description: 'Test Description',
+    price: 100,
+    stock: 10,
+    category: 'Test Category',
+    isActive: true,
+  });
+  await productRepository.create(product);
+  const createdProduct = await Productmodel.findOne({ name: 'Test Product for Retrieval' });
+  const productId = createdProduct?._id.toString();
+  const retrievedProduct = await productRepository.findById(productId!);
+  ```
+- **Expected Output**: Product should be retrieved successfully.
+
+### findAll
+
+#### Test Case 1: should retrieve all products
+
+- **Description**: Tests retrieving all products.
+- **Input**:
+  ```typescript
+  // Create products
+  await productRepository.create(product1);
+  await productRepository.create(product2);
+  const products = await productRepository.findAll();
+  ```
+- **Expected Output**: All products should be retrieved.
+
+#### Test Case 2: should retrieve products with filters
+
+- **Description**: Tests retrieving products with filters.
+- **Input**:
+  ```typescript
+  // Create products
+  await productRepository.create(product1);
+  await productRepository.create(product2);
+  const products = await productRepository.findAll({ category: 'Test Category' });
+  ```
+- **Expected Output**: Products matching the filter should be retrieved.
+
+### delete
+
+#### Test Case 1: should delete a product
+
+- **Description**: Tests deleting a product.
+- **Input**:
+  ```typescript
+  const product = Product.createProduct({
+    name: 'Test Product for Deletion',
+    description: 'Test Description',
+    price: 100,
+    stock: 10,
+    category: 'Test Category',
+    isActive: true,
+  });
+  await productRepository.create(product);
+  const createdProduct = await Productmodel.findOne({ name: 'Test Product for Deletion' });
+  const productId = createdProduct?._id.toString();
+  await productRepository.delete(productId!);
+  ```
+- **Expected Output**: Product should be deleted from the database.
+
+### count
+
+#### Test Case 1: should count all products
+
+- **Description**: Tests counting all products.
+- **Input**:
+  ```typescript
+  // Create products
+  await productRepository.create(product1);
+  await productRepository.create(product2);
+  const count = await productRepository.count();
+  ```
+- **Expected Output**: Count should be correct.
+
+#### Test Case 2: should count products with filters
+
+- **Description**: Tests counting products with filters.
+- **Input**:
+  ```typescript
+  // Create products
+  await productRepository.create(product1);
+  await productRepository.create(product2);
+  const count = await productRepository.count({ category: 'Test Category' });
+  ```
+- **Expected Output**: Count should match the filtered products.
 
 ## Summary
 
-The `ProductRepository` tests ensure that:
-
-1. **Wishlist functionality works correctly**: Products can be created with wishlist status and their status can be toggled
-2. **CRUD operations are reliable**: All basic database operations work as expected
-3. **Error handling is robust**: Proper errors are thrown for invalid operations
-4. **Method signatures are correct**: All methods return the expected types and handle parameters correctly
-
-The tests reflect the simplified architecture where wishlist operations are handled directly by the repository layer, while the entity remains focused on business rules and validation.
-
-
-
+The `ProductRepository` tests ensure that all CRUD operations and wishlist functionality work correctly. The tests use the database for integration testing.
