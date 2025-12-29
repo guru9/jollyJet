@@ -66,8 +66,11 @@ LOG_LEVEL=info
 ### 3️⃣ Run Application
 
 ```bash
-# Development Mode (with hot-reload)
+# Development Mode (with hot-reload and Swagger UI auto-launch)
 npm run dev
+
+# Debug Mode (with Node inspector, Chrome DevTools, and Swagger UI auto-launch)
+npm run debug
 
 # Production Build
 npm run build

@@ -164,6 +164,7 @@ ProductSchema.index({ name: 1 }); // Indexing
 - **Error Handling**: Proper error translation to domain errors
 - **Query Optimization**: Efficient database queries with proper indexing
 - **Transaction Support**: Use transactions for multi-document operations
+- **ID Validation**: Validate MongoDB ObjectIds before database queries for better performance and error handling
 
 ### Use Cases Layer Best Practices (`src/usecases`)
 
@@ -378,6 +379,8 @@ export interface CreateProductDTO {
 - **DTO Integration**: Use TypeScript DTO interfaces for request/response typing
 - **Error Handling**: Use try-catch blocks with proper error propagation
 - **HTTP Methods**: Use appropriate HTTP methods and status codes
+- **ID Validation**: Validate MongoDB ObjectIds in controllers for early error detection
+- **Not Found Handling**: Implement proper 404 responses for non-existent resources
 
 **DTO Usage in Controllers: Best Practice**
 
@@ -957,6 +960,26 @@ async getProduct(req: Request, res: Response, next: NextFunction): Promise<void>
 }
 ```
 
+#### Parameter Validation Best Practices
+
+When handling URL parameters like `req.params.id`, consider the following best practices for robust input validation:
+
+**Recommendation for ID Parameters:**
+
+Given that productId comes from `req.params.id`, and assuming that your system generates and stores IDs in a normalized (no leading/trailing spaces) format:
+
+- The `trim()` is likely redundant for productId from `req.params`.
+- The check `!productId` is usually sufficient for `req.params` IDs to catch null or undefined which can happen if the route definition doesn't match the URL, or if middleware clears parameters.
+- Empty strings ("") for `req.params.id` are less common but still possible.
+
+However, the current `if (!productId?.trim())` validation is still robust. It handles potential edge cases of malformed inputs (like an ID consisting only of spaces, which is technically an empty ID).
+
+**Conclusion and Recommendation:**
+
+Keep the `trim()` check as it is for robust input validation, unless you have a strict, documented guarantee that IDs from `req.params` will never contain leading/trailing whitespace and `trim()` would interfere with a valid ID containing internal spaces (which is rare for a typical id).
+
+It adds a small layer of defensive programming that might save you from obscure bugs if ID generation or URL routing ever had unexpected behavior. The performance impact is truly negligible here.
+
 #### Middlewares (`src/interface/middlewares`)
 
 - **Separation of Concerns**: One middleware per responsibility
@@ -971,7 +994,7 @@ Shared utilities and common code.
 - **Pure Functions**: Utility functions should be pure and testable
 - **Type Safety**: Strongly typed utility functions
 - **Error Classes**: Custom error classes extending base errors
-- **Constants**: Centralized application constants
+- **Constants**: Centralized application constants, kept clean by removing unused ones to maintain maintainability
 - **Logger**: Structured logging with Pino
 
 ### Configuration Module Best Practices (`src/config`)
@@ -1366,6 +1389,10 @@ export class ProductController {
 - **Do** follow established naming conventions
 - **Do** use early returns for better readability
 - **Do** destructure objects for cleaner code
+- **Do** validate MongoDB ObjectIds in repositories and controllers for better performance
+- **Do** implement proper 404 error handling for non-existent resources
+- **Do** use trim() checks for parameter validation in controllers for robust input handling
+- **Do** clean unused constants regularly to maintain code quality
 
 **Example: Good TypeScript practices**
 
@@ -1403,6 +1430,10 @@ export class CreateProductUseCase {
 - **Don't** write functions longer than 50 lines
 - **Don't** use magic numbers or strings
 - **Don't** mix synchronous and asynchronous code styles
+- **Don't** keep unused constants in shared files
+- **Don't** skip MongoDB ObjectId validation in database operations
+- **Don't** return generic errors for non-existent resources
+- **Don't** neglect parameter validation in controllers
 
 **Example: Bad practices to avoid**
 
@@ -1750,6 +1781,3 @@ class UpdateProductUseCase {
 ---
 
 _This guide should be updated as the project evolves and new best practices are established._
-
-
-

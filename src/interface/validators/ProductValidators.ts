@@ -1,11 +1,12 @@
 import z from 'zod';
+import { PRODUCT_VALIDATION_MESSAGES } from '../../shared/constants';
 
 /**
  * Validation schema for createing a new product.
  * Ensures all required fields are present and correctly formatted.
  * @property {string} name  - Name of the product (3-30 characters).
  * @property {string} description - Description of the product (minimum 10 characters).
- * @property {number} price - Price of the product (non-negative integer).
+ *  @property {number} price - Price of the product (non-negative number).
  * @property {number} stock - Stock quantity (non-negative integer).
  * @property {string} category - Category of the product (required).
  * @property {string[]} images - Array of image URLs (optional).
@@ -16,12 +17,12 @@ export const createProductSchema = z.object({
   body: z.object({
     name: z
       .string()
-      .min(3, 'Name must be at least 3 characters long')
-      .max(30, 'Name must be at most 30 characters long'),
-    description: z.string().min(10, 'Description must be at least 10 characters long'),
-    price: z.number().int().min(0, 'Price must be a non-negative number'),
-    stock: z.number().int().min(0, 'Stock must be non-negative number'),
-    category: z.string().min(1, 'Category is required'),
+      .min(3, PRODUCT_VALIDATION_MESSAGES.NAME_MIN_LENGTH)
+      .max(30, PRODUCT_VALIDATION_MESSAGES.NAME_MAX_LENGTH),
+    description: z.string().min(10, PRODUCT_VALIDATION_MESSAGES.DESCRIPTION_MIN_LENGTH),
+    price: z.number().min(0, PRODUCT_VALIDATION_MESSAGES.PRICE_MIN),
+    stock: z.number().int().min(0, PRODUCT_VALIDATION_MESSAGES.STOCK_MIN),
+    category: z.string().min(1, PRODUCT_VALIDATION_MESSAGES.CATEGORY_REQUIRED),
     images: z.array(z.string().url()).optional(),
     isActive: z.boolean().optional(),
     isWishlistStatus: z.boolean().optional(),
@@ -33,7 +34,7 @@ export const createProductSchema = z.object({
  * All fields are optional but must adhere to the same validation rules as creation.
  * @property {string} name  - Name of the product (3-30 characters).
  * @property {string} description - Description of the product (minimum 10 characters).
- *  @property {number} price - Price of the product (non-negative integer).
+ * @property {number} price - Price of the product (non-negative number).
  * @property {number} stock - Stock quantity (non-negative integer).
  * @property {string} category - Category of the product.
  * @property {string[]} images - Array of image URLs (optional).
@@ -44,7 +45,7 @@ export const updateProductSchema = z.object({
   body: z.object({
     name: z.string().min(3).optional(),
     description: z.string().min(10).optional(),
-    price: z.number().int().min(0).optional(),
+    price: z.number().min(0).optional(),
     stock: z.number().int().min(0).optional(),
     category: z.string().min(1).optional(),
     images: z.array(z.string().url()).optional(),
@@ -60,7 +61,7 @@ export const updateProductSchema = z.object({
  */
 export const productIdSchema = z.object({
   params: z.object({
-    id: z.string().min(1, 'Product ID is required'),
+    id: z.string().min(1, PRODUCT_VALIDATION_MESSAGES.PRODUCT_ID_REQUIRED),
   }),
 });
 
@@ -71,20 +72,71 @@ export const productIdSchema = z.object({
  * @property {boolean} isActive - Filter by active status (optional).
  * @property {boolean} isWishlistStatus - Filter by wishlist status (optional).
  * @property {string} search - Search by product name or description (optional).
- * @property {{ min: number; max: number }} priceRange - Filter by price range (optional).
+ * @property {string} priceRange - JSON string for price range filter (optional).
+ * @property {string} page - Page number for pagination (optional).
+ * @property {string} limit - Number of items per page (optional).
  */
 export const productFilterSchema = z.object({
   query: z.object({
     category: z.string().optional(),
-    isActive: z.boolean().optional(),
-    isWishlistStatus: z.boolean().optional(),
+    isActive: z
+      .union([z.boolean(), z.string()])
+      .optional()
+      .transform((val) => {
+        if (typeof val === 'string') return val === 'true';
+        return val;
+      }),
+    isWishlistStatus: z
+      .union([z.boolean(), z.string()])
+      .optional()
+      .transform((val) => {
+        if (typeof val === 'string') return val === 'true';
+        return val;
+      }),
     search: z.string().optional(),
     priceRange: z
-      .object({
-        min: z.number().int().min(0, 'Minimum price must be a non-negative number'),
-        max: z.number().int().min(0, 'Maximum price must be a non-negative number'),
+      .string()
+      .optional()
+      .refine(
+        (val) => {
+          if (!val) return true;
+          try {
+            const parsed = JSON.parse(val);
+            return (
+              typeof parsed === 'object' &&
+              parsed !== null &&
+              typeof parsed.min === 'number' &&
+              typeof parsed.max === 'number' &&
+              parsed.min >= 0 &&
+              parsed.max >= 0 &&
+              parsed.min <= parsed.max
+            );
+          } catch {
+            return false;
+          }
+        },
+        {
+          message: PRODUCT_VALIDATION_MESSAGES.PRICE_RANGE_INVALID,
+        }
+      )
+      .transform((val) => (val ? JSON.parse(val) : undefined)),
+    page: z
+      .string()
+      .optional()
+      .refine((val) => !val || (!isNaN(parseInt(val)) && parseInt(val) > 0), {
+        message: PRODUCT_VALIDATION_MESSAGES.PAGE_INVALID,
       })
-      .optional(),
+      .transform((val) => (val ? parseInt(val) : 1)),
+    limit: z
+      .string()
+      .optional()
+      .refine(
+        (val) => !val || (!isNaN(parseInt(val)) && parseInt(val) > 0 && parseInt(val) <= 100),
+        {
+          message: 'Limit must be a positive integer between 1 and 100',
+        }
+      )
+      .transform((val) => (val ? parseInt(val) : 10)),
   }),
 });
 

@@ -7,7 +7,8 @@ import {
   PRODUCT_SUCCESS_MESSAGES,
   RESPONSE_STATUS,
 } from '../../shared/constants';
-import { safeParseBoolean, safeParseString } from '../../shared/utils';
+import { BadRequestError } from '../../shared/errors';
+import { safeParseString } from '../../shared/utils';
 import { ApiResponse } from '../../types';
 import {
   CountProductsQuery,
@@ -20,7 +21,8 @@ import {
   ToggleWishlistProductUseCase,
   UpdateProductUseCase,
 } from '../../usecases';
-import { CreateProductDTO, ToggleWishlistDTO, UpdateProductDTO } from '../dtos';
+import { ToggleWishlistDTO, UpdateProductDTO } from '../dtos';
+import { productFilterSchema } from '../validators/ProductValidators';
 
 /**
  * Product Controller - Handles HTTP requests for product operations
@@ -87,7 +89,7 @@ export class ProductController {
    */
   async createProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const productData: CreateProductDTO = req.body;
+      const productData = req.body;
       const product = await this.createProductUseCase.execute(productData);
       const response: ApiResponse<Product> = {
         status: RESPONSE_STATUS.SUCCESS,
@@ -144,8 +146,11 @@ export class ProductController {
   async getProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const productId = req.params.id;
-      const product = await this.getProductUseCase.execute(productId);
+      // The controller calls the use case, the use case handles caching internally
+      const product = await this.getProductUseCase.execute(productId); // This use case returns Product | null
+
       if (product) {
+        // Product found, return 200 OK
         const response: ApiResponse<Product> = {
           status: RESPONSE_STATUS.SUCCESS,
           data: product,
@@ -153,7 +158,9 @@ export class ProductController {
         };
         res.status(HTTP_STATUS.OK).json(response);
       } else {
+        // Product not found, return 404 NOT FOUND
         const response: ApiResponse<never> = {
+          // Using `never` as there's no data for not found
           status: RESPONSE_STATUS.ERROR,
           message: PRODUCT_ERROR_MESSAGES.NOT_FOUND,
           errors: [{ field: 'id', message: 'Product with specified ID does not exist' }],
@@ -161,6 +168,7 @@ export class ProductController {
         res.status(HTTP_STATUS.NOT_FOUND).json(response);
       }
     } catch (error) {
+      // Catch any unexpected errors from use case or other middleware
       next(error);
     }
   }
@@ -202,16 +210,21 @@ export class ProductController {
    */
   async listProducts(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      // Validate query parameters using Zod schema
+      const validationResult = productFilterSchema.safeParse({ query: req.query });
+      if (!validationResult.success) {
+        throw new BadRequestError(validationResult.error.issues[0].message);
+      }
+      const validatedQuery = validationResult.data.query;
+
       const queryParams: ListProductsQuery = {
-        page: safeParseString(req.query.page),
-        limit: safeParseString(req.query.limit),
-        category: safeParseString(req.query.category),
-        search: safeParseString(req.query.search),
-        isActive: safeParseBoolean(req.query.isActive) ?? false,
-        isWishlistStatus: safeParseBoolean(req.query.isWishlistStatus) ?? false,
-        priceRange: req.query.priceRange
-          ? JSON.parse(safeParseString(req.query.priceRange) || '')
-          : undefined,
+        page: validatedQuery.page.toString(),
+        limit: validatedQuery.limit.toString(),
+        category: validatedQuery.category,
+        search: validatedQuery.search,
+        isActive: validatedQuery.isActive ?? false,
+        isWishlistStatus: validatedQuery.isWishlistStatus ?? false,
+        priceRange: validatedQuery.priceRange,
       };
       const result = await this.listProductsUseCase.execute(queryParams);
       const response: ApiResponse<typeof result> = {
@@ -254,14 +267,19 @@ export class ProductController {
    */
   async countProducts(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      // Validate query parameters using Zod schema (ignoring page/limit for count)
+      const validationResult = productFilterSchema.safeParse({ query: req.query });
+      if (!validationResult.success) {
+        throw new BadRequestError(validationResult.error.issues[0].message);
+      }
+      const validatedQuery = validationResult.data.query;
+
       const queryParams: CountProductsQuery = {
-        category: safeParseString(req.query.category),
-        search: safeParseString(req.query.search),
-        isActive: safeParseBoolean(req.query.isActive) ?? false,
-        isWishlistStatus: safeParseBoolean(req.query.isWishlistStatus) ?? false,
-        priceRange: req.query.priceRange
-          ? JSON.parse(safeParseString(req.query.priceRange) || '')
-          : undefined,
+        category: validatedQuery.category,
+        search: validatedQuery.search,
+        isActive: validatedQuery.isActive ?? false,
+        isWishlistStatus: validatedQuery.isWishlistStatus ?? false,
+        priceRange: validatedQuery.priceRange,
       };
       const count = await this.countProductsUseCase.execute(queryParams);
       const response: ApiResponse<number> = {
