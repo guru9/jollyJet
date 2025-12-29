@@ -1,3 +1,19 @@
+/**
+ * Server Entry Point - JollyJet E-commerce API
+ *
+ * This file serves as the main entry point for the JollyJet application server.
+ * It handles server initialization, database connections, error handling, and
+ * graceful shutdown procedures. The server is configured to run with proper
+ * logging, signal handling, and connection management.
+ *
+ * Key Features:
+ * - MongoDB connection with fallback for database-less operation
+ * - Graceful shutdown handling for SIGTERM and SIGINT signals
+ * - Global error handling for uncaught exceptions and unhandled rejections
+ * - Pino-based logging for monitoring and debugging
+ * - Dependency injection initialization via reflect-metadata
+ */
+
 import 'reflect-metadata';
 import { jollyJetApp } from './app';
 import config from './config';
@@ -39,12 +55,9 @@ const startServer = async () => {
   try {
     // Try to connect to MongoDB first
     await mongoDBConnection.connect();
-    logger.info({ uri: config.mongoUri, port: config.port }, 'MongoDB connected successfully.');
+    logger.info('MongoDB connected successfully.');
   } catch (error) {
-    logger.warn(
-      { uri: config.mongoUri, port: config.port, error: error },
-      'MongoDB connection failed. Starting server without database.'
-    );
+    logger.warn({ error: error }, 'MongoDB connection failed. Starting server without database.');
     // Continue without database connection
   }
 

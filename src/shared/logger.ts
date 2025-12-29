@@ -1,13 +1,12 @@
 import { pino } from 'pino';
+import config from '../config';
 
-const NODE_ENV = process.env.NODE_ENV || 'development';
-const LOG_LEVEL =
-  (process.env.LOG_LEVEL as string) || (NODE_ENV === 'production' ? 'info' : 'debug');
+const LOG_LEVEL = (config.logLevel as string) || (config.env === 'production' ? 'info' : 'debug');
 
 const logger = pino({
   level: LOG_LEVEL,
   transport:
-    NODE_ENV !== 'production'
+    config.env !== 'production'
       ? {
           target: 'pino-pretty',
           options: {
@@ -22,9 +21,9 @@ const logger = pino({
     level: (label) => ({ level: label }),
   },
   base: {
-    pid: false,
-    hostname: false,
-    env: NODE_ENV,
+    port: config.port,
+    database: config.env !== 'production' ? config.mongoUri : undefined,
+    env: config.env,
   },
 });
 

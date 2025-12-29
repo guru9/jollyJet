@@ -3,6 +3,7 @@
     "start": "node dist/src/server.js",
     "build": "tsc",
     "dev": "nodemon src/server.ts",
+    "debug": "node --inspect=0.0.0.0:9228 --require ts-node/register src/server.ts",
     "predev": "echo 'Formatting...' && npm run format && echo 'Linting...' && npm run lint && echo 'Building...' && npm run build",
     "format": "prettier --write \"src/**/*.{ts,js,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,json}\"",

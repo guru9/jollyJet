@@ -1,4 +1,6 @@
 // Product properties interface defining all product attributes
+import { PRODUCT_VALIDATION_MESSAGES } from '../../shared/constants';
+
 export interface ProductProps {
   id?: string; //  unique product identifier (Optional)
   name: string; // Name of the product(required)
@@ -29,20 +31,22 @@ export class Product {
 
   // Validate the product properties and business rules
   validate(): void {
-    if (!this.props.name) throw new Error('Product name is required.');
+    if (!this.props.name) throw new Error(PRODUCT_VALIDATION_MESSAGES.PRODUCT_NAME_REQUIRED);
 
-    if (!this.props.description) throw new Error('Product description is required.');
+    if (!this.props.description)
+      throw new Error(PRODUCT_VALIDATION_MESSAGES.PRODUCT_DESCRIPTION_REQUIRED);
 
     if (typeof this.props.price !== 'number' || this.props.price < 0)
-      throw new Error('Product price must be a non-negative number.');
+      throw new Error(PRODUCT_VALIDATION_MESSAGES.PRODUCT_PRICE_INVALID);
 
     if (typeof this.props.stock !== 'number' || this.props.stock < 0)
-      throw new Error('Product stock must be a non-negative number.');
+      throw new Error(PRODUCT_VALIDATION_MESSAGES.PRODUCT_STOCK_INVALID);
 
-    if (!this.props.category) throw new Error('Product category is required.');
+    if (!this.props.category)
+      throw new Error(PRODUCT_VALIDATION_MESSAGES.PRODUCT_CATEGORY_REQUIRED);
 
     if (this.props.wishlistCount !== undefined && this.props.wishlistCount < 0)
-      throw new Error('wishlistCount must be a non-negative number if provided.');
+      throw new Error(PRODUCT_VALIDATION_MESSAGES.WISHLIST_COUNT_INVALID);
   }
 
   // Method to get all props as an object for external use

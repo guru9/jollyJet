@@ -1,10 +1,8 @@
 /**
- * Application-wide constants for pagination, authentication, and general configuration.
+ * Application-wide constants for pagination and general configuration.
  */
 export const APP_CONSTANTS = {
-  DEFAULT_PAGE_SIZE: 10,
   MAX_PAGE_SIZE: 100,
-  TOKEN_EXPIRY: '24h',
 };
 
 /**
@@ -33,7 +31,7 @@ export enum RESPONSE_STATUS {
 }
 
 /**
- * Standardized response status strings for API Errors.
+ * Standardized error messages for consistent error responses.
  */
 export const ERROR_STATUS = {
   INTERNAL_SERVER_ERROR: 'Internal server error',
@@ -42,8 +40,8 @@ export const ERROR_STATUS = {
   DATABASE_ERROR: 'Database operation failed',
   INVALID_OBJECT_ID: 'Invalid ObjectId',
 };
+
 /**
- *
  * Success messages for product-related operations to provide consistent user feedback.
  */
 export const PRODUCT_SUCCESS_MESSAGES = {
@@ -69,6 +67,32 @@ export const PRODUCT_ERROR_MESSAGES = {
   PRODUCT_ID_REQ_UPDATE: 'Product ID is required for updation.',
   PRODUCT_ID_REQ_DELETE: 'Product ID is required for deletion.',
   PRODUCT_ID_REQ_WISHLIST: 'Product ID is required for wishlist toggle.',
+  PRODUCT_ID_INVALID: 'Invalid product ID format.',
+};
+
+/**
+ * Validation error messages for product fields to ensure consistent validation messages.
+ */
+export const PRODUCT_VALIDATION_MESSAGES = {
+  // Zod schema validation messages (used in ProductValidators.ts)
+  NAME_MIN_LENGTH: 'Name must be at least 3 characters long',
+  NAME_MAX_LENGTH: 'Name must be at most 30 characters long',
+  DESCRIPTION_MIN_LENGTH: 'Description must be at least 10 characters long',
+  PRICE_MIN: 'Price must be a non-negative number',
+  STOCK_MIN: 'Stock must be non-negative number',
+  CATEGORY_REQUIRED: 'Category is required',
+  PRODUCT_ID_REQUIRED: 'Product ID is required',
+  PRICE_RANGE_INVALID:
+    'Price range must be valid JSON with min and max as non-negative numbers, min <= max',
+  PAGE_INVALID: 'Page must be a positive integer',
+  LIMIT_INVALID: 'Limit must be a positive integer between 1 and 100',
+  // Domain entity validation messages
+  PRODUCT_NAME_REQUIRED: 'Product name is required.',
+  PRODUCT_DESCRIPTION_REQUIRED: 'Product description is required.',
+  PRODUCT_PRICE_INVALID: 'Product price must be a non-negative number.',
+  PRODUCT_STOCK_INVALID: 'Product stock must be a non-negative number.',
+  PRODUCT_CATEGORY_REQUIRED: 'Product category is required.',
+  WISHLIST_COUNT_INVALID: 'wishlistCount must be a non-negative number if provided.',
 };
 
 /**
@@ -86,44 +110,6 @@ export const PRODUCT_CONSTANTS = {
   MIN_WISHLIST_COUNT: 0,
   MAX_WISHLIST_COUNT: 1000000,
   MAX_WISHLIST_ITEMS_PER_USER: 100,
-  DEFAULT_WISHLIST_STATUS: false,
-};
-
-/**
- * Order-related constants for validation and business rules.
- */
-export const ORDER_CONSTANTS = {
-  MIN_QUANTITY: 1,
-  MAX_QUANTITY: 100,
-  CANCELLATION_WINDOW_HOURS: 24,
-  MIN_ORDER_AMOUNT: 1,
-};
-
-/**
- * Regular expressions and validation rules for user input validation across the application.
- */
-export const VALIDATION_RULES = {
-  EMAIL_REGEX: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-  PHONE_REGEX: /^\+?[1-9]\d{1,14}$/,
-  PASSWORD_MIN_LENGTH: 8,
-  PASSWORD_REGEX: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-  USERNAME_MIN_LENGTH: 3,
-  USERNAME_MAX_LENGTH: 30,
-  WISHLIST_NAME_REGEX: /^[a-zA-Z0-9\s\-_]{3,50}$/,
-  WISHLIST_ITEM_NAME_REGEX: /^[a-zA-Z0-9\s\-_,.!]{3,100}$/,
-};
-
-/**
- * Constants specific to wishlist functionality including limits and default values.
- */
-export const WISHLIST_CONSTANTS = {
-  MAX_ITEMS_PER_USER: 100,
-  MAX_ITEM_NAME_LENGTH: 100,
-  MAX_ITEM_DESCRIPTION_LENGTH: 500,
-  DEFAULT_WISHLIST_NAME: 'My Wishlist',
-  WISHLIST_EXPIRY_DAYS: 30,
-  MAX_WISHLIST_COUNT: 1000000,
-  MIN_WISHLIST_COUNT: 0,
 };
 
 /**

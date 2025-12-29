@@ -1,7 +1,13 @@
+import * as express from 'express';
 import request from 'supertest';
-import app from '../../app';
+import { jollyJetApp } from '../../app';
 
 describe('App Endpoints', () => {
+  let app: express.Application;
+
+  beforeAll(async () => {
+    app = await jollyJetApp();
+  });
   describe('GET /health', () => {
     it('should return status ok with timestamp', async () => {
       const response = await request(app).get('/health');

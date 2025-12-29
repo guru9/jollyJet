@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Product } from '../../domain/entities/Product';
 import { IProductRepository, ProductFilter } from '../../domain/interfaces/IProductRepository';
 import { PRODUCT_ERROR_MESSAGES } from '../../shared/constants';
@@ -49,6 +50,9 @@ export class ProductRepository implements IProductRepository {
   public async update(product: Product): Promise<Product> {
     const productData = product.toProps();
     if (!productData.id) throw new Error(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_REQ_UPDATE);
+    if (!mongoose.isValidObjectId(productData.id)) {
+      throw new Error(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
+    }
 
     //find the updated document, return the updated product
     const updatedProduct = await Productmodel.findByIdAndUpdate(productData.id, productData, {
@@ -65,6 +69,8 @@ export class ProductRepository implements IProductRepository {
    */
   public async findById(id: string): Promise<Product | null> {
     if (!id) return null; // Return null for invalid IDs
+    if (!mongoose.Types.ObjectId.isValid(id))
+      throw new Error(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
 
     const productDocument = await Productmodel.findById(id);
     if (!productDocument) return null; // Return null if document not found
@@ -99,10 +105,13 @@ export class ProductRepository implements IProductRepository {
    * @returns Promise with boolean indicating success
    */
   public async delete(id: string): Promise<boolean> {
+    if (!id) return false;
+    if (!mongoose.Types.ObjectId.isValid(id))
+      throw new Error(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
+
     const result = await Productmodel.findByIdAndDelete(id);
     return result !== null;
   }
-
   /**
    * Gets the count of products matching the filter
    * @param filter Optional filter criteria
@@ -134,6 +143,8 @@ export class ProductRepository implements IProductRepository {
    * @returns Promise<Product> with the updated product
    */
   public async toggleWishlistStatus(id: string, isWishlistStatus: boolean): Promise<Product> {
+    if (!id || !mongoose.isValidObjectId(id))
+      throw new Error(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
     // Update the isWishlistStatus status and adjust wishlistCount accordingly
     const updatedProduct = await Productmodel.findByIdAndUpdate(
       id,

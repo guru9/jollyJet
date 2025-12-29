@@ -262,8 +262,8 @@ describe('ProductController', () => {
 
       // Assert
       expect(mockListProductsUseCase.execute).toHaveBeenCalledWith({
-        page: undefined,
-        limit: undefined,
+        page: '1',
+        limit: '10',
         category: undefined,
         search: undefined,
         isActive: false,

@@ -242,10 +242,7 @@ describe('Product Validators - Unit Tests', () => {
           isActive: true,
           isWishlistStatus: true,
           search: 'wireless',
-          priceRange: {
-            min: 0,
-            max: 1000,
-          },
+          priceRange: '{"min":0,"max":1000}',
         },
       };
 
