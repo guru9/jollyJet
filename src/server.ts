@@ -14,11 +14,12 @@
  * - Dependency injection initialization via reflect-metadata
  */
 
+import { jollyJetApp } from '@/app';
+import config from '@/config';
+import mongoDBConnection from '@/infrastructure/database/mongodb';
+import { logger } from '@/shared';
+
 import 'reflect-metadata';
-import { jollyJetApp } from './app';
-import config from './config';
-import mongoDBConnection from './infrastructure/database/mongodb';
-import logger from './shared/logger';
 
 // Graceful shutdown handler
 const gracefulShutdown = async (signal: string) => {

@@ -1,6 +1,6 @@
+import config from '@/config';
+import { logger } from '@/shared';
 import mongoose from 'mongoose';
-import config from '../../config';
-import logger from '../../shared/logger';
 
 class MongoDBConnection {
   private static instance: MongoDBConnection;

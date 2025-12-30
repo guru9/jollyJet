@@ -47,9 +47,10 @@ export const routeModuleFactories: RouteModule[] = [
     name: 'Product Routes',
     path: '/api/products',
     routerFactory: async () => {
-      const { default: createProductRoutes } = await import('./productRoutes');
+      const { default: createProductRoutes } = await import('./product/productRoutes');
       return createProductRoutes();
     },
+
     middleware: [], // Add module-specific middleware here (auth, rate limiting, etc.)
   },
   // Future modules will be added here:

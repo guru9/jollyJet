@@ -1,6 +1,6 @@
+import { jollyJetApp } from '@/app';
 import * as express from 'express';
 import request from 'supertest';
-import { jollyJetApp } from '../../app';
 
 describe('App Endpoints', () => {
   let app: express.Application;

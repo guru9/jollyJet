@@ -1,5 +1,5 @@
+import { logger } from '@/shared';
 import { NextFunction, Request, Response } from 'express';
-import logger from '../../shared/logger';
 
 /**
  * Express middleware that logs HTTP request details including method, path, status code, IP address,

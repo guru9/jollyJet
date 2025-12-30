@@ -39,6 +39,7 @@
 - 📑 **[Phase 6: Swagger](./docs/implementation-plans/06-swagger-setup-plan.md)** - API documentation setup
 - 🧪 **[Phase 7: Testing](./docs/implementation-plans/07-testing-setup-plan.md)** - Jest infrastructure & test suites
 - 🛍️ **[Phase 8: Product Module](./docs/implementation-plans/08-product-module-plan.md)** - Product CRUD operations & catalog management
+- ⚡ **[Phase 9: Redis Integration](./docs/implementation-plans/09-redis-implementation-plan.md)** - Caching, Session, & Rate Limiting
 
 ---
 
