@@ -1,0 +1,163 @@
+import { Product } from '@/domain/entities';
+import { IProductRepository, ProductFilter } from '@/domain/interfaces';
+import { Productmodel } from '@/infrastructure/models';
+import { PRODUCT_ERROR_MESSAGES } from '@/shared';
+
+import { PaginationParams } from '@/types';
+import mongoose from 'mongoose';
+
+export class ProductRepository implements IProductRepository {
+  /**
+   * Creates a new product in the database.
+   * @param product Product entity to create
+   * @returns Promise with created Product entity
+   */
+  public async create(product: Product): Promise<Product> {
+    const productData = product.toProps();
+
+    // Create document in MongoDB and convert back to domain entity
+    const createdProduct = await Productmodel.create(productData);
+    return Product.createProduct(createdProduct.toObject());
+  }
+
+  /**
+   * Builds a filtered Mongoose query based on the provided filter criteria.
+   * @param filter Optional filter criteria
+   * @returns Mongoose query with applied filters
+   */
+  private buildFilteredQuery(filter?: ProductFilter) {
+    const query = Productmodel.find();
+
+    // Apply filters if provided
+    if (filter) {
+      if (filter.category) query.where('category', filter.category);
+      if (filter.isActive !== undefined) query.where('isActive', filter.isActive);
+      if (filter.isWishlistStatus !== undefined)
+        query.where('isWishlistStatus', filter.isWishlistStatus);
+      if (filter.search) query.where({ $text: { $search: filter.search } });
+      if (filter.priceRange)
+        query.where('price').gte(filter.priceRange.min).lte(filter.priceRange.max);
+    }
+
+    return query;
+  }
+
+  /**
+   * Updates an existing product
+   * @param product Product entity with updates
+   * @returns Promise with updated Product entity
+   * @throws Error if product ID is missing or product not found
+   */
+  public async update(product: Product): Promise<Product> {
+    const productData = product.toProps();
+    if (!productData.id) throw new Error(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_REQ_UPDATE);
+    if (!mongoose.isValidObjectId(productData.id)) {
+      throw new Error(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
+    }
+
+    //find the updated document, return the updated product
+    const updatedProduct = await Productmodel.findByIdAndUpdate(productData.id, productData, {
+      new: true,
+    });
+    if (!updatedProduct) throw new Error(PRODUCT_ERROR_MESSAGES.PRODUCT_NOT_FOUND_UPDATE);
+    return Product.createProduct(updatedProduct.toObject());
+  }
+
+  /**
+   * Retrieves a product by its ID
+   * @param id Product ID to search for
+   * @returns Promise with Product entity or null if not found
+   */
+  public async findById(id: string): Promise<Product | null> {
+    if (!id) return null; // Return null for invalid IDs
+    if (!mongoose.Types.ObjectId.isValid(id))
+      throw new Error(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
+
+    const productDocument = await Productmodel.findById(id);
+    if (!productDocument) return null; // Return null if document not found
+
+    return Product.createProduct(productDocument.toObject()); // Convert to Product entity
+  }
+
+  /**
+   * Retrieves all products with optional filtering and pagination
+   * @param filter Optional filter criteria
+   * @param pagination Optional pagination parameters
+   * @returns Promise with array of Product entities
+   */
+  public async findAll(filter?: ProductFilter, pagination?: PaginationParams): Promise<Product[]> {
+    // Build the query with filters applied
+    const query = this.buildFilteredQuery(filter);
+
+    // Apply pagination if provided
+    if (pagination) {
+      query.skip(pagination.skip);
+      query.limit(pagination.limit);
+    }
+
+    // Execute the query and convert documents to Product entities
+    const productDocuments = await query.exec();
+    return productDocuments.map((doc) => Product.createProduct(doc.toObject()));
+  }
+
+  /**
+   * Deletes a product by ID
+   * @param id Product ID to delete
+   * @returns Promise with boolean indicating success
+   */
+  public async delete(id: string): Promise<boolean> {
+    if (!id) return false;
+    if (!mongoose.Types.ObjectId.isValid(id))
+      throw new Error(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
+
+    const result = await Productmodel.findByIdAndDelete(id);
+    return result !== null;
+  }
+  /**
+   * Gets the count of products matching the filter
+   * @param filter Optional filter criteria
+   * @returns Promise with count of matching products
+   */
+  public async count(filter?: ProductFilter): Promise<number> {
+    // Build a count query with the same filters
+    const countQuery = Productmodel.find();
+
+    // Apply filters if provided (same logic as buildFilteredQuery)
+    if (filter) {
+      if (filter.category) countQuery.where('category', filter.category);
+      if (filter.isActive !== undefined) countQuery.where('isActive', filter.isActive);
+      if (filter.isWishlistStatus !== undefined)
+        countQuery.where('isWishlistStatus', filter.isWishlistStatus);
+      if (filter.search) countQuery.where({ $text: { $search: filter.search } });
+      if (filter.priceRange)
+        countQuery.where('price').gte(filter.priceRange.min).lte(filter.priceRange.max);
+    }
+
+    // Count documents matching the filters
+    return await countQuery.countDocuments().exec();
+  }
+
+  /**
+   * Toggles the wishlist status of a product
+   * @param id Product ID to update
+   * @param isWishlistStatus New wishlist status
+   * @returns Promise<Product> with the updated product
+   */
+  public async toggleWishlistStatus(id: string, isWishlistStatus: boolean): Promise<Product> {
+    if (!id || !mongoose.isValidObjectId(id))
+      throw new Error(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
+    // Update the isWishlistStatus status and adjust wishlistCount accordingly
+    const updatedProduct = await Productmodel.findByIdAndUpdate(
+      id,
+      { isWishlistStatus: isWishlistStatus, wishlistCount: isWishlistStatus ? 1 : 0 },
+      { new: true }
+    );
+
+    //check if product doesn't exist
+    if (!updatedProduct) {
+      throw new Error(PRODUCT_ERROR_MESSAGES.NOT_FOUND);
+    }
+
+    return Product.createProduct(updatedProduct.toObject()); // Convert to Product entity
+  }
+}

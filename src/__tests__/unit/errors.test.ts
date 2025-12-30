@@ -6,7 +6,7 @@ import {
   InternalServerError,
   NotFoundError,
   UnauthorizedError,
-} from '../../shared/errors';
+} from '@/shared';
 
 describe('Error Classes', () => {
   describe('AppError', () => {

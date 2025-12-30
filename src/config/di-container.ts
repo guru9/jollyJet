@@ -12,13 +12,12 @@
  * - Flexibility: Easy to swap implementations without changing consuming code
  */
 
-import { container } from 'tsyringe';
-import { IProductRepository } from '../domain/interfaces/IProductRepository';
-import { ProductService } from '../domain/services/ProductService';
-import { ProductRepository } from '../infrastructure/repositories/ProductRepository';
-import { ProductController } from '../interface/controllers/ProductController';
-import { DI_TOKENS } from '../shared/constants';
-import logger from '../shared/logger';
+import { IProductRepository } from '@/domain/interfaces';
+import { ProductService } from '@/domain/services';
+import { ProductRepository } from '@/infrastructure/repositories';
+import { ProductController } from '@/interface/controllers';
+import { DI_TOKENS, logger } from '@/shared';
+
 import {
   CountProductsUseCase,
   CreateProductUseCase,
@@ -27,7 +26,8 @@ import {
   ListProductsUseCase,
   ToggleWishlistProductUseCase,
   UpdateProductUseCase,
-} from '../usecases';
+} from '@/usecases';
+import { container } from 'tsyringe';
 
 /**
  * Initializes the Dependency Injection container with all required service registrations.

@@ -29,12 +29,12 @@
  */
 
 // Product creation and management DTOs
-export { CreateProductDTO } from './CreateProductDTO';
-export { UpdateProductDTO } from './UpdateProductDTO';
+export { CreateProductDTO } from './product/CreateProductDTO';
+export { UpdateProductDTO } from './product/UpdateProductDTO';
 
 // Product response and interaction DTOs
-export { ProductResponseDTO } from './ProductResponseDTO';
-export { ToggleWishlistDTO } from './ToggleWishlistDTO';
+export { ProductResponseDTO } from './product/ProductResponseDTO';
+export { ToggleWishlistDTO } from './product/ToggleWishlistDTO';
 
 /**
  * Important Notes:

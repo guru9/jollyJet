@@ -296,7 +296,7 @@ npm run test:coverage
 
 ## 📈 Implementation Progress
 
-### **Foundation Phase (8/9 Complete)** ✅
+### **Foundation Phase (9/9 Complete)** ✅
 
 | Phase | Component              | Status      | Quality    |
 | ----- | ---------------------- | ----------- | ---------- |
@@ -1867,18 +1867,172 @@ npm run test:watch         # Watch mode for development
 - **Linting:** ESLint v9 with custom TypeScript rules
 - **Documentation:** 100% API coverage with Swagger
 
+## 🗂️ Module-Based Reorganization Plan
+
+### **Overview**
+
+To prepare for Redis integration and future feature modules, we're reorganizing the project into a module-based structure. This improves scalability, maintainability, and sets the foundation for potential microservices migration.
+
+### **Reorganization Strategy**
+
+| Current Location                                   | New Location                                               |
+| -------------------------------------------------- | ---------------------------------------------------------- |
+| `domain/entities/Product.ts`                       | `domain/entities/product/Product.ts`                       |
+| `domain/interfaces/IProductRepository.ts`          | `domain/interfaces/product/IProductRepository.ts`          |
+| `domain/services/ProductService.ts`                | `domain/services/product/ProductService.ts`                |
+| `infrastructure/models/ProductModel.ts`            | `infrastructure/models/product/ProductModel.ts`            |
+| `infrastructure/repositories/ProductRepository.ts` | `infrastructure/repositories/product/ProductRepository.ts` |
+| `usecases/CreateProductUseCase.ts`                 | `usecases/product/CreateProductUseCase.ts`                 |
+| `usecases/GetProductUseCase.ts`                    | `usecases/product/GetProductUseCase.ts`                    |
+| `usecases/ListProductsUseCase.ts`                  | `usecases/product/ListProductsUseCase.ts`                  |
+| `usecases/UpdateProductUseCase.ts`                 | `usecases/product/UpdateProductUseCase.ts`                 |
+| `usecases/DeleteProductUseCase.ts`                 | `usecases/product/DeleteProductUseCase.ts`                 |
+| `usecases/CountProductsUseCase.ts`                 | `usecases/product/CountProductsUseCase.ts`                 |
+| `usecases/ToggleWishlistProductUseCase.ts`         | `usecases/product/ToggleWishlistProductUseCase.ts`         |
+| `interface/controllers/ProductController.ts`       | `interface/controllers/product/ProductController.ts`       |
+| `interface/dtos/CreateProductDTO.ts`               | `interface/dtos/product/CreateProductDTO.ts`               |
+| `interface/dtos/UpdateProductDTO.ts`               | `interface/dtos/product/UpdateProductDTO.ts`               |
+| `interface/dtos/ProductResponseDTO.ts`             | `interface/dtos/product/ProductResponseDTO.ts`             |
+| `interface/dtos/ToggleWishlistDTO.ts`              | `interface/dtos/product/ToggleWishlistDTO.ts`              |
+| `interface/validators/ProductValidators.ts`        | `interface/validators/product/ProductValidators.ts`        |
+| `interface/routes/productRoutes.ts`                | `interface/routes/product/productRoutes.ts`                |
+| `__tests__/unit/products/`                         | `__tests__/unit/{layer}/product/`                          |
+| `shared/` (direct imports)                         | `shared/` (barrel export via `@/shared`)                   |
+| `config/` (direct imports)                         | `config/` (barrel export via `@/config`)                   |
+
+### **Benefits**
+
+✅ **Clear Module Boundaries** - Each module (product, redis, user, order) is self-contained  
+✅ **Easier Navigation** - Developers know exactly where to find module-specific code  
+✅ **Scalability** - Easy to add new modules without cluttering existing folders  
+✅ **Microservices-Ready** - Each module can become a separate service when needed  
+✅ **Reduced Merge Conflicts** - Teams can work on different modules independently  
+✅ **Better Testing** - Module-specific tests are organized together
+
+### **New Structure After Reorganization**
+
+```
+src/
+├── config/
+│   ├── index.ts (Barrel export for env, di-container, swagger)
+│   ├── env.validation.ts
+│   ├── di-container.ts
+│   └── swagger.ts
+│
+├── domain/
+│   ├── entities/
+│   │   ├── product/
+│   │   │   └── Product.ts
+│   │   └── index.ts (Exports everything from product/)
+│   ├── interfaces/
+│   │   ├── product/
+│   │   │   └── IProductRepository.ts
+│   │   └── index.ts (Exports everything from product/)
+│   └── services/
+│       ├── product/
+│       │   └── ProductService.ts
+│       └── index.ts (Exports everything from product/)
+│
+├── infrastructure/
+│   ├── models/
+│   │   ├── product/
+│   │   │   └── ProductModel.ts
+│   │   └── index.ts (Exports everything from product/)
+│   ├── repositories/
+│   │   ├── product/
+│   │   │   └── ProductRepository.ts
+│   │   └── index.ts (Exports everything from product/)
+│   └── database/
+│       └── mongodb.ts
+│
+├── usecases/
+│   ├── product/
+│   │   ├── CreateProductUseCase.ts
+│   │   ├── GetProductUseCase.ts
+│   │   ├── ListProductsUseCase.ts
+│   │   ├── UpdateProductUseCase.ts
+│   │   ├── DeleteProductUseCase.ts
+│   │   ├── CountProductsUseCase.ts
+│   │   └── ToggleWishlistProductUseCase.ts
+│   └── index.ts (Exports all use cases)
+│
+├── interface/
+│   ├── controllers/
+│   │   ├── product/
+│   │   │   └── ProductController.ts
+│   │   └── index.ts (Exports everything from product/)
+│   ├── routes/
+│   │   ├── product/
+│   │   │   └── productRoutes.ts
+│   │   └── index.ts (Centralized route registry)
+│   ├── dtos/
+│   │   ├── product/
+│   │   │   ├── CreateProductDTO.ts
+│   │   │   ├── UpdateProductDTO.ts
+│   │   │   ├── ProductResponseDTO.ts
+│   │   │   └── ToggleWishlistDTO.ts
+│   │   └── index.ts (Exports all product DTOs)
+│   ├── validators/
+│   │   ├── product/
+│   │   │   └── ProductValidators.ts
+│   │   └── index.ts (Exports all validators)
+│   └── middlewares/
+│       ├── index.ts
+│       ├── errorHandler.ts
+│       └── requestLogger.ts
+│
+├── shared/
+│   ├── index.ts (Barrel export for constants, errors, logger, utils)
+│   ├── constants.ts
+│   ├── errors.ts
+│   ├── logger.ts
+│   └── utils.ts
+│
+└── __tests__/
+    ├── unit/
+    │   ├── domain/product/
+    │   ├── infrastructure/product/
+    │   ├── interface/product/
+    │   ├── usecases/product/
+    │   ├── errors.test.ts
+    │   ├── middleware.test.ts
+    │   └── utils.test.ts
+    └── integration/
+        └── app.test.ts
+```
+
+### **Import Strategy**
+
+To maintain a clean and scalable codebase, we use:
+
+- **Path Aliases**: All internal imports use the `@/` alias (configured in `tsconfig.json`).
+- **Barrel Exports**: Each layer and folder has an `index.ts` file that re-exports its contents.
+- **Top-Level Imports**: Components import from the layer's barrel (e.g., `import { Product } from '@/domain/entities'`) instead of deep-diving into file paths.
+
+### **Implementation Status**
+
+- ✅ **Completed** - Reorganized product module files into modular subdirectories
+- ✅ **Completed** - Updated all import paths to use `@/` path aliases and barrel exports
+- ✅ **Completed** - Reorganized test suite to mirror the source code structure
+- ✅ **Completed** - Verified all tests (206/206 passing) and dev server functionality
+- ✅ **Completed** - Updated project documentation with new organizational structure
+
+**Initiated**: December 30, 2025 at 11:51 IST
+
+---
+
 #### 🎉 **Conclusion**
 
 JollyJet represents a high-quality, enterprise-grade codebase that demonstrates modern software development best practices. The project successfully implements Clean Architecture with TypeScript, provides comprehensive testing, and maintains excellent code quality standards.
 
 The recent fix to the naming consistency issue in the test files demonstrates the project's commitment to maintaining architectural integrity and code quality. The extensive documentation created provides valuable guidance for future development and maintenance.
 
-**Status**: ✅ Production Ready with Room for Growth
-**Quality**: ✅ Enterprise Grade
-**Maintainability**: ✅ Excellent
+**Status**: ✅ Production Ready with Room for Growth  
+**Quality**: ✅ Enterprise Grade  
+**Maintainability**: ✅ Excellent  
 **Scalability**: ✅ High Potential
 
 ---
 
-_Analysis completed on December 29, 2025 at 08:02 UTC_
-_Document Version: 3.3 - Updated project structure overview and test counts_
+_Analysis completed on December 30, 2025 at 12:35 IST_
+_Document Version: 3.5 - Finalized Module-Based Reorganization_

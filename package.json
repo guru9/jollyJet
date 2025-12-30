@@ -2,8 +2,8 @@
   "scripts": {
     "start": "node dist/src/server.js",
     "build": "tsc",
-    "dev": "nodemon src/server.ts",
-    "debug": "node --inspect=0.0.0.0:9228 --require ts-node/register src/server.ts",
+    "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/server.ts",
+    "debug": "node --inspect=0.0.0.0:9228 -r ts-node/register -r tsconfig-paths/register src/server.ts",
     "predev": "echo 'Formatting...' && npm run format && echo 'Linting...' && npm run lint && echo 'Building...' && npm run build",
     "format": "prettier --write \"src/**/*.{ts,js,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,json}\"",
@@ -34,6 +34,7 @@
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.1"
   },
