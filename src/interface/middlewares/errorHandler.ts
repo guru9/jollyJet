@@ -1,7 +1,5 @@
+import { AppError, ERROR_STATUS, HTTP_STATUS, logger } from '@/shared';
 import { NextFunction, Request, Response } from 'express';
-import { ERROR_STATUS, HTTP_STATUS } from '../../shared/constants';
-import { AppError } from '../../shared/errors';
-import logger from '../../shared/logger';
 
 /**
  * Express error handling middleware that catches and processes errors thrown during request processing.

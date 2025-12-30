@@ -19,13 +19,13 @@
  * - Error Boundaries: Comprehensive error handling and logging
  */
 
+import { initializeDIContainer, swaggerSpec } from '@/config';
+
+import { errorHandler, requestLogger } from '@/interface/middlewares';
+import { registerRoutes } from '@/interface/routes';
 import cors from 'cors';
 import express from 'express';
 import swaggerUi from 'swagger-ui-express';
-import { initializeDIContainer } from './config/di-container';
-import { swaggerSpec } from './config/swagger';
-import { errorHandler, requestLogger } from './interface/middlewares';
-import { registerRoutes } from './interface/routes';
 
 /**
  * Application Factory Function

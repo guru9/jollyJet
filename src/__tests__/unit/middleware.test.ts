@@ -1,12 +1,6 @@
+import { errorHandler, requestLogger } from '@/interface/middlewares';
+import { BadRequestError, InternalServerError, NotFoundError, UnauthorizedError } from '@/shared';
 import { NextFunction, Request, Response } from 'express';
-import { errorHandler } from '../../interface/middlewares/errorHandler';
-import { requestLogger } from '../../interface/middlewares/requestLogger';
-import {
-  BadRequestError,
-  InternalServerError,
-  NotFoundError,
-  UnauthorizedError,
-} from '../../shared/errors';
 
 describe('Middleware Tests', () => {
   describe('errorHandler', () => {

@@ -1,5 +1,4 @@
 import z from 'zod';
-import logger from '../shared/logger';
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -31,7 +30,8 @@ export const validateEnv = (): EnvConfig => {
   if (!result.success) {
     // Log full validation details to help debugging which variables are missing/invalid
     // `result.error.format()` returns a nested object showing each key's issue
-    logger.error({ error: result }, 'Invalid environment variables.');
+    console.error('Invalid environment variables:', JSON.stringify(result.error.format(), null, 2));
+
     // Throw a clearer error including a summary of the issues
     throw new Error(
       `Invalid environment configuration: ${result.error?.issues.map((i) => `${i.path.join('.')} - ${i.message}`).join(', ')}`

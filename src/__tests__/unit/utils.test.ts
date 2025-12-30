@@ -1,4 +1,3 @@
-import { Types } from 'mongoose';
 import {
   calculatePaginationMeta,
   createPaginatedResponse,
@@ -10,7 +9,8 @@ import {
   isValidObjectId,
   slugify,
   toObjectId,
-} from '../../shared/utils';
+} from '@/shared';
+import { Types } from 'mongoose';
 
 describe('Utility Functions', () => {
   describe('isValidObjectId', () => {
