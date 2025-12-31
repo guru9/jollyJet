@@ -12,8 +12,8 @@
  * - Better testability and modularity
  */
 
+import { logger } from '@/shared';
 import { Application, RequestHandler, Router } from 'express';
-import logger from '../../shared/logger';
 
 /**
  * Route Module Interface

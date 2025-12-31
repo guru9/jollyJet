@@ -1,11 +1,18 @@
+/**
+ * Logger Service - JollyJet E-commerce API
+ *
+ * Provides a centralized Pino logger instance for structured logging.
+ */
+
 import config from '@/config';
 import { Logger, pino } from 'pino';
-export { Logger };
 
-const LOG_LEVEL = (config.logLevel as string) || (config.env === 'production' ? 'info' : 'debug');
-
-const logger = pino({
-  level: LOG_LEVEL,
+/**
+ * Pino Logger Instance
+ * Exported as a named export for consistency and better IDE support.
+ */
+export const logger = pino({
+  level: config.logLevel || (config.env === 'production' ? 'info' : 'debug'),
   transport:
     config.env !== 'production'
       ? {
@@ -22,10 +29,12 @@ const logger = pino({
     level: (label) => ({ level: label }),
   },
   base: {
-    port: config.port,
-    database: config.env !== 'production' ? config.mongoUri : undefined,
     env: config.env,
+    port: config.port,
   },
 });
 
-export default logger;
+/**
+ * Re-export the Logger type for type hinting in other modules.
+ */
+export type { Logger };
