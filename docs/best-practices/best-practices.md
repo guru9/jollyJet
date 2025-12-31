@@ -178,66 +178,42 @@ Use cases orchestrate domain logic and implement application-specific workflows.
 
 ### Dependency Injection Patterns
 
-**Reflect Metadata Import**: Always include `import 'reflect-metadata';` at the top of files using tsyringe decorators.
+#### 🧩 `reflect-metadata` Requirement
+
+`reflect-metadata` is **mandatory** for `tsyringe` to function correctly. It provides the runtime reflection capabilities needed to read decorator metadata.
+
+**Crucial Rules:**
+
+1.  **Absolute Entry Point**: `import 'reflect-metadata';` MUST be the **very first import** in your application's entry point (`src/server.ts`). If any module using decorators is loaded before this import, the application will throw a runtime error.
+2.  **Module Safety**: While global import in `server.ts` is sufficient for the running app, it is a best practice to also include it at the top of:
+    - `src/app.ts` (for safety during testing/modular loading)
+    - `src/config/di-container.ts` (where orchestration happens)
+    - Any file using decorators directly (optional, but helps IDEs and isolated tests)
+
+**Correct Implementation:**
 
 ```typescript
-// ✅ Required for decorator-based DI
+// src/server.ts
+/**
+ * ✅ BEST PRACTICE: Mandatory first import for Dependency Injection
+ */
 import 'reflect-metadata';
-import { inject, injectable } from 'tsyringe';
 
-@injectable()
-export class UpdateProductUseCase {
-  constructor(
-    @inject(DI_TOKENS.PRODUCT_REPOSITORY) private productRepository: IProductRepository,
-    private productService: ProductService // No @inject needed for concrete classes
-  ) {}
-}
+import { jollyJetApp } from '@/app';
+import config from '@/config';
+// ... rest of the application
 ```
 
-`import 'reflect-metadata';` **is required** in `UpdateProductUseCase.ts`. Here's why:
+**Why It's Required:**
 
-### Why It's Required
-
-### 1. **Decorator Support**
-
-The file uses TypeScript decorators from the `tsyringe` library:
-
-- `@injectable()` - Marks the class as injectable for dependency injection
-- `@inject(DI_TOKENS.PRODUCT_REPOSITORY)` - Injects the repository dependency
-
-### 2. **Metadata Reflection**
-
-`reflect-metadata` provides the runtime metadata reflection that these decorators need to function. Without it, the decorators won't work properly, and dependency injection will fail.
-
-### 3. **Standard Practice**
-
-This import is a standard requirement when using `tsyringe` decorators in TypeScript projects following Clean Architecture patterns.
-
-## Current Implementation
-
-The import is correctly present at the top of the file:
-
-```typescript
-import 'reflect-metadata';
-import { inject, injectable } from 'tsyringe';
-// ... rest of imports
-```
-
-## Alternative
-
-If you weren't using decorators, you could remove it, but since the use case relies on dependency injection through decorators (as shown in the constructor), it's essential to keep this import.
-
-## Verification
-
-The code compiles and runs successfully with this import, and removing it would cause runtime errors during dependency injection. The tests also pass, confirming that the metadata reflection is working correctly.
-
-**Bottom line:** Keep the `import 'reflect-metadata';` - it's required for the dependency injection system to work properly.
+- **Decorator Metadata**: TypeScript decorators (like `@injectable`, `@inject`) emit metadata that `tsyringe` needs to resolve dependencies at runtime.
+- **Runtime Polyfill**: `reflect-metadata` acts as a polyfill for the metadata reflection API. Without it, `tsyringe` cannot determine the types of dependencies in constructor signatures.
 
 **When to use `@inject()` decorators:**
 
-- **Interfaces**: Use `@inject(token)` for repository interfaces and abstractions
-- **Concrete Classes**: Direct injection for domain services and utilities
-- **Configuration**: Use tokens for external services that may have multiple implementations
+- **Interfaces**: Use `@inject(token)` for repository interfaces and abstractions (e.g., `IProductRepository`).
+- **Concrete Classes**: Direct injection is preferred for domain services and utilities (no decorator needed).
+- **Configuration**: Use tokens for external services that may have multiple implementations.
 
 #### Interface vs Concrete Class Injection
 

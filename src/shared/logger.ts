@@ -1,5 +1,6 @@
 import config from '@/config';
-import { pino } from 'pino';
+import { Logger, pino } from 'pino';
+export { Logger };
 
 const LOG_LEVEL = (config.logLevel as string) || (config.env === 'production' ? 'info' : 'debug');
 

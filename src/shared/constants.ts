@@ -118,5 +118,7 @@ export const PRODUCT_CONSTANTS = {
  */
 export const DI_TOKENS = {
   PRODUCT_REPOSITORY: 'ProductRepository', // Injection token for product repository
+  LOGGER: 'Logger', // Injection token for logger service
+
   // Future tokens can be added here for other modules
 } as const;

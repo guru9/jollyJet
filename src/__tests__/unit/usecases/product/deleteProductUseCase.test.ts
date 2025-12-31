@@ -1,10 +1,12 @@
 import { Product } from '@/domain/entities';
 import { IProductRepository } from '@/domain/interfaces';
+import { Logger } from '@/shared';
 import { DeleteProductUseCase } from '@/usecases';
 
 describe('DeleteProductUseCase', () => {
   let useCase: DeleteProductUseCase;
   let mockRepository: jest.Mocked<IProductRepository>;
+  let mockLogger: jest.Mocked<Logger>;
   let existingProduct: Product;
 
   beforeEach(() => {
@@ -27,7 +29,14 @@ describe('DeleteProductUseCase', () => {
       count: jest.fn(),
     } as unknown as jest.Mocked<IProductRepository>;
 
-    useCase = new DeleteProductUseCase(mockRepository);
+    mockLogger = {
+      info: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as any;
+
+    useCase = new DeleteProductUseCase(mockRepository, mockLogger);
   });
 
   describe('execute method', () => {

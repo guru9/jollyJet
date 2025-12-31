@@ -1,11 +1,13 @@
 import { IProductRepository } from '@/domain/interfaces';
 import { ProductService } from '@/domain/services';
+import { Logger } from '@/shared';
 import { CountProductsUseCase } from '@/usecases';
 
 describe('CountProductsUseCase', () => {
   let countProductsUseCase: CountProductsUseCase;
   let mockRepository: jest.Mocked<IProductRepository>;
   let productService: ProductService;
+  let mockLogger: jest.Mocked<Logger>;
 
   beforeEach(() => {
     productService = new ProductService();
@@ -20,7 +22,14 @@ describe('CountProductsUseCase', () => {
       toggleWishlistStatus: jest.fn(),
     } as unknown as jest.Mocked<IProductRepository>;
 
-    countProductsUseCase = new CountProductsUseCase(mockRepository, productService);
+    mockLogger = {
+      info: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as any;
+
+    countProductsUseCase = new CountProductsUseCase(mockRepository, productService, mockLogger);
   });
 
   describe('execute', () => {

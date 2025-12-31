@@ -1,6 +1,6 @@
 import { IProductRepository, ProductFilter } from '@/domain/interfaces';
 import { ProductService } from '@/domain/services';
-import { DI_TOKENS } from '@/shared';
+import { DI_TOKENS, Logger } from '@/shared';
 
 import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
@@ -28,7 +28,8 @@ export interface CountProductsQuery {
 export class CountProductsUseCase {
   constructor(
     @inject(DI_TOKENS.PRODUCT_REPOSITORY) private productRepository: IProductRepository,
-    private productService: ProductService
+    private productService: ProductService,
+    @inject(DI_TOKENS.LOGGER) private logger: Logger
     // 💡 Dependency Injection: Repository is injected via DI_TOKENS
     // 💡 This enables loose coupling and easy testing
   ) {}

@@ -3,6 +3,7 @@ import { ProductController } from '@/interface/controllers';
 import { CreateProductDTO, ToggleWishlistDTO, UpdateProductDTO } from '@/interface/dtos';
 import {
   HTTP_STATUS,
+  Logger,
   PRODUCT_ERROR_MESSAGES,
   PRODUCT_SUCCESS_MESSAGES,
   RESPONSE_STATUS,
@@ -40,6 +41,7 @@ describe('ProductController', () => {
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
   let mockNext: jest.MockedFunction<NextFunction>;
+  let mockLogger: jest.Mocked<Logger>;
 
   beforeEach(() => {
     // Create mock instances
@@ -79,6 +81,13 @@ describe('ProductController', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
+    mockLogger = {
+      info: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as any;
+
     // Create controller instance with mocked dependencies
     productController = new ProductController(
       mockCreateProductUseCase,
@@ -87,7 +96,8 @@ describe('ProductController', () => {
       mockCountProductsUseCase,
       mockUpdateProductUseCase,
       mockDeleteProductUseCase,
-      mockToggleWishlistUseCase
+      mockToggleWishlistUseCase,
+      mockLogger
     );
 
     // Setup mocks

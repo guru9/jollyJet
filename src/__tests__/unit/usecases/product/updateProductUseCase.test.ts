@@ -2,12 +2,14 @@ import { Product } from '@/domain/entities';
 import { IProductRepository } from '@/domain/interfaces';
 import { ProductService } from '@/domain/services';
 import { UpdateProductDTO } from '@/interface/dtos';
+import { Logger } from '@/shared';
 import { UpdateProductUseCase } from '@/usecases';
 
 describe('UpdateProductUseCase', () => {
   let useCase: UpdateProductUseCase;
   let mockRepository: jest.Mocked<IProductRepository>;
   let mockService: jest.Mocked<ProductService>;
+  let mockLogger: jest.Mocked<Logger>;
   let existingProduct: Product;
 
   beforeEach(() => {
@@ -38,7 +40,14 @@ describe('UpdateProductUseCase', () => {
       updateWishlistStatus: jest.fn(),
     } as unknown as jest.Mocked<ProductService>;
 
-    useCase = new UpdateProductUseCase(mockRepository, mockService);
+    mockLogger = {
+      info: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as any;
+
+    useCase = new UpdateProductUseCase(mockRepository, mockService, mockLogger);
   });
 
   describe('execute method', () => {

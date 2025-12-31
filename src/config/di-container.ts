@@ -11,6 +11,7 @@
  * - Maintainability: Centralized dependency management
  * - Flexibility: Easy to swap implementations without changing consuming code
  */
+import 'reflect-metadata'; // Required for tsyringe to work with decorators and reflection metadata
 
 import { IProductRepository } from '@/domain/interfaces';
 import { ProductService } from '@/domain/services';
@@ -85,6 +86,12 @@ export const initializeDIContainer = (): void => {
   // Controllers handle HTTP requests and orchestrate use case execution
   container.register<ProductController>(ProductController, {
     useClass: ProductController,
+  });
+
+  // Register Global Services
+  // Registering the logger allows other services to inject it rather than importing it directly
+  container.register(DI_TOKENS.LOGGER, {
+    useValue: logger,
   });
 
   logger.info('DI container initialized successfully');

@@ -1,12 +1,14 @@
 import { Product } from '@/domain/entities';
 import { IProductRepository } from '@/domain/interfaces';
 import { ProductService } from '@/domain/services';
+import { Logger } from '@/shared';
 import { ListProductsUseCase } from '@/usecases';
 
 describe('ListProductsUseCase', () => {
   let listProductsUseCase: ListProductsUseCase;
   let mockRepository: jest.Mocked<IProductRepository>;
   let productService: ProductService;
+  let mockLogger: jest.Mocked<Logger>;
 
   beforeEach(() => {
     productService = new ProductService();
@@ -21,7 +23,14 @@ describe('ListProductsUseCase', () => {
       toggleWishlistStatus: jest.fn(),
     } as unknown as jest.Mocked<IProductRepository>;
 
-    listProductsUseCase = new ListProductsUseCase(mockRepository, productService);
+    mockLogger = {
+      info: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as any;
+
+    listProductsUseCase = new ListProductsUseCase(mockRepository, productService, mockLogger);
   });
 
   describe('execute', () => {

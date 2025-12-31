@@ -1,13 +1,24 @@
 import { Product } from '@/domain/entities';
 import { Productmodel } from '@/infrastructure/models';
 import { ProductRepository } from '@/infrastructure/repositories';
+import { Logger } from '@/shared';
 
 describe('ProductRepository', () => {
   let productRepository: ProductRepository;
 
+  let mockLogger: jest.Mocked<Logger>;
+
   beforeAll(async () => {
+    // Create mock logger
+    mockLogger = {
+      info: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as any;
+
     // Use the global test database connection
-    productRepository = new ProductRepository();
+    productRepository = new ProductRepository(mockLogger);
   });
 
   afterAll(async () => {

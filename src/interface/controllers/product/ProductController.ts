@@ -3,7 +3,9 @@ import { ToggleWishlistDTO, UpdateProductDTO } from '@/interface/dtos';
 import { productFilterSchema } from '@/interface/validators';
 import {
   BadRequestError,
+  DI_TOKENS,
   HTTP_STATUS,
+  Logger,
   PRODUCT_ERROR_MESSAGES,
   PRODUCT_SUCCESS_MESSAGES,
   RESPONSE_STATUS,
@@ -23,7 +25,7 @@ import {
   UpdateProductUseCase,
 } from '@/usecases';
 import { NextFunction, Request, Response } from 'express';
-import { injectable } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
 
 /**
  * Product Controller - Handles HTTP requests for product operations
@@ -64,7 +66,8 @@ export class ProductController {
     private countProductsUseCase: CountProductsUseCase,
     private updateProductUseCase: UpdateProductUseCase,
     private deleteProductUseCase: DeleteProductUseCase,
-    private toggleWishlistUseCase: ToggleWishlistProductUseCase
+    private toggleWishlistUseCase: ToggleWishlistProductUseCase,
+    @inject(DI_TOKENS.LOGGER) private logger: Logger
   ) {}
 
   /**

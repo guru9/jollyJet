@@ -9,11 +9,11 @@
 
 ## Overview
 
-This comprehensive Redis integration plan provides a complete implementation guide for JollyJet, combining the best practices from multiple planning phases into a single, detailed implementation document. Redis will be used as an in-memory data store for caching frequently accessed data, session management, rate limiting, and real-time features, with special attention to cache consistency and performance optimization.
+This comprehensive Redis integration plan provides a complete implementation guide for `JollyJet`, combining the best practices from multiple planning phases into a single, detailed implementation document. Redis will be used as an in-memory data store for caching frequently accessed data, session management, rate limiting, and real-time features, with special attention to cache consistency and performance optimization.
 
 We will follow **Clean Architecture** principles, ensuring our Redis integration remains independent of business logic while providing significant performance benefits and robust cache consistency guarantees.
 
-## 🛠️ **Technology Stack: ioredis**
+## 🛠️ **Technology Stack: `ioredis`**
 
 We have selected **ioredis** as our Redis client for Node.js.
 

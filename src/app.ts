@@ -18,6 +18,7 @@
  * - Health Monitoring: Application health checks
  * - Error Boundaries: Comprehensive error handling and logging
  */
+import 'reflect-metadata'; // Required for tsyringe to work with decorators and reflection metadata
 
 import { initializeDIContainer, swaggerSpec } from '@/config';
 

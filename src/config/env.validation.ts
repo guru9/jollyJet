@@ -23,13 +23,12 @@ const envSchema = z.object({
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
 });
 
-export type EnvConfig = z.infer<typeof envSchema>;
+export type IEnvConfig = z.infer<typeof envSchema>;
 
-export const validateEnv = (): EnvConfig => {
+export const validateEnv = (): IEnvConfig => {
   const result = envSchema.safeParse(process.env);
   if (!result.success) {
     // Log full validation details to help debugging which variables are missing/invalid
-    // `result.error.format()` returns a nested object showing each key's issue
     console.error('Invalid environment variables:', JSON.stringify(result.error.format(), null, 2));
 
     // Throw a clearer error including a summary of the issues

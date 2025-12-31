@@ -14,12 +14,12 @@
  * - Dependency injection initialization via reflect-metadata
  */
 
+import 'reflect-metadata'; // Required for tsyringe to work with decorators and reflection metadata
+
 import { jollyJetApp } from '@/app';
 import config from '@/config';
 import mongoDBConnection from '@/infrastructure/database/mongodb';
 import { logger } from '@/shared';
-
-import 'reflect-metadata';
 
 // Graceful shutdown handler
 const gracefulShutdown = async (signal: string) => {

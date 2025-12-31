@@ -1,7 +1,7 @@
 import { Product } from '@/domain/entities';
 import { IProductRepository, ProductFilter } from '@/domain/interfaces';
 import { ProductService } from '@/domain/services';
-import { DI_TOKENS } from '@/shared';
+import { DI_TOKENS, Logger } from '@/shared';
 
 import { PaginationParams } from '@/types';
 import 'reflect-metadata';
@@ -32,7 +32,8 @@ export interface ListProductsQuery {
 export class ListProductsUseCase {
   constructor(
     @inject(DI_TOKENS.PRODUCT_REPOSITORY) private productRepository: IProductRepository,
-    private productService: ProductService
+    private productService: ProductService,
+    @inject(DI_TOKENS.LOGGER) private logger: Logger
     // 💡 Dependency Injection: Repository is injected via DI_TOKENS
     // 💡 This enables loose coupling and easy testing
   ) {}

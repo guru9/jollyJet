@@ -1,6 +1,6 @@
 # Redis Integration Task
 
-**Task:** 03-redis-task
+**Task:** 03-redis-task  
 **Related Plan:** [09-redis-implementation-plan](../implementation-plans/09-redis-implementation-plan.md)  
 **Branch:** `feature/jollyjet-09-redis-integration`  
 **Status:** 🚧 **Pending**
