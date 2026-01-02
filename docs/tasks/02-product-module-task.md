@@ -18,41 +18,41 @@ This task follows Clean Architecture principles with clear layer separation:
 
 ### ✅ Steps 1.1-1.3: Domain Layer
 
-- **Step 1.1:** Create Product Entity with Wishlist support → `src/domain/entities/Product.ts`
-- **Step 1.2:** Define IProductRepository Interface with Wishlist filtering → `src/domain/interfaces/IProductRepository.ts`
-- **Step 1.3:** Create ProductService with Wishlist business logic → `src/domain/services/ProductService.ts`
+- **Step 1.1:** Create Product Entity with Wishlist support (no dependencies) → `src/domain/entities/Product.ts`
+- **Step 1.2:** Define IProductRepository Interface with Wishlist filtering (dependencies step 1.1) → `src/domain/interfaces/IProductRepository.ts`
+- **Step 1.3:** Create ProductService with Wishlist business logic (dependencies step 1.1, 1.2) → `src/domain/services/ProductService.ts`
 
 ### ✅ Steps 2.1-2.2: Infrastructure Layer
 
-- **Step 2.1:** Implement MongoDB Product Schema with Wishlist fields → `src/infrastructure/models/ProductModel.ts`
-- **Step 2.2:** Create MongoProductRepository with Wishlist support → `src/infrastructure/repositories/MongoProductRepository.ts`
+- **Step 2.1:** Implement MongoDB Product Schema with Wishlist fields (dependencies step 1.1) → `src/infrastructure/models/ProductModel.ts`
+- **Step 2.2:** Create MongoProductRepository with Wishlist support (dependencies step 1.2, 2.1) → `src/infrastructure/repositories/MongoProductRepository.ts`
 
 ### ✅ Steps 3.1-3.2: Interface Layer - DTOs/Validators
 
-- **Step 3.1:** Create Product DTOs with Zod Validation → `src/interface/dtos/product/*.ts`
-- **Step 3.2:** Create Product Validators → `src/interface/validators/ProductValidators.ts`
+- **Step 3.1:** Create Product DTOs with Zod Validation (dependencies step 1.1) → `src/interface/dtos/product/*.ts`
+- **Step 3.2:** Create Product Validators (dependencies step 3.1) → `src/interface/validators/ProductValidators.ts`
 
 ### ✅ Steps 4.1-4.2: Shared & Application Layers
 
-- **Step 4.1:** Add Shared Constants (DI_TOKENS) with Wishlist configuration → `src/shared/constants.ts`
-- **Step 4.2:** Implement Product Use Cases with Wishlist functionality → `src/usecases/product/*.ts`
+- **Step 4.1:** Add Shared Constants (DI_TOKENS) with Wishlist configuration (no dependencies) → `src/shared/constants.ts`
+- **Step 4.2:** Implement Product Use Cases with Wishlist functionality (dependencies step 1.3, 2.2, 3.1, 4.1) → `src/usecases/product/*.ts`
 
 ### ✅ Steps 5.1-5.2: Interface Layer - Controllers/Routes
 
-- **Step 5.1:** Build ProductController with Wishlist endpoints → `src/interface/controllers/ProductController.ts`
-- **Step 5.2:** Set up Product Routes with Wishlist endpoints → `src/interface/routes/productRoutes.ts`
+- **Step 5.1:** Build ProductController with Wishlist endpoints (dependencies step 4.2, 3.2) → `src/interface/controllers/ProductController.ts`
+- **Step 5.2:** Set up Product Routes with Wishlist endpoints (dependencies step 5.1, 3.2) → `src/interface/routes/productRoutes.ts`
 
 ### ✅ Steps 6.1-6.3: Configuration Layer
 
-- **Step 6.1:** Document Product API Endpoints in Swagger → `src/config/swagger.ts`
-- **Step 6.2:** Update DI Container Configuration → `src/config/di-container.ts`
-- **Step 6.3:** Update Application Wiring → `src/app.ts`
+- **Step 6.1:** Document Product API Endpoints in Swagger (dependencies step 5.2) → `src/config/swagger.ts`
+- **Step 6.2:** Update DI Container Configuration (dependencies step 2.2, 1.3, 4.2, 5.1) → `src/config/di-container.ts`
+- **Step 6.3:** Update Application Wiring (dependencies step 5.2, 6.2) → `src/app.ts`
 
 ---
 
 ## Implementation Checklist
 
-### ✅ Step 1.1: Create Product Entity with Wishlist Support
+### ✅ Step 1.1: Create Product Entity with Wishlist Support (no dependencies)
 
 **Layer:** Domain
 
@@ -60,7 +60,7 @@ This task follows Clean Architecture principles with clear layer separation:
 - **Files:** `src/domain/entities/Product.ts`
 - **Code:** Immutable class with basic validation and wishlist properties.
 
-### ✅ Step 1.2: Define IProductRepository Interface with Wishlist Filtering
+### ✅ Step 1.2: Define IProductRepository Interface with Wishlist Filtering (dependencies step 1.1)
 
 **Layer:** Domain
 
@@ -68,7 +68,7 @@ This task follows Clean Architecture principles with clear layer separation:
 - **Files:** `src/domain/interfaces/IProductRepository.ts`
 - **Code:** Promise-based methods with ProductFilter including isWishlistStatus parameter.
 
-### ✅ Step 1.3: Create ProductService with Wishlist Business Logic
+### ✅ Step 1.3: Create ProductService with Wishlist Business Logic (dependencies step 1.1, 1.2)
 
 **Layer:** Domain
 
@@ -76,7 +76,7 @@ This task follows Clean Architecture principles with clear layer separation:
 - **Files:** `src/domain/services/ProductService.ts`
 - **Code:** Stock management, price updates, validation, and Wishlist status updates.
 
-### ✅ Step 2.1: Implement MongoDB Product Schema with Wishlist Fields
+### ✅ Step 2.1: Implement MongoDB Product Schema with Wishlist Fields (dependencies step 1.1)
 
 **Layer:** Infrastructure
 
@@ -84,7 +84,7 @@ This task follows Clean Architecture principles with clear layer separation:
 - **Files:** `src/infrastructure/models/ProductModel.ts`
 - **Code:** Schema with text indexes for search and Wishlist fields (isWishlistStatus, wishlistCount).
 
-### ✅ Step 2.2: Create MongoProductRepository with Wishlist Support
+### ✅ Step 2.2: Create MongoProductRepository with Wishlist Support (dependencies step 1.2, 2.1)
 
 **Layer:** Infrastructure
 
@@ -92,7 +92,7 @@ This task follows Clean Architecture principles with clear layer separation:
 - **Files:** `src/infrastructure/repositories/MongoProductRepository.ts`
 - **Code:** Injectable class with toDomain() method and Wishlist query support.
 
-### ✅ Step 3.1: Create Product DTOs with Zod Validation
+### ✅ Step 3.1: Create Product DTOs with Zod Validation (dependencies step 1.1)
 
 **Layer:** Interface
 
@@ -100,7 +100,7 @@ This task follows Clean Architecture principles with clear layer separation:
 - **Files:** `src/interface/dtos/product/*.ts`
 - **Code:** Interfaces for Create, Update, Response.
 
-### ✅ Step 3.2: Create Product Validators
+### ✅ Step 3.2: Create Product Validators (dependencies step 3.1)
 
 **Layer:** Interface
 
@@ -108,7 +108,7 @@ This task follows Clean Architecture principles with clear layer separation:
 - **Files:** `src/interface/validators/ProductValidators.ts`
 - **Code:** Validation schemas for create, update, and get operations.
 
-### ✅ Step 4.1: Add Shared Constants (DI_TOKENS) with Wishlist Configuration
+### ✅ Step 4.1: Add Shared Constants (DI_TOKENS) with Wishlist Configuration (no dependencies)
 
 **Layer:** Shared
 
@@ -116,7 +116,7 @@ This task follows Clean Architecture principles with clear layer separation:
 - **Files:** `src/shared/constants.ts`
 - **Code:** DI tokens, Wishlist constants (MAX_ITEMS_PER_USER, etc.), and error messages.
 
-### ✅ Step 4.2: Implement Product Use Cases with Wishlist Functionality
+### ✅ Step 4.2: Implement Product Use Cases with Wishlist Functionality (dependencies step 1.3, 2.2, 3.1, 4.1)
 
 **Layer:** Application
 
@@ -124,7 +124,7 @@ This task follows Clean Architecture principles with clear layer separation:
 - **Files:** `src/usecases/product/*.ts`
 - **Code:** Five use case classes with dependency injection and Wishlist support.
 
-### ✅ Step 5.1: Build ProductController with Wishlist Endpoints
+### ✅ Step 5.1: Build ProductController with Wishlist Endpoints (dependencies step 4.2, 3.2)
 
 **Layer:** Interface
 
@@ -132,7 +132,7 @@ This task follows Clean Architecture principles with clear layer separation:
 - **Files:** `src/interface/controllers/ProductController.ts`
 - **Code:** Injectable controller with error handling and wishlist methods (toggleWishlist, getWishlist).
 
-### ✅ Step 5.2: Set up Product Routes with Wishlist Endpoints
+### ✅ Step 5.2: Set up Product Routes with Wishlist Endpoints (dependencies step 5.1, 3.2)
 
 **Layer:** Interface
 
@@ -140,7 +140,7 @@ This task follows Clean Architecture principles with clear layer separation:
 - **Files:** `src/interface/routes/productRoutes.ts`
 - **Code:** Express routes with middleware including Wishlist endpoints (POST/DELETE /api/products/{id}/wishlist, GET /api/products/wishlist).
 
-### ✅ Step 6.1: Document Product API Endpoints in Swagger
+### ✅ Step 6.1: Document Product API Endpoints in Swagger (dependencies step 5.2)
 
 **Layer:** Configuration
 
@@ -148,7 +148,7 @@ This task follows Clean Architecture principles with clear layer separation:
 - **Files:** `src/config/swagger.ts`, route annotations
 - **Code:** OpenAPI annotations.
 
-### ✅ Step 6.2: Update DI Container Configuration
+### ✅ Step 6.2: Update DI Container Configuration (dependencies step 2.2, 1.3, 4.2, 5.1)
 
 **Layer:** Configuration
 
@@ -156,7 +156,7 @@ This task follows Clean Architecture principles with clear layer separation:
 - **Files:** `src/config/di-container.ts`
 - **Code:** Container registration for repository and services.
 
-### ✅ Step 6.3: Update Application Wiring
+### ✅ Step 6.3: Update Application Wiring (dependencies step 5.2, 6.2)
 
 **Layer:** Configuration
 
