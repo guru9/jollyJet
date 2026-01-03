@@ -20,9 +20,9 @@ Implement a comprehensive Redis integration for JollyJet, covering caching, sess
 - ✅ **Step 1.1: Add Redis Configuration to Shared Layer (no dependencies)**
   - Update `src/shared/constants.ts` with `REDIS_CONFIG`, `REDIS_KEYS`,`CACHE_OPERATIONS`,`CACHE_LOG_MESSAGES`, etc.
 - ❌ **Step 1.2: Create Redis Service Interface (no dependencies)**
-  - Create `src/domain/interfaces/IRedisService.ts` defining `get`, `set`, `delete`, `acquireLock`, etc.
+  - Create `src/domain/interfaces/redis/IRedisService.ts` defining `get`, `set`, `delete`, `acquireLock`, etc.
 - ❌ **Step 1.3: Implement Redis Service (dependencies step 1.1, 1.2)**
-  - Create `src/infrastructure/services/RedisService.ts` using `redis` client.
+  - Create `src/infrastructure/redis/services/RedisService.ts` using `redis` client.
   - Implement connection handling, graceful error handling, and distributed locking.
 
 ### 🟡 Phase 2: Interface Layer & Decorators
@@ -43,16 +43,16 @@ Implement a comprehensive Redis integration for JollyJet, covering caching, sess
 ### 🟠 Phase 3: Advanced Features
 
 - ❌ **Step 3.1: Implement Session Management (dependencies step 1.3)**
-  - Create `src/infrastructure/services/SessionService.ts`.
+  - Create `src/infrastructure/redis/services/SessionService.ts`.
 - ❌ **Step 3.2: Add Rate Limiting Middleware (dependencies step 1.3)**
   - Create `src/interface/middlewares/rateLimiter.ts`.
 - ❌ **Step 3.3: Create Rate Limiting Service (dependencies step 1.3)**
-  - Create `src/infrastructure/services/RateLimitingService.ts` (if logic separation is needed).
+  - Create `src/infrastructure/redis/services/RateLimitingService.ts` (if logic separation is needed).
 
 ### 🔵 Phase 4: Consistency & Monitoring
 
 - ❌ **Step 4.1: Create Cache Consistency Service (dependencies step 1.3)**
-  - Create `src/infrastructure/services/CacheConsistencyService.ts`.
+  - Create `src/infrastructure/redis/services/CacheConsistencyService.ts`.
   - Implement metrics (hit/miss), staleness checks, and background refresh.
 - ❌ **Step 4.2: Update DI Container (dependencies step 1.3, 3.1, 3.3, 4.1)**
   - Register `RedisService`, `SessionService`, `CacheConsistencyService` in `src/config/di-container.ts`.

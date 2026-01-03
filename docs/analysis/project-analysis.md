@@ -12,7 +12,7 @@
 
 JollyJet is a **high-performance e-commerce shopping application** built with modern TypeScript/Node.js technologies following **Clean Architecture principles**. The project demonstrates excellent software engineering practices with a solid foundation and systematic approach to development.
 
-**Current Status:** ✅ **Foundation Complete (7/7 phases)** | ✅ **Product Module Complete (8th phase - Fully Operational with Wishlist Features)** | 🚧 **Redis Integration Started (20% - Configuration Complete)**
+**Current Status:** ✅ **Foundation Complete (7/7 phases)** | ✅ **Product Module Complete (8th phase - Fully Operational with Wishlist Features)** | 🚧 **Redis Integration Started (20% - Configuration Complete)** | ✅ **Redis Service Test Cases Analysis Added**
 
 ---
 
@@ -702,6 +702,8 @@ GET    /api/products/wishlist        # Get all wishlist products (paginated)
 ### The project is now preparing for high-performance caching and advanced features:
 
 - 📄 **[Redis constants Analysis](./redis/step1.1-redis-config.md)** - Detailed analysis of the Product entity structure and requirements
+- 📄 **[Redis service interface Analysis](./redis/step1.2-redis-service-interface.md)** - Detailed analysis of redis service interface
+- 📄 **[Redis service implementation Analysis](./redis/step1.3-redis-service-implementation.md)** - Detailed analysis of redis service implementation
 
 ---
 

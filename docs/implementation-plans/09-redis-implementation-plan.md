@@ -145,7 +145,7 @@ export const CACHE_LOG_MESSAGES = {
 - **Implementation:** Create interface with methods for cache operations (get, set, delete, etc.)
 - **Dependencies:** None
 - **Files to Create:**
-  - `src/domain/interfaces/IRedisService.ts` - Redis service interface
+  - `src/domain/interfaces/redis/IRedisService.ts` - Redis service interface
 - **Interface Methods:**
   - `get(key: string): Promise<string | null>`
   - `set(key: string, value: string, ttl?: number): Promise<void>`
@@ -160,7 +160,7 @@ export const CACHE_LOG_MESSAGES = {
   - `isConnected(): boolean`
 - **Implementation Time:** 45 minutes
 
-**File:** `src/domain/interfaces/IRedisService.ts`
+**File:** `src/domain/interfaces/redis/IRedisService.ts`
 
 ```typescript
 import { Redis } from 'ioredis';
@@ -186,7 +186,7 @@ export interface IRedisService {
 - **Implementation:** Implement Redis service with connection management, error handling, and consistency patterns
 - **Dependencies:** Redis configuration (Step 1.1), IRedisService (Step 1.2)
 - **Files to Create:**
-  - `src/infrastructure/services/RedisService.ts` - Redis service implementation
+  - `src/infrastructure/redis/services/RedisService.ts` - Redis service implementation
 - **Implementation Details:**
   - Use `@injectable()` decorator from tsyringe
   - Implement all IRedisService interface methods
@@ -196,7 +196,7 @@ export interface IRedisService {
   - Implement graceful degradation for cache failures
 - **Implementation Time:** 2 hours
 
-**File:** `src/infrastructure/services/RedisService.ts`
+**File:** `src/infrastructure/redis/services/RedisService.ts`
 
 ```typescript
 import { injectable, inject } from 'tsyringe';
@@ -247,7 +247,7 @@ export class RedisService implements IRedisService {
 
     this.client.on('close', () => {
       this.isConnectedVal = false;
-      this.logger.warn('Redis connection closed');
+      this.logger.warn(CACHE_LOG_MESSAGES.CONNECTION_CLOSED);
     });
   }
 
@@ -947,7 +947,7 @@ export class ToggleWishlistProductUseCase {
 - **Implementation:** Create session store and management utilities
 - **Dependencies:** Redis service (Step 1.3)
 - **Files to Create:**
-  - `src/infrastructure/services/SessionService.ts` - Session management service
+  - `src/infrastructure/redis/services/SessionService.ts` - Session management service
 - **Session Features:**
   - Session creation and validation
   - Session expiration handling
@@ -977,7 +977,7 @@ export class ToggleWishlistProductUseCase {
 - **Implementation:** Implement rate limiting logic as a separate service
 - **Dependencies:** Redis service (Step 1.3)
 - **Files to Create:**
-  - `src/infrastructure/services/RateLimitingService.ts` - Rate limiting service
+  - `src/infrastructure/redis/services/RateLimitingService.ts` - Rate limiting service
 - **Service Features:**
   - Sliding window rate limiting
   - Multiple rate limit strategies
@@ -994,7 +994,7 @@ export class ToggleWishlistProductUseCase {
 - **Implementation:** Create service for consistency checking, monitoring, and conflict resolution
 - **Dependencies:** Redis service (Step 1.3)
 - **Files to Create:**
-  - `src/infrastructure/services/CacheConsistencyService.ts` - Cache consistency service
+  - `src/infrastructure/redis/services/CacheConsistencyService.ts` - Cache consistency service
 - **Consistency Features:**
   - Cache hit/miss ratio monitoring
   - Stale data detection and handling
@@ -1004,7 +1004,7 @@ export class ToggleWishlistProductUseCase {
   - Cache performance monitoring
 - **Implementation Time:** 2 hours
 
-**File:** `src/infrastructure/services/CacheConsistencyService.ts`
+**File:** `src/infrastructure/redis/services/CacheConsistencyService.ts`
 
 ```typescript
 import { injectable, inject } from 'tsyringe';
@@ -1740,15 +1740,15 @@ jollyJet/
 ```
 Step 1.1: src/shared/constants.ts (Redis configuration)
     ↓
-Step 1.2: src/domain/interfaces/IRedisService.ts (interface)
+Step 1.2: src/domain/interfaces/redis/IRedisService.ts (interface)
     ↓
-Step 1.3: src/infrastructure/services/RedisService.ts (implementation)
+Step 1.3: src/infrastructure/redis/services/RedisService.ts (implementation)
     ↓
 Step 2.1: src/shared/decorators/cache.decorator.ts (decorators)
 Step 2.2: src/interface/middlewares/redisCache.ts (middleware)
-Step 3.1: src/infrastructure/services/SessionService.ts (sessions)
+Step 3.1: src/infrastructure/redis/services/SessionService.ts (sessions)
 Step 3.2: src/interface/middlewares/rateLimiter.ts (rate limiting)
-Step 4.1: src/infrastructure/services/CacheConsistencyService.ts (consistency)
+Step 4.1: src/infrastructure/redis/services/CacheConsistencyService.ts (consistency)
     ↓
 Step 4.2: src/config/di-container.ts (DI registration)
     ↓
@@ -1820,7 +1820,7 @@ export const REDIS_KEYS = {
 
 ### 🟣 Domain Layer (Steps 1.2)
 
-#### `src/domain/interfaces/IRedisService.ts` (Step 1.2)
+#### `src/domain/interfaces/redis/IRedisService.ts` (Step 1.2)
 
 **Redis Service Interface**: Abstract interface for Redis operations.
 
@@ -1895,7 +1895,7 @@ export interface IRedisService {
 
 ### 🟠 Infrastructure Layer (Steps 1.3, 4.1)
 
-#### `src/infrastructure/services/RedisService.ts` (Step 1.3)
+#### `src/infrastructure/redis/services/RedisService.ts` (Step 1.3)
 
 **Redis Service**: Enhanced implementation with consistency features.
 
@@ -2027,7 +2027,7 @@ export class RedisService implements IRedisService {
 }
 ```
 
-#### `src/infrastructure/services/CacheConsistencyService.ts` (Step 4.1)
+#### `src/infrastructure/redis/services/CacheConsistencyService.ts` (Step 4.1)
 
 **Cache Consistency Service**: Comprehensive consistency management.
 

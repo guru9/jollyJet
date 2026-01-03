@@ -60,6 +60,7 @@ export const ERROR_STATUS = {
 export const DI_TOKENS = {
   PRODUCT_REPOSITORY: 'ProductRepository', // Injection token for product repository
   LOGGER: 'Logger', // Injection token for logger service
+  REDIS_SERVICE: 'RedisService', // Injection token for Redis client
 
   // Future tokens can be added here for other modules
 } as const;
@@ -310,6 +311,7 @@ export const CACHE_LOG_MESSAGES = {
   // Connection management messages
   CONNECTION_SUCCESS: 'Redis connected successfully',
   CONNECTION_ERROR: 'Redis connection error: {error}',
+  CONNECTION_CLOSED: 'Redis connection closed',
   CONNECTION_WARNING: 'Redis not connected, {operation} skipped',
 
   // Cache operation lifecycle messages
