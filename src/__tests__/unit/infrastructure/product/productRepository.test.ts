@@ -10,12 +10,13 @@ describe('ProductRepository', () => {
 
   beforeAll(async () => {
     // Create mock logger
+
     mockLogger = {
       info: jest.fn(),
       error: jest.fn(),
       warn: jest.fn(),
       debug: jest.fn(),
-    } as any;
+    } as unknown as jest.Mocked<Logger>;
 
     // Use the global test database connection
     productRepository = new ProductRepository(mockLogger);

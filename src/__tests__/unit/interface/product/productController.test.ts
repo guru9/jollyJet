@@ -86,7 +86,7 @@ describe('ProductController', () => {
       error: jest.fn(),
       warn: jest.fn(),
       debug: jest.fn(),
-    } as any;
+    } as unknown as jest.Mocked<Logger>;
 
     // Create controller instance with mocked dependencies
     productController = new ProductController(

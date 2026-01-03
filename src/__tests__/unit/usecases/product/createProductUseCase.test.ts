@@ -1,7 +1,7 @@
 import { Product } from '@/domain/entities';
 import { IProductRepository } from '@/domain/interfaces';
 import { ProductService } from '@/domain/services';
-import { CreateProductDTO } from '@/interface/dtos';
+import { CreateProductDTO } from '@/interface/dtos/product/CreateProductDTO';
 import { Logger } from '@/shared';
 import { CreateProductUseCase } from '@/usecases';
 
@@ -34,7 +34,15 @@ describe('CreateProductUseCase', () => {
       error: jest.fn(),
       warn: jest.fn(),
       debug: jest.fn(),
-    } as any;
+      fatal: jest.fn(),
+      trace: jest.fn(),
+      silent: jest.fn(),
+      level: 'info',
+      isLevelEnabled: jest.fn(),
+      child: jest.fn(),
+      flush: jest.fn(),
+      useOnlyCustomLevels: false,
+    } as unknown as jest.Mocked<Logger>;
 
     useCase = new CreateProductUseCase(mockRepository, mockService, mockLogger);
   });

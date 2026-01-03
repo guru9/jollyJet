@@ -220,6 +220,7 @@ export class MockRedisService implements IRedisService {
    * Gets the underlying mock client (for testing purposes)
    * @returns Mock client object
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getClient(): any {
     return {
       isMock: true,

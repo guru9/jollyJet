@@ -23,7 +23,15 @@ describe('GetProductUseCase', () => {
       error: jest.fn(),
       warn: jest.fn(),
       debug: jest.fn(),
-    } as any;
+      fatal: jest.fn(),
+      trace: jest.fn(),
+      silent: jest.fn(),
+      level: 'info',
+      isLevelEnabled: jest.fn(),
+      child: jest.fn(),
+      flush: jest.fn(),
+      useOnlyCustomLevels: false,
+    } as unknown as jest.Mocked<Logger>;
 
     useCase = new GetProductUseCase(mockRepository, mockLogger);
   });
