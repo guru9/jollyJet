@@ -1,7 +1,7 @@
 # Product Module Implementation Task
 
-**Task:** 08-product-module-task
-**Related Plan:** [08-product-module-plan](../implementation-plans/08-product-module-plan.md)
+**Task:** 08-product-module-task  
+**Related Plan:** [08-product-module-plan](../implementation-plans/08-product-module-plan.md)  
 **Status:** ✅ **Complete**
 
 ---
