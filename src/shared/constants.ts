@@ -2,7 +2,7 @@
  * ============================================
  * 1) COMMON CONFIGURATION
  * ============================================
- *
+ */
 
 /**
  * Application-wide constants for pagination and general configuration.
@@ -344,4 +344,31 @@ export const CACHE_LOG_MESSAGES = {
   LOW_HIT_RATE_WARNING:
     'Low cache hit rate detected: {hitRate}%, consider adjusting TTL or cache strategy',
   MEMORY_USAGE: 'Redis memory usage: {memory} bytes',
+
+  // Cache consistency service specific messages
+  CONSISTENCY_CHECK_STARTED: 'Starting cache consistency check',
+  NO_CACHE_ENTRIES_FOUND: 'No cache entries found for consistency check',
+  CACHE_HIT_TRACKED: 'Cache hit tracked',
+  CACHE_MISS_TRACKED: 'Cache miss tracked',
+  STALE_READ_DETECTED: 'Stale cache read detected and served',
+  CONSISTENCY_ERROR_DETECTED: 'Cache consistency error detected',
+  CONSISTENCY_MONITORING_INIT:
+    'Cache consistency monitoring initialized with check interval: {interval}ms, sample size: {sampleSize}, stale threshold: {staleThreshold}ms',
+  KEY_CHECK_ERROR: 'Error checking key during consistency check, key: {key}, error: {error}',
+  CONSISTENCY_CHECK_COMPLETED:
+    'Cache consistency check completed: total keys: {totalKeys}, checked keys: {checkedKeys}, stale keys: {staleKeys}, stale ratio: {staleRatio}%, consistency score: {consistencyScore}',
+  CONSISTENCY_CHECK_FAILED_MSG: 'Cache consistency check failed: {error}',
+  STALE_DATA_DETECTED_MSG: 'Stale data detected for key: {key}, TTL: {ttl}, threshold: {threshold}',
+  STALE_DATA_CHECK_ERROR: 'Error checking stale data for key: {key}, error: {error}',
+  REFRESH_AHEAD_FAILED: 'Refresh-ahead operation failed for key: {key}, error: {error}',
+  FORCE_REFRESH_STARTED: 'Force refreshing cache entry: {key}',
+  FORCE_REFRESH_FAILED: 'Force refresh failed for key: {key}, error: {error}',
+  NO_KEYS_FOUND_PATTERN: 'No keys found for pattern: {pattern}',
+  KEY_DELETE_FAILED:
+    'Failed to delete key during pattern invalidation, key: {key}, pattern: {pattern}, error: {error}',
+  PATTERN_INVALIDATION_COMPLETED:
+    'Pattern-based cache invalidation completed, pattern: {pattern}, total keys: {totalKeys}, invalidated keys: {invalidatedKeys}',
+  PATTERN_INVALIDATION_FAILED: 'Pattern invalidation failed for pattern: {pattern}, error: {error}',
+  METRICS_RESET: 'Cache consistency metrics reset',
+  SERVICE_CLEANUP_COMPLETED: 'Cache consistency service cleanup completed',
 };

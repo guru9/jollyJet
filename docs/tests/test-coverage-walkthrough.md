@@ -287,27 +287,28 @@ src/__tests__/
 └── setup.ts                # Test environment setup
 ```
 
-### Total Test Suites: 16
+### Total Test Suites: 17
 
 1. **Integration:** App Endpoints (app.test.ts) - 4 test suites, 7 tests
 2. **Unit:** Middleware Tests (middleware.test.ts) - 2 test suites, 8 tests
 3. **Unit:** Utility Functions (utils.test.ts) - 14 test suites, 30 tests
 4. **Unit:** Error Classes (errors.test.ts) - 8 test suites, 22 tests
-5. **Unit:** Product Entity Tests ([Product Entity Test Documentation](./products/step1.1-product-entity-test.md)) - 2 test suites, 5 tests
-6. **Unit:** Product Repository Tests ([Product Repository Test Documentation](./products/step2.2-product-repository-test.md)) - 9 test suites, 18 tests
-7. **Unit:** ProductService Tests ([ProductService Test Documentation](./products/step1.3-product-service-test.md)) - 4 test suites, 15 tests
-8. **Unit:** Product Validators Tests ([Product Validators Test Documentation](./products/step3.2-product-validators-test.md)) - 6 test suites, 47 tests
-9. **Unit:** CreateProductUseCase Tests ([CreateProductUseCase Test Documentation](./products/step4.2-create-product-usecase-test.md)) - 2 test suites, 9 tests
-10. **Unit:** ListProductsUseCase Tests ([ListProductsUseCase Test Documentation](./products/step4.2-list-products-usecase-test.md)) - 2 test suites, 14 tests
-11. **Unit:** UpdateProductUseCase Tests ([UpdateProductUseCase Test Documentation](./products/step4.2-update-product-usecase-test.md)) - 3 test suites, 15 tests
-12. **Unit:** GetProductUseCase Tests ([GetProductUseCase Test Documentation](./products/step4.2-get-product-usecase-test.md)) - 1 test suite, 4 tests
-13. **Unit:** DeleteProductUseCase Tests ([DeleteProductUseCase Test Documentation](./products/step4.2-delete-product-usecase-test.md)) - 4 test suites, 12 tests
-14. **Unit:** ToggleWishlistProductUseCase Tests ([ToggleWishlistProductUseCase Test Documentation](./products/step4.2-toggle-wishlist-product-usecase-test.md)) - 2 test suites, 8 tests
-15. **Unit:** CountProductsUseCase Tests ([CountProductsUseCase Test Documentation](./products/step4.2-count-products-usecase-test.md)) - 2 test suites, 13 tests
-16. **Unit:** Product Controller Tests ([Product Controller Test Documentation](./products/step5.1-product-controller-testcase.md)) - 8 test suites, 22 tests
-17. **Unit:** Redis Service Tests ([Redis Service Test Documentation](./redis/step1.3-redis-service-test.md)) - 6 test suites, 12 tests
+5. **Unit:** CacheConsistencyService Tests ([Cache Consistency Service Test Documentation](./redis/step2.1-cache-consistency-service-test.md)) - 9 test suites, 18 tests
+6. **Unit:** Product Entity Tests ([Product Entity Test Documentation](./products/step1.1-product-entity-test.md)) - 2 test suites, 5 tests
+7. **Unit:** Product Repository Tests ([Product Repository Test Documentation](./products/step2.2-product-repository-test.md)) - 9 test suites, 18 tests
+8. **Unit:** ProductService Tests ([ProductService Test Documentation](./products/step1.3-product-service-test.md)) - 4 test suites, 15 tests
+9. **Unit:** Product Validators Tests ([Product Validators Test Documentation](./products/step3.2-product-validators-test.md)) - 6 test suites, 47 tests
+10. **Unit:** CreateProductUseCase Tests ([CreateProductUseCase Test Documentation](./products/step4.2-create-product-usecase-test.md)) - 2 test suites, 9 tests
+11. **Unit:** ListProductsUseCase Tests ([ListProductsUseCase Test Documentation](./products/step4.2-list-products-usecase-test.md)) - 2 test suites, 14 tests
+12. **Unit:** UpdateProductUseCase Tests ([UpdateProductUseCase Test Documentation](./products/step4.2-update-product-usecase-test.md)) - 3 test suites, 15 tests
+13. **Unit:** GetProductUseCase Tests ([GetProductUseCase Test Documentation](./products/step4.2-get-product-usecase-test.md)) - 1 test suite, 4 tests
+14. **Unit:** DeleteProductUseCase Tests ([DeleteProductUseCase Test Documentation](./products/step4.2-delete-product-usecase-test.md)) - 4 test suites, 12 tests
+15. **Unit:** ToggleWishlistProductUseCase Tests ([ToggleWishlistProductUseCase Test Documentation](./products/step4.2-toggle-wishlist-product-usecase-test.md)) - 2 test suites, 8 tests
+16. **Unit:** CountProductsUseCase Tests ([CountProductsUseCase Test Documentation](./products/step4.2-count-products-usecase-test.md)) - 2 test suites, 13 tests
+17. **Unit:** Product Controller Tests ([Product Controller Test Documentation](./products/step5.1-product-controller-testcase.md)) - 8 test suites, 22 tests
+18. **Unit:** Redis Service Tests ([Redis Service Test Documentation](./redis/step1.3-redis-service-test.md)) - 6 test suites, 12 tests
 
-### Total Tests: 206 individual test cases
+### Total Tests: 224 individual test cases
 
 ### Coverage Metrics: 100%
 
