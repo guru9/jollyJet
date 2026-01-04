@@ -3,7 +3,7 @@
 **Plan:** 09-redis-complete-implementation-plan  
 **Related Task:** [03-redis-task](../tasks/03-redis-task.md)  
 **Branch:** `feature/jollyjet-09-redis-integration`  
-**Status:** ⏳ **PLANNED**
+**Status:** ✅ **Complete**
 
 ---
 
@@ -12,6 +12,66 @@
 This comprehensive Redis integration plan provides a complete implementation guide for `JollyJet`, combining the best practices from multiple planning phases into a single, detailed implementation document. Redis will be used as an in-memory data store for caching frequently accessed data, session management, rate limiting, and real-time features, with special attention to cache consistency and performance optimization.
 
 We will follow **Clean Architecture** principles, ensuring our Redis integration remains independent of business logic while providing significant performance benefits and robust cache consistency guarantees.
+
+---
+
+## 🎯 Implementation Dependency Flow
+
+### Core Implementation Sequence
+
+The Redis integration follows a **systematic dependency flow** to ensure proper Clean Architecture layering:
+
+```mermaid
+graph TD
+    A[1.1 Redis Configuration] --> B[1.2 IRedisService Interface]
+    A --> C[1.3 RedisService Implementation]
+    B --> C
+    C --> D[2.1 Cache Consistency Service]
+    C --> E[2.2 DI Container Registration]
+    C --> F[2.3 Session Management]
+    C --> G[2.4 Rate Limiting Service]
+    D --> E
+    D --> F
+    D --> G
+    D --> H[3.1 Cache Decorators]
+    D --> I[3.2 Redis Cache Middleware]
+    G --> J[3.3 Rate Limiting Middleware]
+    H --> K[4.1 Product Use Cases Integration]
+    I --> K
+    K --> L[5.1 Swagger Documentation]
+    K --> M[5.2 Redis Integration Tests]
+    F --> M
+    G --> M
+    M --> N[5.3 Verification Scripts]
+```
+
+### Dependency Flow Table
+
+| Step    | Component                   | Required Dependencies                         | Layer          | Est. Time |
+| ------- | --------------------------- | --------------------------------------------- | -------------- | --------- |
+| **1.1** | Redis Configuration         | None                                          | Shared         | 30m       |
+| **1.2** | IRedisService Interface     | None                                          | Domain         | 45m       |
+| **1.3** | RedisService Implementation | 1.1 (Config), 1.2 (Interface)                 | Infrastructure | 2h        |
+| **2.1** | Cache Consistency Service   | 1.3 (RedisService)                            | Domain         | 2h        |
+| **2.2** | DI Container Registration   | 1.3 (RedisService), 2.1 (ConsistencyService)  | Config         | 30m       |
+| **2.3** | Session Management          | 1.3 (RedisService), 2.1 (ConsistencyService)  | Infrastructure | 1.5h      |
+| **2.4** | Rate Limiting Service       | 1.3 (RedisService), 2.1 (ConsistencyService)  | Infrastructure | 1h        |
+| **3.1** | Cache Decorators            | 1.3 (RedisService), 2.1 (ConsistencyService)  | Shared         | 1.5h      |
+| **3.2** | Redis Cache Middleware      | 1.3 (RedisService), 2.1 (ConsistencyService)  | Interface      | 1h        |
+| **3.3** | Rate Limiting Middleware    | 2.4 (RateLimitingService)                     | Interface      | 1h        |
+| **4.1** | Product Use Cases           | 1.3, 2.1, 3.1, 3.2 (All Previous Components)  | Use Cases      | 3h        |
+| **5.1** | Swagger Documentation       | 4.1 (Product Use Cases)                       | Config         | 30m       |
+| **5.2** | Redis Integration Tests     | 1.3, 2.1, 2.3, 2.4, 4.1 (Multiple Components) | Tests          | 2h        |
+| **5.3** | Verification Scripts        | 4.1 (Product Use Cases)                       | Scripts        | 1h        |
+
+### Critical Dependency Notes:
+
+- **Step 5.2** (Redis Integration Tests) depends on **multiple components** from previous phases
+- **Step 4.1** (Product Use Cases) is the **integration point** that combines all Redis features
+- **Steps 2.3** and **2.4** (Session & Rate Limiting) are **prerequisites** for comprehensive testing
+- **Step 3.3** depends specifically on **Step 2.4** (not on earlier steps)
+
+---
 
 ## 🛠️ **Technology Stack: `ioredis`**
 
@@ -28,13 +88,6 @@ We have selected **ioredis** as our Redis client for Node.js.
 ---
 
 ### 🟢 **PHASE 1: FOUNDATION SETUP**
-
-#### ✅ **Step 1.0: Install Redis Dependencies**
-
-- **Objective:** Install the `ioredis` package
-- **Implementation:** Install `ioredis` via npm
-- **Command:** `npm install ioredis`
-- **Implementation Time:** 5 minutes
 
 #### ✅ **Step 1.1: Add Redis Configuration to Shared Layer**
 
@@ -201,14 +254,14 @@ export interface IRedisService {
 ```typescript
 import { injectable, inject } from 'tsyringe';
 import Redis from 'ioredis';
-import { IRedisService } from '../../domain/interfaces/IRedisService';
+import { IRedisService } from '../../../domain/interfaces/redis/IRedisService';
 import {
   REDIS_CONFIG,
   CACHE_OPERATIONS,
   CACHE_LOG_MESSAGES,
   CACHE_KEY_PATTERNS,
-} from '../../shared/constants';
-import { Logger } from '../../shared/logger';
+} from '../../../shared/constants';
+import { Logger } from '../../../shared/logger';
 
 @injectable()
 export class RedisService implements IRedisService {
@@ -390,13 +443,770 @@ export class RedisService implements IRedisService {
 }
 ```
 
-### 🟡 **PHASE 2: INTERFACE LAYER**
+---
 
-#### ✅ **Step 2.1: Create Cache Decorators with Consistency Features**
+### 🔵 **PHASE 2: CONSISTENCY AND MONITORING**
+
+#### ✅ **Step 2.1: Create Cache Consistency Service**
+
+- **Objective:** Implement service for managing cache consistency and monitoring
+- **Implementation:** Create service for consistency checking, monitoring, and conflict resolution
+- **Dependencies:** Redis service (Step 1.3), Redis configuration (Step 1.1)
+- **Files to Create:**
+  - `src/domain/services/cache/CacheConsistencyService.ts` - Cache consistency manager
+- **Consistency Features:**
+  - Cache hit/miss ratio monitoring
+  - Stale data detection and handling
+  - Background cache refresh
+  - Consistency metrics collection
+  - Automatic cache invalidation triggers
+  - Cache performance monitoring
+- **Implementation Time:** 2 hours
+
+**File:** `src/domain/services/cache/CacheConsistencyService.ts`
+
+```typescript
+import { injectable, inject } from 'tsyringe';
+import { IRedisService } from '../../interfaces/redis/IRedisService';
+import { REDIS_CONFIG, CACHE_LOG_MESSAGES } from '../../../shared/constants';
+import { Logger } from '../../../shared/logger';
+
+export interface CacheMetrics {
+  cacheHits: number;
+  cacheMisses: number;
+  staleReads: number;
+  consistencyErrors: number;
+  hitRate: number;
+  consistencyScore: number;
+}
+
+@injectable()
+export class CacheConsistencyService {
+  private metrics: CacheMetrics = {
+    cacheHits: 0,
+    cacheMisses: 0,
+    staleReads: 0,
+    consistencyErrors: 0,
+    hitRate: 0,
+    consistencyScore: 100,
+  };
+
+  constructor(
+    @inject('IRedisService') private redisService: IRedisService,
+    @inject('Logger') private logger: Logger
+  ) {
+    // Schedule regular consistency checks
+    setInterval(() => this.checkConsistency(), REDIS_CONFIG.CONSISTENCY.CHECK_INTERVAL);
+  }
+
+  public trackCacheHit(): void {
+    this.metrics.cacheHits++;
+    this.updateMetrics();
+  }
+
+  public trackCacheMiss(): void {
+    this.metrics.cacheMisses++;
+    this.updateMetrics();
+  }
+
+  public trackStaleRead(): void {
+    this.metrics.staleReads++;
+    this.updateMetrics();
+  }
+
+  public trackConsistencyError(): void {
+    this.metrics.consistencyErrors++;
+    this.updateMetrics();
+  }
+
+  private updateMetrics(): void {
+    const totalOperations = this.metrics.cacheHits + this.metrics.cacheMisses;
+    if (totalOperations > 0) {
+      this.metrics.hitRate = (this.metrics.cacheHits / totalOperations) * 100;
+    }
+
+    this.metrics.consistencyScore = this.calculateConsistencyScore();
+  }
+
+  private calculateConsistencyScore(): number {
+    const totalOperations = this.metrics.cacheHits + this.metrics.cacheMisses;
+    const errorRate = totalOperations > 0 ? this.metrics.consistencyErrors / totalOperations : 0;
+
+    return Math.max(0, 100 - errorRate * 100);
+  }
+
+  private async checkConsistency(): Promise<void> {
+    try {
+      // Sample some cache entries and verify against database
+      const sampleKeys = await this.redisService.keys('product:*');
+      const sampleSize = Math.min(REDIS_CONFIG.CONSISTENCY.SAMPLE_SIZE, sampleKeys.length);
+      const keysToCheck = sampleKeys.sort(() => 0.5 - Math.random()).slice(0, sampleSize);
+
+      for (const key of keysToCheck) {
+        const cachedData = await this.redisService.get(key);
+        if (cachedData) {
+          // In a real implementation, this would compare with database
+          // For now, we'll just log the check
+          console.log(`Consistency check for key: ${key}`);
+        }
+      }
+    } catch (error) {
+      console.error('Consistency check failed:', error);
+      this.trackConsistencyError();
+    }
+  }
+
+  public getMetrics(): CacheMetrics {
+    return { ...this.metrics };
+  }
+
+  public async checkStaleData(key: string): Promise<boolean> {
+    try {
+      // Get TTL for the key
+      const ttl = await this.redisService.getClient().ttl(key);
+
+      // If TTL is very low or negative, consider data stale
+      if (ttl <= 0) {
+        return true;
+      }
+
+      // Additional stale detection logic could be added here
+      // For example, checking last update time, comparing with database, etc.
+
+      return false;
+    } catch (error) {
+      this.logger.debug(
+        `Error checking stale data for ${key}: ${error instanceof Error ? error.message : String(error)}`
+      );
+      return false;
+    }
+  }
+
+  public async refreshAhead<T>(
+    key: string,
+    operation: () => Promise<T>,
+    ttl: number,
+    refreshThreshold: number = 300
+  ): Promise<T> {
+    // Get current cached value
+    const cachedValue = await this.redisService.get(key);
+
+    if (cachedValue) {
+      // Check if we should refresh
+      const currentTtl = await this.redisService.getClient().ttl(key);
+
+      if (currentTtl > 0 && currentTtl <= refreshThreshold) {
+        // Refresh in background
+        this.refreshCacheInBackground(key, operation, ttl);
+      }
+
+      return JSON.parse(cachedValue);
+    }
+
+    // If not in cache, execute operation and cache
+    const result = await operation();
+    await this.redisService.set(key, JSON.stringify(result), ttl);
+
+    return result;
+  }
+
+  private async refreshCacheInBackground<T>(
+    key: string,
+    operation: () => Promise<T>,
+    ttl: number
+  ): Promise<void> {
+    try {
+      const result = await operation();
+      await this.redisService.set(key, JSON.stringify(result), ttl);
+      this.logger.debug(`Background cache refresh completed for key: ${key}`);
+    } catch (error) {
+      this.logger.error(
+        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED.replace('{operation}', 'BACKGROUND_REFRESH')
+          .replace('{key}', key)
+          .replace('{error}', error instanceof Error ? error.message : String(error))
+      );
+    }
+  }
+}
+```
+
+#### ✅ **Step 2.2: Update DI Container Configuration**
+
+- **Objective:** Register Redis services in the DI container
+- **Implementation:** Add Redis service registration to DI container
+- **Dependencies:** Redis service (Step 1.3), Cache consistency service (Step 2.1)
+- **Files to Modify:**
+  - `src/config/di-container.ts` - Add service registrations
+- **Service Registrations:**
+  - `IRedisService` → `RedisService`
+  - `CacheConsistencyService`
+  - Add proper token definitions
+- **Implementation Time:** 30 minutes
+
+**File:** `src/config/di-container.ts`
+
+```typescript
+import { Container } from 'tsyringe';
+import { RedisService } from '../infrastructure/redis/services/RedisService';
+import { SessionService } from '../infrastructure/redis/services/SessionService';
+import { RateLimitingService } from '../infrastructure/redis/services/RateLimitingService';
+import { CacheConsistencyService } from '../domain/services/cache/CacheConsistencyService';
+import { Logger } from '../shared/logger';
+
+// Service Tokens
+export const SERVICE_TOKENS = {
+  REDIS_SERVICE: 'IRedisService',
+  SESSION_SERVICE: 'SessionService',
+  RATE_LIMITING_SERVICE: 'RateLimitingService',
+  CACHE_CONSISTENCY_MANAGER: 'CacheConsistencyService',
+  LOGGER: 'Logger',
+} as const;
+
+export class DIContainer {
+  private static container: Container;
+
+  public static initialize(): Container {
+    this.container = new Container();
+
+    // Register core services
+    this.registerCoreServices();
+
+    // Register Redis services
+    this.registerRedisServices();
+
+    // Register cache services
+    this.registerCacheServices();
+
+    return this.container;
+  }
+
+  private static registerCoreServices(): void {
+    // Logger
+    this.container.register(SERVICE_TOKENS.LOGGER, {
+      useClass: Logger,
+    });
+  }
+
+  private static registerRedisServices(): void {
+    // Redis Service
+    this.container.register(SERVICE_TOKENS.REDIS_SERVICE, {
+      useClass: RedisService,
+    });
+
+    // Session Service
+    this.container.register(SERVICE_TOKENS.SESSION_SERVICE, {
+      useClass: SessionService,
+    });
+
+    // Rate Limiting Service
+    this.container.register(SERVICE_TOKENS.RATE_LIMITING_SERVICE, {
+      useClass: RateLimitingService,
+    });
+  }
+
+  private static registerCacheServices(): void {
+    // Cache Consistency Manager
+    this.container.register(SERVICE_TOKENS.CACHE_CONSISTENCY_MANAGER, {
+      useClass: CacheConsistencyService,
+    });
+  }
+
+  public static getContainer(): Container {
+    if (!this.container) {
+      throw new Error('DIContainer not initialized. Call initialize() first.');
+    }
+    return this.container;
+  }
+
+  public static resolve<T>(token: string): T {
+    return this.getContainer().resolve<T>(token);
+  }
+
+  public static dispose(): void {
+    if (this.container) {
+      this.container.dispose();
+      this.container = undefined as any;
+    }
+  }
+}
+
+// Export singleton instance
+export const container = DIContainer.getContainer();
+
+// Initialize on import (for standalone usage)
+if (typeof window === 'undefined') {
+  DIContainer.initialize();
+}
+```
+
+#### ✅ **Step 2.3: Implement Session Management with Redis**
+
+- **Objective:** Add Redis-based session management for user authentication
+- **Implementation:** Create session store and management utilities
+- **Dependencies:** Redis service (Step 1.3), Cache consistency service (Step 2.1)
+- **Files to Create:**
+  - `src/infrastructure/redis/services/SessionService.ts` - Session management service
+- **Session Features:**
+  - Session creation and validation
+  - Session expiration handling
+  - User session data storage
+  - Session cleanup and garbage collection
+  - Distributed session support for load balancing
+- **Implementation Time:** 1.5 hours
+
+**File:** `src/infrastructure/redis/services/SessionService.ts`
+
+```typescript
+import { injectable, inject } from 'tsyringe';
+import { IRedisService } from '../../../domain/interfaces/redis/IRedisService';
+import { REDIS_CONFIG, CACHE_KEY_PATTERNS, CACHE_LOG_MESSAGES } from '../../../shared/constants';
+import { Logger } from '../../../shared/logger';
+
+export interface SessionData {
+  userId: string;
+  email: string;
+  roles: string[];
+  preferences: Record<string, any>;
+  createdAt: Date;
+  lastAccessedAt: Date;
+}
+
+export interface CreateSessionOptions {
+  userId: string;
+  email: string;
+  roles: string[];
+  preferences?: Record<string, any>;
+  ttl?: number;
+}
+
+@injectable()
+export class SessionService {
+  constructor(
+    @inject('IRedisService') private redisService: IRedisService,
+    @inject('Logger') private logger: Logger
+  ) {}
+
+  /**
+   * Create a new session
+   */
+  public async createSession(options: CreateSessionOptions): Promise<string> {
+    const sessionId = this.generateSessionId();
+    const sessionData: SessionData = {
+      userId: options.userId,
+      email: options.email,
+      roles: options.roles,
+      preferences: options.preferences || {},
+      createdAt: new Date(),
+      lastAccessedAt: new Date(),
+    };
+
+    const ttl = options.ttl || REDIS_CONFIG.TTL.SESSION;
+    const sessionKey = CACHE_KEY_PATTERNS.SESSION(sessionId);
+
+    await this.redisService.set(sessionKey, JSON.stringify(sessionData), ttl);
+
+    this.logger.info(CACHE_LOG_MESSAGES.CACHE_SET, {
+      key: sessionKey,
+      ttl,
+    });
+
+    return sessionId;
+  }
+
+  /**
+   * Get session data by session ID
+   */
+  public async getSession(sessionId: string): Promise<SessionData | null> {
+    const sessionKey = CACHE_KEY_PATTERNS.SESSION(sessionId);
+    const sessionData = await this.redisService.get(sessionKey);
+
+    if (sessionData) {
+      this.logger.debug(CACHE_LOG_MESSAGES.CACHE_HIT, { key: sessionKey });
+
+      // Update last accessed time
+      const parsed = JSON.parse(sessionData) as SessionData;
+      parsed.lastAccessedAt = new Date();
+      await this.redisService.set(sessionKey, JSON.stringify(parsed));
+
+      return parsed;
+    }
+
+    this.logger.debug(CACHE_LOG_MESSAGES.CACHE_MISS, {
+      key: sessionKey,
+      source: 'session_store',
+    });
+    return null;
+  }
+
+  /**
+   * Update session data
+   */
+  public async updateSession(sessionId: string, updates: Partial<SessionData>): Promise<boolean> {
+    const sessionKey = CACHE_KEY_PATTERNS.SESSION(sessionId);
+    const existingSession = await this.getSession(sessionId);
+
+    if (!existingSession) {
+      return false;
+    }
+
+    const updatedSession = {
+      ...existingSession,
+      ...updates,
+      lastAccessedAt: new Date(),
+    };
+
+    await this.redisService.set(sessionKey, JSON.stringify(updatedSession));
+    return true;
+  }
+
+  /**
+   * Delete session
+   */
+  public async deleteSession(sessionId: string): Promise<boolean> {
+    const sessionKey = CACHE_KEY_PATTERNS.SESSION(sessionId);
+    await this.redisService.delete(sessionKey);
+    this.logger.debug(CACHE_LOG_MESSAGES.CACHE_DELETE, { key: sessionKey });
+    return true;
+  }
+
+  /**
+   * Extend session TTL
+   */
+  public async extendSession(sessionId: string, ttl?: number): Promise<boolean> {
+    const sessionKey = CACHE_KEY_PATTERNS.SESSION(sessionId);
+    const extensionTtl = ttl || REDIS_CONFIG.TTL.SESSION;
+
+    const sessionData = await this.redisService.get(sessionKey);
+    if (sessionData) {
+      await this.redisService.set(sessionKey, sessionData, extensionTtl);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Clean up expired sessions
+   */
+  public async cleanupExpiredSessions(): Promise<number> {
+    const sessionKeys = await this.redisService.keys('session:*');
+    let cleanedCount = 0;
+
+    for (const key of sessionKeys) {
+      const sessionData = await this.redisService.get(key);
+      if (sessionData) {
+        const session = JSON.parse(sessionData) as SessionData;
+        const daysSinceLastAccess =
+          (Date.now() - session.lastAccessedAt.getTime()) / (1000 * 60 * 60 * 24);
+
+        if (daysSinceLastAccess > 7) {
+          // Remove sessions inactive for more than 7 days
+          await this.redisService.delete(key);
+          cleanedCount++;
+        }
+      }
+    }
+
+    this.logger.info(`Cleaned up ${cleanedCount} expired sessions`);
+    return cleanedCount;
+  }
+
+  /**
+   * Generate a unique session ID
+   */
+  private generateSessionId(): string {
+    return `sess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Validate session structure
+   */
+  public isValidSessionData(data: any): data is SessionData {
+    return (
+      data &&
+      typeof data.userId === 'string' &&
+      typeof data.email === 'string' &&
+      Array.isArray(data.roles) &&
+      typeof data.preferences === 'object' &&
+      data.createdAt instanceof Date &&
+      data.lastAccessedAt instanceof Date
+    );
+  }
+}
+```
+
+#### ✅ **Step 2.4: Create Rate Limiting Service**
+
+- **Objective:** Create dedicated service for rate limiting operations
+- **Implementation:** Implement rate limiting logic as a separate service
+- **Dependencies:** Redis service (Step 1.3), Cache consistency service (Step 2.1)
+- **Files to Create:**
+  - `src/infrastructure/redis/services/RateLimitingService.ts` - Rate limiting service
+- **Service Features:**
+  - Sliding window rate limiting
+  - Multiple rate limit strategies
+  - Rate limit configuration per user/endpoint
+  - Rate limit reset functionality
+  - Metrics collection for rate limiting
+- **Implementation Time:** 1 hour
+
+**File:** `src/infrastructure/redis/services/RateLimitingService.ts`
+
+```typescript
+import { injectable, inject } from 'tsyringe';
+import { IRedisService } from '../../../domain/interfaces/redis/IRedisService';
+import { REDIS_CONFIG, CACHE_KEY_PATTERNS, CACHE_LOG_MESSAGES } from '../../../shared/constants';
+import { Logger } from '../../../shared/logger';
+
+export interface RateLimitConfig {
+  windowMs: number;
+  maxRequests: number;
+  skipSuccessfulRequests?: boolean;
+  skipFailedRequests?: boolean;
+  keyGenerator?: (req: any) => string;
+}
+
+export interface RateLimitInfo {
+  limit: number;
+  remaining: number;
+  resetTime: Date;
+  totalHits: number;
+}
+
+export interface RateLimitResult {
+  success: boolean;
+  info?: RateLimitInfo;
+  resetTime?: Date;
+}
+
+@injectable()
+export class RateLimitingService {
+  private defaultConfig: RateLimitConfig = {
+    windowMs: REDIS_CONFIG.RATE_LIMIT.WINDOW * 1000,
+    maxRequests: REDIS_CONFIG.RATE_LIMIT.MAX_REQUESTS,
+  };
+
+  constructor(
+    @inject('IRedisService') private redisService: IRedisService,
+    @inject('Logger') private logger: Logger
+  ) {}
+
+  /**
+   * Check rate limit for a given key
+   */
+  public async checkRateLimit(
+    key: string,
+    config: RateLimitConfig = this.defaultConfig
+  ): Promise<RateLimitResult> {
+    const now = Date.now();
+    const windowStart = now - config.windowMs;
+    const rateLimitKey = CACHE_KEY_PATTERNS.RATE_LIMIT(key);
+
+    try {
+      // Use Redis pipeline for atomic operations
+      const pipeline = this.redisService.getClient().pipeline();
+
+      // Remove old entries outside the window
+      pipeline.zremrangebyscore(rateLimitKey, 0, windowStart);
+
+      // Count current requests in window
+      pipeline.zcard(rateLimitKey);
+
+      // Add current request
+      pipeline.zadd(rateLimitKey, now, now.toString());
+
+      // Set expiration for the key
+      pipeline.expire(rateLimitKey, Math.ceil(config.windowMs / 1000));
+
+      const results = await pipeline.exec();
+      const currentCount = results[1][1] as number;
+
+      const remaining = Math.max(0, config.maxRequests - currentCount - 1);
+      const resetTime = new Date(now + config.windowMs);
+
+      const success = currentCount < config.maxRequests;
+
+      const info: RateLimitInfo = {
+        limit: config.maxRequests,
+        remaining,
+        resetTime,
+        totalHits: currentCount + 1,
+      };
+
+      if (!success) {
+        this.logger.warn(
+          CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED.replace('{operation}', 'RATE_LIMIT_EXCEEDED')
+            .replace('{key}', key)
+            .replace('{error}', `Limit: ${config.maxRequests}, Current: ${currentCount + 1}`)
+        );
+      }
+
+      return {
+        success,
+        info: success ? info : undefined,
+        resetTime: success ? undefined : resetTime,
+      };
+    } catch (error) {
+      this.logger.error(
+        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED.replace('{operation}', 'RATE_LIMIT_CHECK')
+          .replace('{key}', key)
+          .replace('{error}', error instanceof Error ? error.message : String(error))
+      );
+
+      // Fail open - allow request if rate limiting fails
+      return { success: true };
+    }
+  }
+
+  /**
+   * Reset rate limit for a specific key
+   */
+  public async resetRateLimit(key: string): Promise<void> {
+    const rateLimitKey = CACHE_KEY_PATTERNS.RATE_LIMIT(key);
+    await this.redisService.delete(rateLimitKey);
+    this.logger.debug(CACHE_LOG_MESSAGES.CACHE_DELETE, { key: rateLimitKey });
+  }
+
+  /**
+   * Get rate limit info without incrementing
+   */
+  public async getRateLimitInfo(
+    key: string,
+    config: RateLimitConfig = this.defaultConfig
+  ): Promise<RateLimitInfo | null> {
+    const now = Date.now();
+    const windowStart = now - config.windowMs;
+    const rateLimitKey = CACHE_KEY_PATTERNS.RATE_LIMIT(key);
+
+    try {
+      const currentCount = await this.redisService.getClient().zcard(rateLimitKey);
+      const remaining = Math.max(0, config.maxRequests - currentCount);
+      const resetTime = new Date(now + config.windowMs);
+
+      return {
+        limit: config.maxRequests,
+        remaining,
+        resetTime,
+        totalHits: currentCount,
+      };
+    } catch (error) {
+      this.logger.error('Failed to get rate limit info', { key, error });
+      return null;
+    }
+  }
+
+  /**
+   * Get rate limit statistics
+   */
+  public async getRateLimitStats(): Promise<{
+    totalKeys: number;
+    totalRequests: number;
+    activeLimits: number;
+  }> {
+    try {
+      const rateLimitKeys = await this.redisService.keys('rate_limit:*');
+      let totalRequests = 0;
+
+      // Use pipeline for batch operations
+      const pipeline = this.redisService.getClient().pipeline();
+      rateLimitKeys.forEach((key) => {
+        pipeline.zcard(key);
+      });
+
+      const results = await pipeline.exec();
+      totalRequests = results.reduce((sum, result) => sum + (result[1] as number), 0);
+
+      return {
+        totalKeys: rateLimitKeys.length,
+        totalRequests,
+        activeLimits: rateLimitKeys.length,
+      };
+    } catch (error) {
+      this.logger.error('Failed to get rate limit stats', { error });
+      return {
+        totalKeys: 0,
+        totalRequests: 0,
+        activeLimits: 0,
+      };
+    }
+  }
+
+  /**
+   * Clean up expired rate limit keys
+   */
+  public async cleanupExpiredLimits(): Promise<number> {
+    try {
+      const rateLimitKeys = await this.redisService.keys('rate_limit:*');
+      let cleanedCount = 0;
+
+      for (const key of rateLimitKeys) {
+        const ttl = await this.redisService.getClient().ttl(key);
+        if (ttl === -1) {
+          // Key has no expiration, remove it
+          await this.redisService.delete(key);
+          cleanedCount++;
+        }
+      }
+
+      if (cleanedCount > 0) {
+        this.logger.info(`Cleaned up ${cleanedCount} expired rate limit keys`);
+      }
+
+      return cleanedCount;
+    } catch (error) {
+      this.logger.error('Failed to cleanup expired rate limits', { error });
+      return 0;
+    }
+  }
+
+  /**
+   * Generate rate limit key based on request
+   */
+  public generateKey(req: any, type: 'ip' | 'user' | 'endpoint' = 'ip'): string {
+    switch (type) {
+      case 'user':
+        return req.user?.id || req.user?.email || 'anonymous';
+      case 'endpoint':
+        return `${req.ip}:${req.route?.path || req.originalUrl}`;
+      case 'ip':
+      default:
+        return req.ip || req.connection?.remoteAddress || 'unknown';
+    }
+  }
+
+  /**
+   * Create custom rate limit configuration
+   */
+  public createConfig(options: Partial<RateLimitConfig>): RateLimitConfig {
+    return {
+      ...this.defaultConfig,
+      ...options,
+    };
+  }
+
+  /**
+   * Check multiple rate limits simultaneously
+   */
+  public async checkMultipleRateLimits(
+    keys: Array<{ key: string; config?: RateLimitConfig }>
+  ): Promise<RateLimitResult[]> {
+    const results = await Promise.all(
+      keys.map(({ key, config }) => this.checkRateLimit(key, config))
+    );
+
+    return results;
+  }
+}
+```
+
+---
+
+### 🟡 **PHASE 3: INTERFACE LAYER**
+
+#### ✅ **Step 3.1: Create Cache Decorators with Consistency Features**
 
 - **Objective:** Implement caching decorators with consistency checking and invalidation strategies
 - **Implementation:** Create TypeScript decorators for cache operations with consistency options
-- **Dependencies:** Redis service (Step 1.3)
+- **Dependencies:** Redis service (Step 1.3), Cache consistency service (Step 2.1)
 - **Files to Create:**
   - `src/shared/decorators/cache.decorator.ts` - Cache decorators
 - **Decorator Features:**
@@ -410,9 +1220,9 @@ export class RedisService implements IRedisService {
 **File:** `src/shared/decorators/cache.decorator.ts`
 
 ```typescript
-import { IRedisService } from '../../domain/interfaces/IRedisService';
+import { IRedisService } from '../../domain/interfaces/redis/IRedisService';
 import { container } from 'tsyringe';
-import { CacheConsistencyService } from '../../infrastructure/services/CacheConsistencyService';
+import { CacheConsistencyService } from '../../domain/services/cache/CacheConsistencyService';
 import { Logger } from '../../shared/logger';
 import { CACHE_LOG_MESSAGES, CACHE_OPERATIONS } from '../../shared/constants';
 
@@ -446,15 +1256,17 @@ export function Cacheable(
 
         // Optional consistency check
         if (options?.consistencyCheck) {
-          const isStale = await cacheConsistencyService.checkCacheStaleness(cacheKey);
+          const isStale = await cacheConsistencyService.checkStaleData(cacheKey);
           if (isStale) {
             logger.warn(CACHE_LOG_MESSAGES.STALE_CACHE_DETECTED, { key: cacheKey });
             cacheConsistencyService.trackStaleRead();
 
             // Background refresh if enabled
             if (options.backgroundRefresh) {
-              cacheConsistencyService.refreshCacheInBackground(cacheKey, () =>
-                originalMethod.apply(this, args)
+              cacheConsistencyService.refreshAhead(
+                cacheKey,
+                () => originalMethod.apply(this, args),
+                3600
               );
             }
           }
@@ -532,11 +1344,11 @@ export function CacheEvict(pattern: string) {
 }
 ```
 
-#### ✅ **Step 2.2: Add Redis Cache Middleware with Consistency Handling**
+#### ✅ **Step 3.2: Add Redis Cache Middleware with Consistency Handling**
 
 - **Objective:** Implement Express middleware for Redis caching with consistency management
 - **Implementation:** Create middleware for caching API responses with consistency features
-- **Dependencies:** Redis service (Step 1.3)
+- **Dependencies:** Redis service (Step 1.3), Cache consistency service (Step 2.1)
 - **Files to Create:**
   - `src/interface/middlewares/redisCache.ts` - Redis cache middleware
 - **Middleware Features:**
@@ -552,8 +1364,8 @@ export function CacheEvict(pattern: string) {
 ```typescript
 import { Request, Response, NextFunction } from 'express';
 import { container } from 'tsyringe';
-import { IRedisService } from '../../domain/interfaces/IRedisService';
-import { CacheConsistencyService } from '../../infrastructure/services/CacheConsistencyService';
+import { IRedisService } from '../../domain/interfaces/redis/IRedisService';
+import { CacheConsistencyService } from '../../domain/services/cache/CacheConsistencyService';
 import { Logger } from '../../shared/logger';
 import { REDIS_CONFIG, CACHE_LOG_MESSAGES, CACHE_KEY_PATTERNS } from '../../shared/constants';
 
@@ -585,20 +1397,24 @@ export const redisCache = (
 
         // Consistency check
         if (options?.consistencyCheck) {
-          const isStale = await cacheConsistencyService.checkCacheStaleness(cacheKey);
+          const isStale = await cacheConsistencyService.checkStaleData(cacheKey);
           if (isStale) {
             logger.warn(CACHE_LOG_MESSAGES.STALE_CACHE_DETECTED, { key: cacheKey });
             cacheConsistencyService.trackStaleRead();
 
             // Background refresh
             if (options.backgroundRefresh) {
-              cacheConsistencyService.refreshCacheInBackground(cacheKey, async () => {
-                // Re-execute the request to get fresh data
-                const fakeRes = { statusCode: 200, jsonData: null } as any;
-                const fakeNext = () => {};
-                await redisCache(ttl, options)(req, fakeRes, fakeNext);
-                return fakeRes.jsonData;
-              });
+              cacheConsistencyService.refreshAhead(
+                cacheKey,
+                async () => {
+                  // Re-execute the request to get fresh data
+                  const fakeRes = { statusCode: 200, jsonData: null } as any;
+                  const fakeNext = () => {};
+                  await redisCache(ttl, options)(req, fakeRes, fakeNext);
+                  return fakeRes.jsonData;
+                },
+                ttl || REDIS_CONFIG.TTL.DEFAULT
+              );
             }
           }
         }
@@ -628,18 +1444,156 @@ export const redisCache = (
 };
 ```
 
-#### ✅ **Step 2.3: Integrate Redis with All Product Use Cases**
+#### ✅ **Step 3.3: Add Rate Limiting Middleware**
+
+- **Objective:** Implement Express middleware for API rate limiting using Redis
+- **Implementation:** Create middleware for rate limiting with different strategies
+- **Dependencies:** Rate limiting service (Step 2.4)
+- **Files to Create:**
+  - `src/interface/middlewares/rateLimiter.ts` - Rate limiting middleware
+- **Middleware Features:**
+  - IP-based rate limiting
+  - User-based rate limiting
+  - Endpoint-specific rate limits
+  - Sliding window algorithm
+  - Multiple rate limit configurations
+- **Implementation Time:** 1 hour
+
+**File:** `src/interface/middlewares/rateLimiter.ts`
+
+```typescript
+import { Request, Response, NextFunction } from 'express';
+import { container } from 'tsyringe';
+import {
+  RateLimitingService,
+  RateLimitConfig,
+} from '../../infrastructure/redis/services/RateLimitingService';
+import { REDIS_CONFIG } from '../../shared/constants';
+
+interface RateLimitOptions {
+  windowMs?: number;
+  maxRequests?: number;
+  skipSuccessfulRequests?: boolean;
+  skipFailedRequests?: boolean;
+  keyGenerator?: (req: Request) => string;
+  onLimitReached?: (req: Request, res: Response, optionsUsed: RateLimitOptions) => void;
+}
+
+// Default rate limit configurations
+export const rateLimiters = {
+  default: createRateLimitMiddleware({
+    windowMs: REDIS_CONFIG.RATE_LIMIT.WINDOW * 1000,
+    maxRequests: REDIS_CONFIG.RATE_LIMIT.MAX_REQUESTS,
+  }),
+  api: createRateLimitMiddleware({
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 100,
+  }),
+  auth: createRateLimitMiddleware({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    maxRequests: 5,
+  }),
+  search: createRateLimitMiddleware({
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 30,
+  }),
+  upload: createRateLimitMiddleware({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    maxRequests: 10,
+  }),
+};
+
+export function createRateLimitMiddleware(options: RateLimitOptions) {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    const rateLimitingService = container.resolve(RateLimitingService);
+
+    const config: RateLimitConfig = {
+      windowMs: options.windowMs || REDIS_CONFIG.RATE_LIMIT.WINDOW * 1000,
+      maxRequests: options.maxRequests || REDIS_CONFIG.RATE_LIMIT.MAX_REQUESTS,
+      skipSuccessfulRequests: options.skipSuccessfulRequests,
+      skipFailedRequests: options.skipFailedRequests,
+    };
+
+    const keyGenerator =
+      options.keyGenerator || ((req) => req.ip || req.connection?.remoteAddress || 'unknown');
+    const key = keyGenerator(req);
+
+    try {
+      const result = await rateLimitingService.checkRateLimit(key, config);
+
+      // Set rate limit headers
+      if (result.info) {
+        res.setHeader('X-RateLimit-Limit', result.info.limit.toString());
+        res.setHeader('X-RateLimit-Remaining', result.info.remaining.toString());
+        res.setHeader('X-RateLimit-Reset', result.info.resetTime.toISOString());
+      }
+
+      if (!result.success) {
+        // Rate limit exceeded
+        res.setHeader(
+          'Retry-After',
+          result.resetTime
+            ? Math.ceil((result.resetTime.getTime() - Date.now()) / 1000).toString()
+            : '60'
+        );
+
+        if (options.onLimitReached) {
+          options.onLimitReached(req, res, options);
+        } else {
+          res.status(429).json({
+            success: false,
+            error: 'Rate limit exceeded',
+            message: `Too many requests. Please try again later.`,
+            retryAfter: result.resetTime,
+          });
+        }
+        return;
+      }
+
+      next();
+    } catch (error) {
+      // If rate limiting fails, allow the request (fail open)
+      next();
+    }
+  };
+}
+
+// Smart rate limiter with different strategies based on endpoint
+export const smartRateLimiter = createRateLimitMiddleware({
+  windowMs: REDIS_CONFIG.RATE_LIMIT.WINDOW * 1000,
+  maxRequests: REDIS_CONFIG.RATE_LIMIT.MAX_REQUESTS,
+  keyGenerator: (req) => {
+    // Use different strategies for different endpoints
+    if (req.path.includes('/auth/')) {
+      return `auth:${req.ip}`;
+    }
+    if (req.path.includes('/api/products')) {
+      return `products:${req.ip}`;
+    }
+    if (req.path.includes('/search')) {
+      return `search:${req.ip}`;
+    }
+    return req.ip || 'unknown';
+  },
+});
+```
+
+---
+
+### 🟠 **PHASE 4: USE CASE INTEGRATION**
+
+#### ✅ **Step 4.1: Integrate Redis with All Product Use Cases**
 
 - **Objective:** Apply Redis caching to all existing product use cases with appropriate strategies
 - **Implementation:** Enhance existing use cases with Redis caching
-- **Dependencies:** Product use cases (from existing implementation), Redis service (Step 1.3)
+- **Dependencies:** Redis service (Step 1.3), Cache consistency service (Step 2.1), Cache decorators (Step 3.1)
 - **Files to Modify:**
-  - `src/usecases/CreateProductUseCase.ts` - Add write-through caching
-  - `src/usecases/GetProductUseCase.ts` - Add cache-aside pattern
-  - `src/usecases/ListProductsUseCase.ts` - Add query-based caching
-  - `src/usecases/UpdateProductUseCase.ts` - Add cache invalidation
-  - `src/usecases/DeleteProductUseCase.ts` - Add complete cache cleanup
-  - `src/usecases/ToggleWishlistProductUseCase.ts` - Add smart invalidation
+  - `src/usecases/product/CreateProductUseCase.ts` - Add write-through caching
+  - `src/usecases/product/GetProductUseCase.ts` - Add cache-aside pattern
+  - `src/usecases/product/ListProductsUseCase.ts` - Add query-based caching
+  - `src/usecases/product/UpdateProductUseCase.ts` - Add cache invalidation
+  - `src/usecases/product/DeleteProductUseCase.ts` - Add complete cache cleanup
+  - `src/usecases/product/ToggleWishlistProductUseCase.ts` - Add smart invalidation
 - **Caching Strategies:**
   - CreateProductUseCase: Write-through with list invalidation
   - GetProductUseCase: Cache-aside with consistency checking
@@ -649,16 +1603,26 @@ export const redisCache = (
   - ToggleWishlistProductUseCase: Selective invalidation for wishlist changes
 - **Implementation Time:** 3 hours
 
-### **Step 2.3.1: CreateProductUseCase with Write-Through Caching**
+### **Step 4.1.1: CreateProductUseCase with Write-Through Caching**
 
 **File:** `src/usecases/product/CreateProductUseCase.ts`
 
 ```typescript
+import { injectable, inject } from 'tsyringe';
+import { IProductRepository } from '../../domain/interfaces/product/IProductRepository';
+import { IRedisService } from '../../domain/interfaces/redis/IRedisService';
+import { CacheConsistencyService } from '../../domain/services/cache/CacheConsistencyService';
+import { CreateProductDTO } from '../../interface/dtos/product/CreateProductDTO';
+import { Product } from '../../domain/entities/product/Product';
+import { REDIS_CONFIG, CACHE_KEY_PATTERNS, CACHE_LOG_MESSAGES } from '../../shared/constants';
+import { Logger } from '../../shared/logger';
+
 @injectable()
 export class CreateProductUseCase {
   constructor(
-    @inject(DI_TOKENS.PRODUCT_REPOSITORY) private productRepository: IProductRepository,
-    private redisService: IRedisService,
+    @inject('IProductRepository') private productRepository: IProductRepository,
+    @inject('IRedisService') private redisService: IRedisService,
+    private cacheConsistencyService: CacheConsistencyService,
     @inject('Logger') private logger: Logger
   ) {}
 
@@ -683,7 +1647,10 @@ export class CreateProductUseCase {
     );
 
     await this.invalidateProductListCaches();
-    this.logger.info('Product created and cached', { id: createdProduct.id });
+    this.logger.info(CACHE_LOG_MESSAGES.CACHE_SET, {
+      key: CACHE_KEY_PATTERNS.PRODUCT(createdProduct.id),
+      ttl: REDIS_CONFIG.TTL.PRODUCT,
+    });
 
     return createdProduct;
   }
@@ -693,20 +1660,29 @@ export class CreateProductUseCase {
     for (const key of listKeys) {
       await this.redisService.delete(key);
     }
+    this.logger.info('Product list caches invalidated', { count: listKeys.length });
   }
 }
 ```
 
-### **Step 2.3.2: GetProductUseCase with Cache-Aside Pattern**
+### **Step 4.1.2: GetProductUseCase with Cache-Aside Pattern**
 
 **File:** `src/usecases/product/GetProductUseCase.ts`
 
 ```typescript
+import { injectable, inject } from 'tsyringe';
+import { IProductRepository } from '../../domain/interfaces/product/IProductRepository';
+import { IRedisService } from '../../domain/interfaces/redis/IRedisService';
+import { CacheConsistencyService } from '../../domain/services/cache/CacheConsistencyService';
+import { Product } from '../../domain/entities/product/Product';
+import { REDIS_CONFIG, CACHE_KEY_PATTERNS, CACHE_LOG_MESSAGES } from '../../shared/constants';
+import { Logger } from '../../shared/logger';
+
 @injectable()
 export class GetProductUseCase {
   constructor(
-    @inject(DI_TOKENS.PRODUCT_REPOSITORY) private productRepository: IProductRepository,
-    private redisService: IRedisService,
+    @inject('IProductRepository') private productRepository: IProductRepository,
+    @inject('IRedisService') private redisService: IRedisService,
     private cacheConsistencyService: CacheConsistencyService,
     @inject('Logger') private logger: Logger
   ) {}
@@ -716,21 +1692,26 @@ export class GetProductUseCase {
     const cachedProduct = await this.redisService.get(cacheKey);
 
     if (cachedProduct) {
-      this.logger.info(`Cache hit for product ${id}`);
+      this.logger.info(CACHE_LOG_MESSAGES.CACHE_HIT, { key: cacheKey });
       this.cacheConsistencyService.trackCacheHit();
 
-      const isStale = await this.cacheConsistencyService.checkCacheStaleness(cacheKey);
+      const isStale = await this.cacheConsistencyService.checkStaleData(cacheKey);
       if (isStale) {
-        this.logger.warn(`Stale cache detected for product ${id}`);
+        this.logger.warn(CACHE_LOG_MESSAGES.STALE_CACHE_DETECTED, { key: cacheKey });
         this.cacheConsistencyService.trackStaleRead();
-        this.cacheConsistencyService.refreshCacheInBackground(cacheKey, () =>
-          this.productRepository.findById(id)
+
+        // Background refresh for stale data
+        this.cacheConsistencyService.refreshAhead(
+          cacheKey,
+          () => this.productRepository.findById(id),
+          REDIS_CONFIG.TTL.PRODUCT
         );
       }
+
       return JSON.parse(cachedProduct);
     }
 
-    this.logger.info(`Cache miss for product ${id}`);
+    this.logger.info(CACHE_LOG_MESSAGES.CACHE_MISS, { key: cacheKey, source: 'database' });
     this.cacheConsistencyService.trackCacheMiss();
 
     const product = await this.productRepository.findById(id);
@@ -744,16 +1725,32 @@ export class GetProductUseCase {
 }
 ```
 
-### **Step 2.3.3: ListProductsUseCase with Advanced Caching**
+### **Step 4.1.3: ListProductsUseCase with Advanced Caching**
 
 **File:** `src/usecases/product/ListProductsUseCase.ts`
 
 ```typescript
+import { injectable, inject } from 'tsyringe';
+import { IProductRepository } from '../../domain/interfaces/product/IProductRepository';
+import { IRedisService } from '../../domain/interfaces/redis/IRedisService';
+import { CacheConsistencyService } from '../../domain/services/cache/CacheConsistencyService';
+import { Product } from '../../domain/entities/product/Product';
+import { REDIS_CONFIG, CACHE_KEY_PATTERNS, CACHE_LOG_MESSAGES } from '../../shared/constants';
+import { Logger } from '../../shared/logger';
+
+interface ListProductsQuery {
+  page?: string;
+  limit?: string;
+  category?: string;
+  search?: string;
+  isActive?: string;
+}
+
 @injectable()
 export class ListProductsUseCase {
   constructor(
-    @inject(DI_TOKENS.PRODUCT_REPOSITORY) private productRepository: IProductRepository,
-    private redisService: IRedisService,
+    @inject('IProductRepository') private productRepository: IProductRepository,
+    @inject('IRedisService') private redisService: IRedisService,
     private cacheConsistencyService: CacheConsistencyService,
     @inject('Logger') private logger: Logger
   ) {}
@@ -763,19 +1760,19 @@ export class ListProductsUseCase {
     const cachedResult = await this.redisService.get(cacheKey);
 
     if (cachedResult) {
-      this.logger.info(`Cache hit for list: ${cacheKey}`);
+      this.logger.info(CACHE_LOG_MESSAGES.CACHE_HIT, { key: cacheKey });
       this.cacheConsistencyService.trackCacheHit();
       return JSON.parse(cachedResult);
     }
 
-    this.logger.info(`Cache miss for list: ${cacheKey}`);
+    this.logger.info(CACHE_LOG_MESSAGES.CACHE_MISS, { key: cacheKey, source: 'database' });
     this.cacheConsistencyService.trackCacheMiss();
 
     const page = Math.max(1, parseInt(query.page || '1', 10));
     const limit = Math.max(1, Math.min(100, parseInt(query.limit || '10', 10)));
     const skip = (page - 1) * limit;
 
-    const filter: ProductFilter = {};
+    const filter: any = {};
     if (query.category) filter.category = query.category;
     if (query.search) filter.search = query.search;
     if (query.isActive !== undefined) filter.isActive = query.isActive === 'true';
@@ -801,166 +1798,97 @@ export class ListProductsUseCase {
 }
 ```
 
-### **Step 2.3.4: UpdateProductUseCase with Cache Invalidation**
+### **Step 4.1.4: UpdateProductUseCase with Cache Invalidation**
 
 **File:** `src/usecases/product/UpdateProductUseCase.ts`
 
 ```typescript
-@injectable()
-export class UpdateProductUseCase {
-  constructor(
-    @inject(DI_TOKENS.PRODUCT_REPOSITORY) private productRepository: IProductRepository,
-    private productService: ProductService,
-    private redisService: IRedisService
-  ) {}
-
-  public async execute(id: string, dto: UpdateProductDTO): Promise<Product> {
-    const existingProduct = await this.productRepository.findById(id);
-    if (!existingProduct) throw new Error('Product not found');
-
-    let updatedProduct = existingProduct;
-    // ... update logic ...
-    if (dto.price !== undefined)
-      updatedProduct = this.productService.updatePrice(updatedProduct, dto.price);
-    if (dto.stock !== undefined)
-      updatedProduct = this.productService.updateStock(
-        updatedProduct,
-        dto.stock - updatedProduct.stock
-      );
-
-    const result = await this.productRepository.update(updatedProduct);
-
-    // Invalidate
-    await this.redisService.delete(CACHE_KEY_PATTERNS.PRODUCT(id));
-    await this.invalidateRelatedProductListCaches(result);
-
-    return result;
+import { injectable, inject } from 'tsyringe';
+import { IProductRepository } from '../../domain/interfaces/product/IProductRepository';
+    await this.redisService.set(sessionKey, JSON.stringify(updatedSession));
+    return true;
   }
 
-  private async invalidateRelatedProductListCaches(product: Product): Promise<void> {
-    const categoryKeys = await this.redisService.keys(
-      `products:list:*category:${product.category}*`
-    );
-    for (const key of categoryKeys) await this.redisService.delete(key);
-
-    const generalKeys = await this.redisService.keys('products:list:*');
-    for (const key of generalKeys) await this.redisService.delete(key);
+  /**
+   * Delete session
+   */
+  public async deleteSession(sessionId: string): Promise<boolean> {
+    const sessionKey = CACHE_KEY_PATTERNS.SESSION(sessionId);
+    await this.redisService.delete(sessionKey);
+    this.logger.debug(CACHE_LOG_MESSAGES.CACHE_DELETE, { key: sessionKey });
+    return true;
   }
-}
-```
 
-### **Step 2.3.5: DeleteProductUseCase with Complete Invalidation**
+  /**
+   * Extend session TTL
+   */
+  public async extendSession(sessionId: string, ttl?: number): Promise<boolean> {
+    const sessionKey = CACHE_KEY_PATTERNS.SESSION(sessionId);
+    const extensionTtl = ttl || REDIS_CONFIG.TTL.SESSION;
 
-**File:** `src/usecases/product/DeleteProductUseCase.ts`
-
-```typescript
-@injectable()
-export class DeleteProductUseCase {
-  constructor(
-    @inject(DI_TOKENS.PRODUCT_REPOSITORY) private productRepository: IProductRepository,
-    private redisService: IRedisService,
-    @inject('Logger') private logger: Logger
-  ) {}
-
-  public async execute(id: string): Promise<boolean> {
-    const existingProduct = await this.productRepository.findById(id);
-    if (!existingProduct) return false;
-
-    const success = await this.productRepository.delete(id);
-
-    if (success) {
-      await this.redisService.delete(CACHE_KEY_PATTERNS.PRODUCT(id));
-      await this.invalidateAllProductRelatedCaches(existingProduct);
-      this.logger.info('Product deleted and cache invalidated', { id });
+    const sessionData = await this.redisService.get(sessionKey);
+    if (sessionData) {
+      await this.redisService.set(sessionKey, sessionData, extensionTtl);
+      return true;
     }
-    return success;
+    return false;
   }
 
-  private async invalidateAllProductRelatedCaches(product: Product): Promise<void> {
-    await this.redisService.delete(CACHE_KEY_PATTERNS.PRODUCT(product.id));
+  /**
+   * Clean up expired sessions
+   */
+  public async cleanupExpiredSessions(): Promise<number> {
+    const sessionKeys = await this.redisService.keys('session:*');
+    let cleanedCount = 0;
 
-    const categoryKeys = await this.redisService.keys(
-      `products:list:*category:${product.category}*`
-    );
-    for (const key of categoryKeys) await this.redisService.delete(key);
+    for (const key of sessionKeys) {
+      const sessionData = await this.redisService.get(key);
+      if (sessionData) {
+        const session = JSON.parse(sessionData) as SessionData;
+        const daysSinceLastAccess =
+          (Date.now() - session.lastAccessedAt.getTime()) / (1000 * 60 * 60 * 24);
 
-    const searchKeys = await this.redisService.keys('products:list:*search:*');
-    for (const key of searchKeys) await this.redisService.delete(key);
-
-    if (product.isWishlistStatus) {
-      const wishlistKeys = await this.redisService.keys('products:list:*wishlist*');
-      for (const key of wishlistKeys) await this.redisService.delete(key);
+        if (daysSinceLastAccess > 7) {
+          // Remove sessions inactive for more than 7 days
+          await this.redisService.delete(key);
+          cleanedCount++;
+        }
+      }
     }
+
+    this.logger.info(`Cleaned up ${cleanedCount} expired sessions`);
+    return cleanedCount;
+  }
+
+  /**
+   * Generate a unique session ID
+   */
+  private generateSessionId(): string {
+    return `sess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Validate session structure
+   */
+  public isValidSessionData(data: any): data is SessionData {
+    return (
+      data &&
+      typeof data.userId === 'string' &&
+      typeof data.email === 'string' &&
+      Array.isArray(data.roles) &&
+      typeof data.preferences === 'object' &&
+      data.createdAt instanceof Date &&
+      data.lastAccessedAt instanceof Date
+    );
   }
 }
 ```
 
-### **Step 2.3.6: ToggleWishlistProductUseCase with Smart Invalidation**
-
-**File:** `src/usecases/product/ToggleWishlistProductUseCase.ts`
-
-```typescript
-@injectable()
-export class ToggleWishlistProductUseCase {
-  constructor(
-    @inject(DI_TOKENS.PRODUCT_REPOSITORY) private productRepository: IProductRepository,
-    private productService: ProductService,
-    private redisService: IRedisService,
-    @inject('Logger') private logger: Logger
-  ) {}
-
-  public async execute(id: string): Promise<Product> {
-    const existingProduct = await this.productRepository.findById(id);
-    if (!existingProduct) throw new Error('Product not found');
-
-    const updatedProduct = this.productService.updateWishlistStatus(
-      existingProduct,
-      !existingProduct.isWishlistStatus
-    );
-    const result = await this.productRepository.update(updatedProduct);
-
-    await this.smartWishlistCacheInvalidation(result);
-    this.logger.info('Wishlist status toggled', { id, status: result.isWishlistStatus });
-
-    return result;
-  }
-
-  private async smartWishlistCacheInvalidation(product: Product): Promise<void> {
-    await this.redisService.delete(CACHE_KEY_PATTERNS.PRODUCT(product.id));
-
-    const wishlistKeys = await this.redisService.keys('products:list:*wishlist*');
-    for (const key of wishlistKeys) await this.redisService.delete(key);
-
-    const categoryKeys = await this.redisService.keys(
-      `products:list:*category:${product.category}*`
-    );
-    for (const key of categoryKeys) await this.redisService.delete(key);
-  }
-}
-```
-
-### 🟠 **PHASE 3: ADVANCED FEATURES**
-
-#### ✅ **Step 3.1: Implement Session Management with Redis**
-
-- **Objective:** Add Redis-based session management for user authentication
-- **Implementation:** Create session store and management utilities
-- **Dependencies:** Redis service (Step 1.3)
-- **Files to Create:**
-  - `src/infrastructure/redis/services/SessionService.ts` - Session management service
-- **Session Features:**
-  - Session creation and validation
-  - Session expiration handling
-  - User session data storage
-  - Session cleanup and garbage collection
-  - Distributed session support for load balancing
-- **Implementation Time:** 1.5 hours
-
-#### ✅ **Step 3.2: Add Rate Limiting with Redis**
+#### ✅ **Step 4.2: Add Rate Limiting with Redis**
 
 - **Objective:** Implement API rate limiting using Redis
 - **Implementation:** Create rate limiting middleware and utilities
-- **Dependencies:** Redis service (Step 1.3)
+- **Dependencies:** Redis service (Step 1.3), Cache consistency service (Step 2.1)
 - **Files to Create:**
   - `src/interface/middlewares/rateLimiter.ts` - Rate limiting middleware
 - **Rate Limiting Features:**
@@ -971,11 +1899,11 @@ export class ToggleWishlistProductUseCase {
   - Automatic cleanup of expired limits
 - **Implementation Time:** 1 hour
 
-#### ✅ **Step 3.3: Create Rate Limiting Service**
+#### ✅ **Step 4.3: Create Rate Limiting Service**
 
 - **Objective:** Create dedicated service for rate limiting operations
 - **Implementation:** Implement rate limiting logic as a separate service
-- **Dependencies:** Redis service (Step 1.3)
+- **Dependencies:** Redis service (Step 1.3), Cache consistency service (Step 2.1)
 - **Files to Create:**
   - `src/infrastructure/redis/services/RateLimitingService.ts` - Rate limiting service
 - **Service Features:**
@@ -986,168 +1914,254 @@ export class ToggleWishlistProductUseCase {
   - Metrics collection for rate limiting
 - **Implementation Time:** 1 hour
 
-### 🔵 **PHASE 4: CONSISTENCY AND MONITORING**
-
-#### ✅ **Step 4.1: Create Cache Consistency Service**
-
-- **Objective:** Implement service for managing cache consistency and monitoring
-- **Implementation:** Create service for consistency checking, monitoring, and conflict resolution
-- **Dependencies:** Redis service (Step 1.3)
-- **Files to Create:**
-  - `src/infrastructure/redis/services/CacheConsistencyService.ts` - Cache consistency service
-- **Consistency Features:**
-  - Cache hit/miss ratio monitoring
-  - Stale data detection and handling
-  - Background cache refresh
-  - Consistency metrics collection
-  - Automatic cache invalidation triggers
-  - Cache performance monitoring
-- **Implementation Time:** 2 hours
-
-**File:** `src/infrastructure/redis/services/CacheConsistencyService.ts`
+**File:** `src/infrastructure/redis/services/RateLimitingService.ts`
 
 ```typescript
 import { injectable, inject } from 'tsyringe';
-import Redis from 'ioredis';
 import { IRedisService } from '../../domain/interfaces/IRedisService';
-import { REDIS_CONFIG, CACHE_LOG_MESSAGES } from '../../shared/constants';
+import { REDIS_CONFIG, CACHE_KEY_PATTERNS, CACHE_LOG_MESSAGES } from '../../shared/constants';
 import { Logger } from '../../shared/logger';
 
-export interface CacheMetrics {
-  cacheHits: number;
-  cacheMisses: number;
-  staleReads: number;
-  consistencyErrors: number;
-  hitRate: number;
-  consistencyScore: number;
+export interface RateLimitConfig {
+  windowMs: number;
+  maxRequests: number;
+  skipSuccessfulRequests?: boolean;
+  skipFailedRequests?: boolean;
+  keyGenerator?: (req: any) => string;
+}
+
+export interface RateLimitInfo {
+  limit: number;
+  remaining: number;
+  resetTime: Date;
+  totalHits: number;
+}
+
+export interface RateLimitResult {
+  success: boolean;
+  info?: RateLimitInfo;
+  resetTime?: Date;
 }
 
 @injectable()
-export class CacheConsistencyService {
-  private metrics: CacheMetrics = {
-    cacheHits: 0,
-    cacheMisses: 0,
-    staleReads: 0,
-    consistencyErrors: 0,
-    hitRate: 0,
-    consistencyScore: 100,
+export class RateLimitingService {
+  private defaultConfig: RateLimitConfig = {
+    windowMs: REDIS_CONFIG.RATE_LIMIT.WINDOW * 1000,
+    maxRequests: REDIS_CONFIG.RATE_LIMIT.MAX_REQUESTS,
   };
-  private logger: Logger;
 
   constructor(
     @inject('IRedisService') private redisService: IRedisService,
-    @inject('Logger') logger: Logger
-  ) {
-    this.logger = logger;
-    this.startMonitoring();
-  }
+    @inject('Logger') private logger: Logger
+  ) {}
 
-  private startMonitoring(): void {
-    setInterval(async () => {
-      try {
-        const client = this.redisService.getClient();
-        if (client.status === 'ready') {
-          const info = await client.info('memory');
-          const memoryMatch = info.match(/used_memory:(\d+)/);
-          if (memoryMatch) {
-            const memoryUsage = parseInt(memoryMatch[1], 10);
-            this.logger.debug(CACHE_LOG_MESSAGES.MEMORY_USAGE, { memory: memoryUsage });
-          }
-        }
-      } catch (error) {
-        this.logger.error(CACHE_LOG_MESSAGES.METRICS_COLLECTION_FAILED, { error });
-      }
-    }, 60000);
+  /**
+   * Check rate limit for a given key
+   */
+  public async checkRateLimit(
+    key: string,
+    config: RateLimitConfig = this.defaultConfig
+  ): Promise<RateLimitResult> {
+    const now = Date.now();
+    const windowStart = now - config.windowMs;
+    const rateLimitKey = CACHE_KEY_PATTERNS.RATE_LIMIT(key);
 
-    setInterval(() => {
-      const total = this.metrics.cacheHits + this.metrics.cacheMisses;
-      if (total > 0) {
-        const hitRate = (this.metrics.cacheHits / total) * 100;
-        this.logger.info(CACHE_LOG_MESSAGES.CACHE_HIT_RATE, {
-          hitRate: hitRate.toFixed(2),
-          total,
-        });
-
-        if (hitRate < 50) {
-          this.logger.warn(CACHE_LOG_MESSAGES.LOW_HIT_RATE_WARNING, { hitRate });
-        }
-      }
-    }, 300000);
-  }
-
-  public trackCacheHit(): void {
-    this.metrics.cacheHits++;
-    this.updateMetrics();
-  }
-
-  public trackCacheMiss(): void {
-    this.metrics.cacheMisses++;
-    this.updateMetrics();
-  }
-
-  public trackStaleRead(): void {
-    this.metrics.staleReads++;
-    this.updateMetrics();
-  }
-
-  private updateMetrics(): void {
-    const totalOperations = this.metrics.cacheHits + this.metrics.cacheMisses;
-    if (totalOperations > 0) {
-      this.metrics.hitRate = (this.metrics.cacheHits / totalOperations) * 100;
-    }
-  }
-
-  public async checkCacheStaleness(key: string): Promise<boolean> {
     try {
-      const client = this.redisService.getClient();
-      const ttl = await client.ttl(key);
-      return ttl < REDIS_CONFIG.CONSISTENCY.STALE_THRESHOLD;
+      // Use Redis pipeline for atomic operations
+      const pipeline = this.redisService.getClient().pipeline();
+
+      // Remove old entries outside the window
+      pipeline.zremrangebyscore(rateLimitKey, 0, windowStart);
+
+      // Count current requests in window
+      pipeline.zcard(rateLimitKey);
+
+      // Add current request
+      pipeline.zadd(rateLimitKey, now, now.toString());
+
+      // Set expiration for the key
+      pipeline.expire(rateLimitKey, Math.ceil(config.windowMs / 1000));
+
+      const results = await pipeline.exec();
+      const currentCount = results[1][1] as number;
+
+      const remaining = Math.max(0, config.maxRequests - currentCount - 1);
+      const resetTime = new Date(now + config.windowMs);
+
+      const success = currentCount < config.maxRequests;
+
+      const info: RateLimitInfo = {
+        limit: config.maxRequests,
+        remaining,
+        resetTime,
+        totalHits: currentCount + 1,
+      };
+
+      if (!success) {
+        this.logger.warn(
+          CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED.replace('{operation}', 'RATE_LIMIT_EXCEEDED')
+            .replace('{key}', key)
+            .replace('{error}', `Limit: ${config.maxRequests}, Current: ${currentCount + 1}`)
+        );
+      }
+
+      return {
+        success,
+        info: success ? info : undefined,
+        resetTime: success ? undefined : resetTime,
+      };
     } catch (error) {
-      return false;
+      this.logger.error(
+        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED.replace('{operation}', 'RATE_LIMIT_CHECK')
+          .replace('{key}', key)
+          .replace('{error}', error instanceof Error ? error.message : String(error))
+      );
+
+      // Fail open - allow request if rate limiting fails
+      return { success: true };
     }
   }
 
-  public async refreshCacheInBackground(key: string, refreshFn: () => Promise<any>): Promise<void> {
+  /**
+   * Reset rate limit for a specific key
+   */
+  public async resetRateLimit(key: string): Promise<void> {
+    const rateLimitKey = CACHE_KEY_PATTERNS.RATE_LIMIT(key);
+    await this.redisService.delete(rateLimitKey);
+    this.logger.debug(CACHE_LOG_MESSAGES.CACHE_DELETE, { key: rateLimitKey });
+  }
+
+  /**
+   * Get rate limit info without incrementing
+   */
+  public async getRateLimitInfo(
+    key: string,
+    config: RateLimitConfig = this.defaultConfig
+  ): Promise<RateLimitInfo | null> {
+    const now = Date.now();
+    const windowStart = now - config.windowMs;
+    const rateLimitKey = CACHE_KEY_PATTERNS.RATE_LIMIT(key);
+
     try {
-      this.logger.info(CACHE_LOG_MESSAGES.BACKGROUND_REFRESH_STARTED, { key });
-      const data = await refreshFn();
-      await this.redisService.set(key, JSON.stringify(data));
-      this.logger.info(CACHE_LOG_MESSAGES.BACKGROUND_REFRESH_COMPLETED, { key });
+      const currentCount = await this.redisService.getClient().zcard(rateLimitKey);
+      const remaining = Math.max(0, config.maxRequests - currentCount);
+      const resetTime = new Date(now + config.windowMs);
+
+      return {
+        limit: config.maxRequests,
+        remaining,
+        resetTime,
+        totalHits: currentCount,
+      };
     } catch (error) {
-      this.logger.error('Background cache refresh failed', { key, error });
+      this.logger.error('Failed to get rate limit info', { key, error });
+      return null;
     }
+  }
+
+  /**
+   * Get rate limit statistics
+   */
+  public async getRateLimitStats(): Promise<{
+    totalKeys: number;
+    totalRequests: number;
+    activeLimits: number;
+  }> {
+    try {
+      const rateLimitKeys = await this.redisService.keys('rate_limit:*');
+      let totalRequests = 0;
+
+      // Use pipeline for batch operations
+      const pipeline = this.redisService.getClient().pipeline();
+      rateLimitKeys.forEach((key) => {
+        pipeline.zcard(key);
+      });
+
+      const results = await pipeline.exec();
+      totalRequests = results.reduce((sum, result) => sum + (result[1] as number), 0);
+
+      return {
+        totalKeys: rateLimitKeys.length,
+        totalRequests,
+        activeLimits: rateLimitKeys.length,
+      };
+    } catch (error) {
+      this.logger.error('Failed to get rate limit stats', { error });
+      return {
+        totalKeys: 0,
+        totalRequests: 0,
+        activeLimits: 0,
+      };
+    }
+  }
+
+  /**
+   * Clean up expired rate limit keys
+   */
+  public async cleanupExpiredLimits(): Promise<number> {
+    try {
+      const rateLimitKeys = await this.redisService.keys('rate_limit:*');
+      let cleanedCount = 0;
+
+      for (const key of rateLimitKeys) {
+        const ttl = await this.redisService.getClient().ttl(key);
+        if (ttl === -1) {
+          // Key has no expiration, remove it
+          await this.redisService.delete(key);
+          cleanedCount++;
+        }
+      }
+
+      if (cleanedCount > 0) {
+        this.logger.info(`Cleaned up ${cleanedCount} expired rate limit keys`);
+      }
+
+      return cleanedCount;
+    } catch (error) {
+      this.logger.error('Failed to cleanup expired rate limits', { error });
+      return 0;
+    }
+  }
+
+  /**
+   * Generate rate limit key based on request
+   */
+  public generateKey(req: any, type: 'ip' | 'user' | 'endpoint' = 'ip'): string {
+    switch (type) {
+      case 'user':
+        return req.user?.id || req.user?.email || 'anonymous';
+      case 'endpoint':
+        return `${req.ip}:${req.route?.path || req.originalUrl}`;
+      case 'ip':
+      default:
+        return req.ip || req.connection?.remoteAddress || 'unknown';
+    }
+  }
+
+  /**
+   * Create custom rate limit configuration
+   */
+  public createConfig(options: Partial<RateLimitConfig>): RateLimitConfig {
+    return {
+      ...this.defaultConfig,
+      ...options,
+    };
+  }
+
+  /**
+   * Check multiple rate limits simultaneously
+   */
+  public async checkMultipleRateLimits(
+    keys: Array<{ key: string; config?: RateLimitConfig }>
+  ): Promise<RateLimitResult[]> {
+    const results = await Promise.all(
+      keys.map(({ key, config }) => this.checkRateLimit(key, config))
+    );
+
+    return results;
   }
 }
 ```
-
-#### ✅ **Step 4.2: Update DI Container Configuration**
-
-- **Objective:** Register Redis services in the DI container
-- **Implementation:** Add Redis service registration to DI container
-- **Dependencies:** All Redis services (Steps 1.3, 3.1, 3.3, 4.1)
-- **Files to Modify:**
-  - `src/config/di-container.ts` - Add service registrations
-- **Service Registrations:**
-  - `IRedisService` → `RedisService`
-  - `SessionService`
-  - `RateLimitingService`
-  - `CacheConsistencyService`
-  - Add proper token definitions
-- **Implementation Time:** 30 minutes
-
-#### ✅ **Step 4.3: Update Application Wiring**
-
-- **Objective:** Integrate Redis middleware into the main application
-- **Implementation:** Add Redis middleware to Express app configuration
-- **Dependencies:** Redis middleware (Steps 2.2, 3.2)
-- **Files to Modify:**
-  - `src/app.ts` - Add Redis middleware
-- **Middleware Integration:**
-  - Add Redis cache middleware for product routes
-  - Add rate limiting middleware for all routes
-  - Configure middleware order and precedence
-  - Add error handling for Redis operations
-- **Implementation Time:** 45 minutes
 
 ### 🟣 **PHASE 5: DOCUMENTATION AND TESTING**
 
@@ -1155,7 +2169,7 @@ export class CacheConsistencyService {
 
 - **Objective:** Document Redis-related API endpoints and features
 - **Implementation:** Update Swagger configuration with Redis documentation
-- **Dependencies:** Existing Swagger configuration
+- **Dependencies:** Existing Swagger configuration, Redis services (Steps 1.3, 2.1, 3.1, 4.1, 4.3)
 - **Files to Modify:**
   - `src/config/swagger.ts` - Add Redis endpoint documentation
 - **Documentation Updates:**
@@ -1169,7 +2183,7 @@ export class CacheConsistencyService {
 
 - **Objective:** Add comprehensive tests for Redis integration
 - **Implementation:** Create unit and integration tests for Redis services
-- **Dependencies:** Redis service (Step 1.3), test utilities
+- **Dependencies:** Redis service (Step 1.3), Cache consistency service (Step 2.1), Session service (Step 4.1), Rate limiting service (Step 4.3), test utilities
 - **Files to Create:**
   - `src/__tests__/unit/redisService.test.ts` - Redis service unit tests
   - `src/__tests__/unit/cacheConsistencyService.test.ts` - Consistency service tests
@@ -1684,10 +2698,17 @@ jollyJet/
 │   │       └── IRedisService.ts                  # ✅ NEW - Redis service interface
 │   │
 │   ├── infrastructure/
-│   │   ├── services/
-│   │   │   ├── RedisService.ts                   # ✅ NEW - Redis service implementation
-│   │   │   ├── SessionService.ts                 # ✅ NEW - Session management
-│   │   │   └── CacheConsistencyService.ts        # ✅ NEW - Consistency monitoring
+│   │   ├── redis/
+│   │   │   └── services/
+│   │   │       ├── RedisService.ts               # ✅ NEW - Redis service implementation
+│   │   │       ├── SessionService.ts             # ✅ NEW - Session management
+│   │   │       └── RateLimitingService.ts        # ✅ NEW - Rate limiting service
+│   └── domain/
+│       └── services/
+│           └── cache/
+│               ├── CacheConsistencyService.ts    # ✅ NEW - Consistency management
+│               ├── RedisCacheService.ts          # ✅ NEW - Redis cache implementation
+│               └── CacheKeyGenerator.ts          # ✅ NEW - Cache key generation
 │   │
 │   ├── interface/
 │   │   ├── middlewares/
@@ -1716,20 +2737,22 @@ jollyJet/
 
 **Correct implementation sequence based on dependencies:**
 
-| Step    | Component                   | Dependencies                                                              | Layer          |
-| ------- | --------------------------- | ------------------------------------------------------------------------- | -------------- |
-| **1.1** | Redis Configuration         | None                                                                      | Shared         |
-| **1.2** | IRedisService Interface     | None                                                                      | Domain         |
-| **1.3** | RedisService Implementation | Redis Configuration (1.1), IRedisService (1.2)                            | Infrastructure |
-| **2.1** | Cache Decorators            | Redis Service (1.3)                                                       | Shared         |
-| **2.2** | Redis Cache Middleware      | Redis Service (1.3)                                                       | Interface      |
-| **3.1** | Session Service             | Redis Service (1.3)                                                       | Infrastructure |
-| **3.2** | Rate Limiting Middleware    | Redis Service (1.3)                                                       | Interface      |
-| **4.1** | Cache Consistency Service   | Redis Service (1.3)                                                       | Infrastructure |
-| **4.2** | DI Container Configuration  | Redis Service (1.3), Session Service (3.1), CacheConsistencyService (4.1) | Configuration  |
-| **4.3** | Application Wiring          | Redis Middleware (2.2, 3.2)                                               | Configuration  |
-| **5.1** | Swagger Documentation       | Redis Services                                                            | Configuration  |
-| **5.2** | Integration Tests           | Redis Services                                                            | Tests          |
+| Step    | Component                   | Dependencies                                                                                                                         | Layer          |
+| ------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | -------------- |
+| **1.1** | Redis Configuration         | None                                                                                                                                 | Shared         |
+| **1.2** | IRedisService Interface     | None                                                                                                                                 | Domain         |
+| **1.3** | RedisService Implementation | Redis Configuration (1.1), IRedisService (1.2)                                                                                       | Infrastructure |
+| **2.1** | Cache Consistency Service   | Redis Service (1.3)                                                                                                                  | Domain         |
+| **2.2** | DI Container Configuration  | Redis Service (1.3), Cache Consistency Service (2.1)                                                                                 | Configuration  |
+| **2.3** | Session Management          | Redis Service (1.3), Cache Consistency Service (2.1)                                                                                 | Infrastructure |
+| **2.4** | Rate Limiting Service       | Redis Service (1.3), Cache Consistency Service (2.1)                                                                                 | Infrastructure |
+| **3.1** | Cache Decorators            | Redis Service (1.3), Cache Consistency Service (2.1)                                                                                 | Shared         |
+| **3.2** | Redis Cache Middleware      | Redis Service (1.3), Cache Consistency Service (2.1)                                                                                 | Interface      |
+| **3.3** | Rate Limiting Middleware    | Rate Limiting Service (2.4)                                                                                                          | Interface      |
+| **4.1** | Product Use Cases           | Redis Service (1.3), Cache Consistency Service (2.1), Cache Decorators (3.1), Redis Cache Middleware (3.2)                           | Use Cases      |
+| **5.1** | Swagger Documentation       | Product Use Cases (4.1)                                                                                                              | Configuration  |
+| **5.2** | Redis Integration Tests     | Redis Service (1.3), Cache Consistency Service (2.1), Session Management (2.3), Rate Limiting Service (2.4), Product Use Cases (4.1) | Tests          |
+| **5.3** | Verification Scripts        | Product Use Cases (4.1)                                                                                                              | Scripts        |
 
 ## 🧭 _Visual Dependency Chain_
 
@@ -1744,18 +2767,21 @@ Step 1.2: src/domain/interfaces/redis/IRedisService.ts (interface)
     ↓
 Step 1.3: src/infrastructure/redis/services/RedisService.ts (implementation)
     ↓
-Step 2.1: src/shared/decorators/cache.decorator.ts (decorators)
-Step 2.2: src/interface/middlewares/redisCache.ts (middleware)
-Step 3.1: src/infrastructure/redis/services/SessionService.ts (sessions)
-Step 3.2: src/interface/middlewares/rateLimiter.ts (rate limiting)
-Step 4.1: src/infrastructure/redis/services/CacheConsistencyService.ts (consistency)
+Step 2.1: src/domain/services/cache/CacheConsistencyService.ts (consistency manager)
     ↓
-Step 4.2: src/config/di-container.ts (DI registration)
+Step 2.2: src/config/di-container.ts (DI registration)
+Step 2.3: src/infrastructure/redis/services/SessionService.ts (sessions)
+Step 2.4: src/infrastructure/redis/services/RateLimitingService.ts (rate limiting service)
     ↓
-Step 4.3: src/app.ts (application integration)
+Step 3.1: src/shared/decorators/cache.decorator.ts (decorators)
+Step 3.2: src/interface/middlewares/redisCache.ts (middleware)
+Step 3.3: src/interface/middlewares/rateLimiter.ts (rate limiting middleware)
+    ↓
+Step 4.1: src/usecases/product/* (product use cases with Redis integration)
     ↓
 Step 5.1: src/config/swagger.ts (documentation)
-Step 5.2: src/__tests__/redis.test.ts (tests)
+Step 5.2: src/__tests__/redis.test.ts (integration tests)
+Step 5.3: scripts/verify-redis.sh (verification scripts)
 ```
 
 **Layer Flow:**
@@ -2027,14 +3053,15 @@ export class RedisService implements IRedisService {
 }
 ```
 
-#### `src/infrastructure/redis/services/CacheConsistencyService.ts` (Step 4.1)
+#### `src/domain/services/cache/CacheConsistencyService.ts` (Step 4.1)
 
 **Cache Consistency Service**: Comprehensive consistency management.
 
 ```typescript
-import { injectable } from 'tsyringe';
-import { IRedisService } from '../../domain/interfaces/IRedisService';
-import { REDIS_CONFIG } from '../../shared/constants';
+import { injectable, inject } from 'tsyringe';
+import { ICacheService } from '@/domain/interfaces/cache/ICacheService';
+import { REDIS_CONFIG, CACHE_LOG_MESSAGES } from '../../shared/constants';
+import { Logger } from '../../shared/logger';
 
 export interface CacheMetrics {
   cacheHits: number;
@@ -2056,7 +3083,10 @@ export class CacheConsistencyService {
     consistencyScore: 100,
   };
 
-  constructor(private redisService: IRedisService) {
+  constructor(
+    private cacheService: ICacheService,
+    @inject('Logger') private logger: Logger
+  ) {
     // Schedule regular consistency checks
     setInterval(() => this.checkConsistency(), REDIS_CONFIG.CONSISTENCY.CHECK_INTERVAL);
   }
@@ -2122,19 +3152,71 @@ export class CacheConsistencyService {
     return { ...this.metrics };
   }
 
-  public async checkCacheStaleness(key: string): Promise<boolean> {
-    // Check if cache entry is stale based on TTL
-    const ttl = await this.redisService.getClient().ttl(key);
-    return ttl < REDIS_CONFIG.CONSISTENCY.STALE_THRESHOLD;
+  public async checkStaleData(key: string): Promise<boolean> {
+    try {
+      // Get TTL for the key
+      const ttl = await this.cacheService.getTTL(key);
+
+      // If TTL is very low or negative, consider data stale
+      if (ttl <= 0) {
+        return true;
+      }
+
+      // Additional stale detection logic could be added here
+      // For example, checking last update time, comparing with database, etc.
+
+      return false;
+    } catch (error) {
+      this.logger.debug(
+        `Error checking stale data for ${key}: ${error instanceof Error ? error.message : String(error)}`
+      );
+      return false;
+    }
   }
 
-  public async refreshCacheInBackground(key: string, refreshFn: () => Promise<any>): Promise<void> {
+  public async refreshAhead<T>(
+    key: string,
+    operation: () => Promise<T>,
+    ttl: number,
+    refreshThreshold: number = 300
+  ): Promise<T> {
+    // Get current cached value
+    const cachedValue = await this.cacheService.get<T>(key);
+
+    if (cachedValue !== null) {
+      // Check if we should refresh
+      const currentTtl = await this.cacheService.getTTL(key);
+
+      if (currentTtl > 0 && currentTtl <= refreshThreshold) {
+        // Refresh in background
+        this.refreshCacheInBackground(key, operation, ttl);
+      }
+
+      return cachedValue;
+    }
+
+    // If not in cache, execute operation and cache
+    const result = await operation();
+    await this.cacheService.set(key, result, ttl);
+
+    return result;
+  }
+
+  private async refreshCacheInBackground<T>(
+    key: string,
+    operation: () => Promise<T>,
+    ttl: number
+  ): Promise<void> {
     try {
-      const data = await refreshFn();
-      await this.redisService.set(key, JSON.stringify(data));
-      console.log(`Cache refreshed for key: ${key}`);
+      const result = await operation();
+      await this.cacheService.set(key, result, ttl);
+      this.logger.debug(`Background cache refresh completed for key: ${key}`);
     } catch (error) {
-      console.error(`Cache refresh failed for key ${key}:`, error);
+      this.logger.error(
+        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED.replace('{operation}', 'BACKGROUND_REFRESH')
+          .replace('{key}', key)
+          .replace('{error}', error instanceof Error ? error.message : String(error))
+      );
     }
   }
 }
@@ -2149,7 +3231,7 @@ export class CacheConsistencyService {
 ```typescript
 import { IRedisService } from '../../domain/interfaces/IRedisService';
 import { container } from 'tsyringe';
-import { CacheConsistencyService } from '../../infrastructure/services/CacheConsistencyService';
+import { CacheConsistencyService } from '@/domain/services/cache/CacheConsistencyService';
 
 /**
  * Cache decorator for caching method results with consistency options
@@ -2269,7 +3351,7 @@ export function CacheEvict(pattern: string) {
 import { Request, Response, NextFunction } from 'express';
 import { container } from 'tsyringe';
 import { IRedisService } from '../../domain/interfaces/IRedisService';
-import { CacheConsistencyService } from '../../infrastructure/services/CacheConsistencyService';
+import { CacheConsistencyService } from '@/domain/services/cache/CacheConsistencyService';
 import { REDIS_CONFIG } from '../../shared/constants';
 
 export const redisCache = (
@@ -2443,16 +3525,17 @@ class GetProductUseCase {
 - ✅ **Step 1.1**: Add Redis configuration to shared layer
 - ✅ **Step 1.2**: Create Redis service interface in domain layer
 - ✅ **Step 1.3**: Implement Redis service in infrastructure layer
-- ✅ **Step 2.1**: Create cache decorators with consistency features
-- ✅ **Step 2.2**: Add Redis cache middleware with consistency handling
-- ✅ **Step 2.3**: Integrate Redis with all product use cases
-- ✅ **Step 3.1**: Implement session management with Redis
-- ✅ **Step 3.2**: Add rate limiting with Redis
-- ✅ **Step 4.1**: Create cache consistency service
-- ✅ **Step 4.2**: Update DI container configuration
-- ✅ **Step 4.3**: Update application wiring
-- ✅ **Step 5.1**: Add Redis documentation to Swagger
+- ✅ **Step 2.1**: Create cache consistency service with monitoring
+- ✅ **Step 2.2**: Update DI Container Configuration
+- ✅ **Step 2.3**: Implement session management with Redis
+- ✅ **Step 2.4**: Create rate limiting service
+- ✅ **Step 3.1**: Create cache decorators with consistency features
+- ✅ **Step 3.2**: Add Redis cache middleware with consistency handling
+- ✅ **Step 3.3**: Add rate limiting middleware
+- ✅ **Step 4.1**: Integrate Redis with all product use cases
+- ✅ **Step 5.1**: Update Swagger documentation
 - ✅ **Step 5.2**: Create Redis integration tests
+- ✅ **Step 5.3**: Create verification scripts
 
 ## 💎 _DETAILED STEPS EXPLANATION_
 

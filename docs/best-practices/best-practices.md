@@ -166,6 +166,250 @@ ProductSchema.index({ name: 1 }); // Indexing
 - **Transaction Support**: Use transactions for multi-document operations
 - **ID Validation**: Validate MongoDB ObjectIds before database queries for better performance and error handling
 
+#### Redis and Caching (`src/domain/services/redis`, `src/infrastructure/services`)
+
+- **Connection Management**: Proper Redis connection lifecycle and pooling
+- **Configuration**: Environment-based Redis configuration with validation
+- **Health Checks**: Redis connectivity monitoring and graceful degradation
+- **Connection Reuse**: Use connection pooling for optimal performance
+- **Error Handling**: Handle Redis connection failures gracefully
+- **Graceful Degradation**: Application should function without Redis when unavailable
+
+**Example Redis Service Structure:**
+
+```typescript
+@injectable()
+export class RedisService implements IRedisService {
+  private redis: Redis;
+  private isConnected: boolean = false;
+
+  constructor(@inject(DI_TOKENS.REDIS_CONFIG) private config: RedisConfig) {
+    this.redis = new Redis({
+      host: config.host,
+      port: config.port,
+      password: config.password,
+      retryDelayOnFailover: 100,
+      maxRetriesPerRequest: 3,
+      lazyConnect: true,
+    });
+
+    this.setupEventHandlers();
+  }
+
+  private setupEventHandlers(): void {
+    this.redis.on('connect', () => {
+      this.isConnected = true;
+      logger.info('Redis connected successfully');
+    });
+
+    this.redis.on('error', (error) => {
+      this.isConnected = false;
+      logger.error('Redis connection error:', error);
+    });
+  }
+
+  async get<T>(key: string): Promise<T | null> {
+    try {
+      if (!this.isConnected) {
+        logger.warn('Redis not connected, skipping cache get');
+        return null;
+      }
+
+      const value = await this.redis.get(key);
+      return value ? JSON.parse(value) : null;
+    } catch (error) {
+      logger.error(`Redis GET error for key ${key}:`, error);
+      return null;
+    }
+  }
+
+  async set<T>(key: string, value: T, ttl?: number): Promise<boolean> {
+    try {
+      if (!this.isConnected) {
+        logger.warn('Redis not connected, skipping cache set');
+        return false;
+      }
+
+      const serialized = JSON.stringify(value);
+      if (ttl) {
+        await this.redis.setex(key, ttl, serialized);
+      } else {
+        await this.redis.set(key, serialized);
+      }
+      return true;
+    } catch (error) {
+      logger.error(`Redis SET error for key ${key}:`, error);
+      return false;
+    }
+  }
+
+  async del(key: string): Promise<boolean> {
+    try {
+      if (!this.isConnected) {
+        logger.warn('Redis not connected, skipping cache delete');
+        return false;
+      }
+
+      await this.redis.del(key);
+      return true;
+    } catch (error) {
+      logger.error(`Redis DEL error for key ${key}:`, error);
+      return false;
+    }
+  }
+
+  async isHealthy(): Promise<boolean> {
+    try {
+      if (!this.isConnected) return false;
+      await this.redis.ping();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async disconnect(): Promise<void> {
+    await this.redis.quit();
+  }
+}
+```
+
+**Caching Strategy Patterns:**
+
+- **Cache-Aside Pattern**: Check cache first, fallback to database
+- **Write-Through**: Update both cache and database synchronously
+- **Write-Behind**: Update database first, then update cache asynchronously
+- **Cache Warming**: Pre-populate cache with frequently accessed data
+- **Cache Invalidation**: Proper cache invalidation on data updates
+
+**Example Cache Implementation:**
+
+```typescript
+export class ProductCacheService {
+  constructor(private redisService: IRedisService) {}
+
+  private getCacheKey(productId: string): string {
+    return `product:${productId}`;
+  }
+
+  async getProduct(productId: string): Promise<Product | null> {
+    const cacheKey = this.getCacheKey(productId);
+
+    // Try cache first
+    const cached = await this.redisService.get<Product>(cacheKey);
+    if (cached) {
+      logger.info(`Cache hit for product ${productId}`);
+      return cached;
+    }
+
+    logger.info(`Cache miss for product ${productId}`);
+    return null;
+  }
+
+  async setProduct(product: Product, ttl: number = 3600): Promise<void> {
+    const cacheKey = this.getCacheKey(product.id);
+    await this.redisService.set(cacheKey, product, ttl);
+  }
+
+  async invalidateProduct(productId: string): Promise<void> {
+    const cacheKey = this.getCacheKey(productId);
+    await this.redisService.del(cacheKey);
+  }
+
+  async warmProductCache(products: Product[]): Promise<void> {
+    const pipeline = this.redisService.pipeline();
+
+    products.forEach((product) => {
+      const cacheKey = this.getCacheKey(product.id);
+      pipeline.set(cacheKey, product, 3600);
+    });
+
+    await pipeline.exec();
+  }
+}
+```
+
+**Data Serialization Best Practices:**
+
+- **JSON Serialization**: Use JSON.stringify/parse for simple objects
+- **Complex Objects**: Implement custom serialization for complex domain objects
+- **Circular References**: Avoid circular references in cached objects
+- **Date Handling**: Serialize dates as ISO strings, deserialize as Date objects
+- **Type Safety**: Maintain TypeScript types during serialization
+
+**Performance Considerations:**
+
+- **TTL Strategy**: Set appropriate TTL values based on data volatility
+- **Memory Management**: Monitor Redis memory usage and implement eviction policies
+- **Connection Pooling**: Use connection pooling for high-throughput scenarios
+- **Batch Operations**: Use Redis pipelines for multiple operations
+- **Key Naming**: Use consistent, hierarchical key naming conventions
+
+**Example Key Naming Convention:**
+
+```typescript
+// ✅ Good key naming patterns
+const KEYS = {
+  PRODUCTS: {
+    LIST: (filters: string) => `products:list:${filters}`,
+    DETAIL: (id: string) => `products:detail:${id}`,
+    SEARCH: (query: string) => `products:search:${hashQuery(query)}`,
+  },
+  SESSIONS: {
+    USER: (userId: string) => `sessions:user:${userId}`,
+    TOKEN: (token: string) => `sessions:token:${token}`,
+  },
+  RATE_LIMITS: {
+    API: (userId: string) => `rate_limit:api:${userId}`,
+    AUTH: (ip: string) => `rate_limit:auth:${ip}`,
+  },
+} as const;
+```
+
+**Cache Invalidation Strategies:**
+
+- **Time-Based**: Use TTL for automatic invalidation
+- **Event-Based**: Invalidate cache on data changes
+- **Pattern-Based**: Use Redis SCAN for pattern-based invalidation
+- **Dependency-Based**: Invalidate related cache entries on updates
+
+**Example Cache Invalidation:**
+
+```typescript
+export class ProductCacheInvalidator {
+  constructor(
+    private redisService: IRedisService,
+    private productRepository: IProductRepository
+  ) {}
+
+  async updateProduct(productId: string, updates: Partial<Product>): Promise<void> {
+    // Update database first
+    await this.productRepository.update(productId, updates);
+
+    // Invalidate related cache entries
+    await Promise.all([
+      this.redisService.del(`products:detail:${productId}`),
+      this.invalidateProductListCaches(),
+      this.invalidateSearchCaches(),
+    ]);
+  }
+
+  private async invalidateProductListCaches(): Promise<void> {
+    const keys = await this.redisService.keys('products:list:*');
+    if (keys.length > 0) {
+      await this.redisService.del(...keys);
+    }
+  }
+
+  private async invalidateSearchCaches(): Promise<void> {
+    const keys = await this.redisService.keys('products:search:*');
+    if (keys.length > 0) {
+      await this.redisService.del(...keys);
+    }
+  }
+}
+```
+
 ### Use Cases Layer Best Practices (`src/usecases`)
 
 Use cases orchestrate domain logic and implement application-specific workflows.
@@ -1628,6 +1872,195 @@ logger.info('User login', {
 - **Don't** perform heavy operations in application threads
 - **Don't** forget to close database connections
 - **Don't** ignore database performance metrics
+
+### 🗃️ Redis & Caching Do's and Don'ts
+
+#### ✅ Do's
+
+- **Do** implement graceful degradation when Redis is unavailable
+- **Do** use connection pooling for Redis connections
+- **Do** set appropriate TTL values based on data volatility
+- **Do** use consistent hierarchical key naming conventions
+- **Do** implement proper cache invalidation strategies
+- **Do** handle Redis connection failures gracefully
+- **Do** use Redis pipelines for batch operations
+- **Do** monitor Redis memory usage and implement eviction policies
+- **Do** implement health checks for Redis connectivity
+- **Do** serialize complex objects properly (avoid circular references)
+- **Do** use cache-aside pattern for read-heavy operations
+- **Do** implement cache warming for frequently accessed data
+
+**Example: Proper Redis implementation with graceful degradation**
+
+```typescript
+// ✅ Do: Graceful degradation and proper error handling
+@injectable()
+export class RedisService implements IRedisService {
+  private redis: Redis;
+  private isConnected: boolean = false;
+
+  constructor(@inject(DI_TOKENS.REDIS_CONFIG) private config: RedisConfig) {
+    this.redis = new Redis({
+      host: config.host,
+      port: config.port,
+      password: config.password,
+      retryDelayOnFailover: 100,
+      maxRetriesPerRequest: 3,
+      lazyConnect: true,
+    });
+    this.setupEventHandlers();
+  }
+
+  private setupEventHandlers(): void {
+    this.redis.on('connect', () => {
+      this.isConnected = true;
+      logger.info('Redis connected successfully');
+    });
+
+    this.redis.on('error', (error) => {
+      this.isConnected = false;
+      logger.error('Redis connection error:', error);
+    });
+  }
+
+  async get<T>(key: string): Promise<T | null> {
+    try {
+      if (!this.isConnected) {
+        logger.warn('Redis not connected, skipping cache get');
+        return null;
+      }
+      const value = await this.redis.get(key);
+      return value ? JSON.parse(value) : null;
+    } catch (error) {
+      logger.error(`Redis GET error for key ${key}:`, error);
+      return null;
+    }
+  }
+
+  async set<T>(key: string, value: T, ttl?: number): Promise<boolean> {
+    try {
+      if (!this.isConnected) {
+        logger.warn('Redis not connected, skipping cache set');
+        return false;
+      }
+      const serialized = JSON.stringify(value);
+      if (ttl) {
+        await this.redis.setex(key, ttl, serialized);
+      } else {
+        await this.redis.set(key, serialized);
+      }
+      return true;
+    } catch (error) {
+      logger.error(`Redis SET error for key ${key}:`, error);
+      return false;
+    }
+  }
+
+  async isHealthy(): Promise<boolean> {
+    try {
+      if (!this.isConnected) return false;
+      await this.redis.ping();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
+
+// ✅ Do: Use consistent key naming conventions
+const KEYS = {
+  PRODUCTS: {
+    LIST: (filters: string) => `products:list:${filters}`,
+    DETAIL: (id: string) => `products:detail:${id}`,
+    SEARCH: (query: string) => `products:search:${hashQuery(query)}`,
+  },
+  SESSIONS: {
+    USER: (userId: string) => `sessions:user:${userId}`,
+    TOKEN: (token: string) => `sessions:token:${token}`,
+  },
+  RATE_LIMITS: {
+    API: (userId: string) => `rate_limit:api:${userId}`,
+    AUTH: (ip: string) => `rate_limit:auth:${ip}`,
+  },
+} as const;
+
+// ✅ Do: Implement proper cache invalidation
+class ProductCacheInvalidator {
+  async updateProduct(productId: string, updates: Partial<Product>): Promise<void> {
+    await Promise.all([
+      this.redisService.del(`products:detail:${productId}`),
+      this.invalidateProductListCaches(),
+      this.invalidateSearchCaches(),
+    ]);
+  }
+
+  private async invalidateProductListCaches(): Promise<void> {
+    const keys = await this.redisService.keys('products:list:*');
+    if (keys.length > 0) {
+      await this.redisService.del(...keys);
+    }
+  }
+}
+```
+
+#### ❌ Don'ts
+
+- **Don't** assume Redis is always available
+- **Don't** store sensitive data in Redis without encryption
+- **Don't** use Redis as primary data store (use for caching only)
+- **Don't** ignore Redis connection failures
+- **Don't** set TTL to 0 or negative values
+- **Don't** use generic key names without namespaces
+- **Don't** store large objects without compression
+- **Don't** create Redis connections for every operation
+- **Don't** mix different data types in the same key
+- **Don't** forget to handle Redis-specific errors
+- **Don't** use Redis for complex queries (use databases instead)
+- **Don't** cache data that changes frequently without proper invalidation
+
+**Example: Redis anti-patterns to avoid**
+
+```typescript
+// ❌ Don't: Assume Redis is always available
+class BadRedisService {
+  async get(key: string): Promise<any> {
+    // ❌ No connection checking
+    return await this.redis.get(key); // Might throw if Redis down
+  }
+}
+
+// ❌ Don't: Use generic key names
+class BadCacheService {
+  async cacheUser(user: User): Promise<void> {
+    // ❌ Generic key without namespace
+    await this.redis.set('user', user);
+  }
+
+  async cacheProduct(product: Product): Promise<void> {
+    // ❌ Same key name, will overwrite user cache!
+    await this.redis.set('user', product);
+  }
+}
+
+// ❌ Don't: Store sensitive data without encryption
+class InsecureCacheService {
+  async storePassword(userId: string, password: string): Promise<void> {
+    // ❌ Storing plain text password
+    await this.redis.set(`password:${userId}`, password);
+  }
+}
+
+// ❌ Don't: Create connections for every operation
+class BadRedisUsage {
+  async getData(key: string): Promise<any> {
+    // ❌ Creating new connection every time
+    const redis = new Redis(process.env.REDIS_URL);
+    const value = await redis.get(key);
+    await redis.quit();
+    return value;
+  }
+}
+```
 
 ### 🚀 API Design Do's and Don'ts
 
