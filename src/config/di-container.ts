@@ -19,7 +19,7 @@ import {
   IRedisService,
   ISessionService,
 } from '@/domain/interfaces';
-import { ProductService, RedisService } from '@/domain/services';
+import { CacheConsistencyService, ProductService, RedisService } from '@/domain/services';
 import { ProductRepository } from '@/infrastructure/repositories';
 import { RateLimitingService, SessionService } from '@/infrastructure/services';
 import { ProductController } from '@/interface/controllers';
@@ -104,6 +104,9 @@ export const initializeDIContainer = (): void => {
   container.register<IRedisService>(DI_TOKENS.REDIS_SERVICE, {
     useClass: RedisService,
   });
+
+  // Register Cache Consistency Service - Performs background consistency checks and metrics collection
+  container.registerSingleton<CacheConsistencyService>(CacheConsistencyService);
 
   // Register Session Service - Maps ISessionService interface to SessionService implementation
   // SessionService provides Redis-based session management for user authentication

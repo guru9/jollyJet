@@ -676,7 +676,7 @@ GET    /api/products/wishlist        # Get all wishlist products (paginated)
 - **Consistency:** Robust monitoring and stale data handling
 - **Decorators:** `@Cacheable` and `@CacheEvict` for clean implementation
 
-**Redis Integration Status:** 🚧 **Partially Implemented (70%)**
+**Redis Integration Status:** 🚧 **Partially Implemented (80%)**
 
 - ✅ **Step 1.1 Completed** - Redis configuration constants added
 - ✅ **Step 1.2 Completed** - `IRedisService` interface created in Domain
@@ -684,6 +684,8 @@ GET    /api/products/wishlist        # Get all wishlist products (paginated)
 - ✅ **Step 2.1 Completed** - Cache Consistency Service implemented
 - ✅ **Step 2.2 Completed** - Session Management Service implemented
 - ✅ **Step 2.3 Completed** - Rate Limiting Service implemented (Sliding Window + Tests)
+- ✅ **Step 2.4 Completed** - Cache Decorators (`@Cacheable`, `@CacheEvict`) implemented
+- ✅ **Step 2.5 Completed** - DI Container fully configured for Redis services
 
 **Current Implementation:**
 
@@ -692,12 +694,13 @@ GET    /api/products/wishlist        # Get all wishlist products (paginated)
 - ✅ Cache Consistency Service
 - ✅ Session Management Service (Clean Architecture)
 - ✅ Rate Limiting Service (Sliding Window)
-- ❌ Cache decorators or middleware
+- ✅ Cache Decorators (`@Cacheable`, `@CacheEvict`)
+- ❌ Middleware implementation (Step 3)
 
 **Next Steps:**
 
-1. Develop cache decorators (`@Cacheable`)
-2. Integrate with Middleware and Product Use Cases
+1. Integrate with Middleware (Interface Layer)
+2. Apply decorators to Product Use Cases
 3. Documentation and Integration Testing
 
 ### The project is now preparing for high-performance caching and advanced features:
@@ -708,6 +711,7 @@ GET    /api/products/wishlist        # Get all wishlist products (paginated)
 - 📄 **[Cache Consistency Service Analysis](./redis/step2.1-cache-consistency-service.md)** - Consistency service analysis
 - 📄 **[Session Management Analysis](./redis/step2.2-session-management.md)** - Session service analysis
 - 📄 **[Rate Limiting Analysis](./redis/step2.3-rate-limiting.md)** - Rate limiting service analysis
+- 📄 **[Cache Decorators Analysis](./redis/step2.4-cache-decorators.md)** - Decorators analysis
 
 ---
 

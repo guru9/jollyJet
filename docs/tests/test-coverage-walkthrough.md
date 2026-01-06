@@ -295,35 +295,29 @@ collectCoverageFrom: [
 
 ```
 src/__tests__/
-├── unit/                    # Unit Tests
-│   ├── utils.test.ts       # 14 test suites, 30 tests
-│   ├── errors.test.ts      # 8 test suites, 22 tests
-│   ├── middleware.test.ts  # 2 test suites, 8 tests
-│   └── products/           # Product module tests
-│       ├── productEntity.test.ts       # 2 test suites, 5 tests
-│       ├── productRepository.test.ts   # 9 test suites, 18 tests
-│       ├── productValidators.test.ts   # 6 test suites, 47 tests
-│       ├── createProductUseCase.test.ts # 2 test suites, 9 tests
-│       ├── productService.test.ts      # 4 test suites, 15 tests
-│       ├── listProductsUseCase.test.ts # 2 test suites, 14 tests
-│       ├── updateProductUseCase.test.ts # 3 test suites, 15 tests
-│       ├── deleteProductUseCase.test.ts # 4 test suites, 12 tests
-│       ├── getProductUseCase.test.ts    # 1 test suite, 4 tests
-│       ├── toggleWishlistProductUseCase.test.ts # 2 test suites, 8 tests
-│       ├── countProductsUseCase.test.ts # 2 test suites, 13 tests
-│       └── productController.test.ts            # 8 test suites, 22 tests
-├── infrastructure/      # Infrastructure Tests
-│   └── services/
-│       ├── session/
-│       │   └── SessionService.test.ts # 1 test suite, 6 tests
-│       └── ratelimit/
-│           └── RateLimitingService.test.ts # 1 test suite, 7 tests
-├── integration/             # Integration Tests
-│   └── app.test.ts         # 4 test suites, 7 tests
-└── setup.ts                # Test environment setup
+├── unit/                        # Unit Tests
+│   ├── infrastructure/          # Infrastructure Unit Tests
+│   │   ├── product/             # productRepository.test.ts
+│   │   ├── ratelimit/           # RateLimitingService.test.ts
+│   │   └── session/             # SessionService.test.ts
+│   ├── domain/                  # Domain Unit Tests
+│   │   ├── cache/               # CacheConsistencyService.test.ts
+│   │   ├── entities/            # productEntity.test.ts
+│   │   └── services/            # productService.test.ts
+│   ├── interface/               # Interface Unit Tests
+│   │   └── product/             # productController.test.ts, productValidators.test.ts
+│   ├── usecases/                # Application Unit Tests
+│   │   └── product/             # UseCase tests (7 files)
+│   ├── shared/                  # Shared Component Tests
+│   │   └── decorators/          # cache.decorator.test.ts
+│   ├── errors.test.ts           # Shared Error tests
+│   ├── middleware.test.ts       # Shared Middleware tests
+│   └── utils.test.ts            # Shared Utility tests
+├── integration/                 # Integration Tests (app.test.ts)
+└── setup.ts                     # Test environment setup
 ```
 
-### Total Test Suites: 20
+### Total Test Suites: 21
 
 1. **Integration:** App Endpoints (app.test.ts) - 4 test suites, 7 tests
 2. **Unit:** Middleware Tests (middleware.test.ts) - 2 test suites, 8 tests
@@ -343,10 +337,11 @@ src/__tests__/
 16. **Unit:** CountProductsUseCase Tests ([CountProductsUseCase Test Documentation](./products/step4.2-count-products-usecase-test.md)) - 2 test suites, 13 tests
 17. **Unit:** Product Controller Tests ([Product Controller Test Documentation](./products/step5.1-product-controller-testcase.md)) - 8 test suites, 22 tests
 18. **Unit:** Redis Service Tests ([Redis Service Test Documentation](./redis/step1.3-redis-service-test.md)) - 6 test suites, 12 tests
-19. **Unit:** SessionService Tests ([Session Service Test Documentation](./redis/step2.2-session-management-tests.md)) - 1 test suite, 6 tests
-20. **Unit:** RateLimitingService Tests ([Rate Limiting Test Documentation](./redis/step2.3-rate-limiting-tests.md)) - 1 test suite, 7 tests (Added in Step 2.3)
+19. **Unit:** SessionService Tests ([Session Service Test Documentation](./redis/step2.2-session-management-test.md)) - 1 test suite, 6 tests
+20. **Unit:** RateLimitingService Tests ([Rate Limiting Test Documentation](./redis/step2.3-rate-limiting-test.md)) - 1 test suite, 7 tests
+21. **Unit:** Cache Decorator Tests ([Cache Decorator Test Documentation](./redis/step2.4-cache-decorators-test.md)) - 1 test suite, 4 tests (Added in Step 2.4)
 
-### Total Tests: 237 individual test cases
+### Total Tests: 241 individual test cases
 
 ### Coverage Metrics: 100%
 
@@ -580,5 +575,7 @@ After running `npm run test:coverage`, view the detailed coverage report at:
 ✅ **Full type system integration** from `types/index.d.ts`
 ✅ **All utility functions implemented** and fully tested
 ✅ **Redis Service Test Cases Analysis** added for Redis integration
+✅ **Rate Limiting Service Tests** documented (Step 2.3)
+✅ **Cache Decorator Tests** documented (Step 2.4)
 
 The JollyJet application now has robust test coverage ensuring code quality and reliability! 🎉
