@@ -61,6 +61,7 @@ export const DI_TOKENS = {
   PRODUCT_REPOSITORY: 'ProductRepository', // Injection token for product repository
   LOGGER: 'Logger', // Injection token for logger service
   REDIS_SERVICE: 'RedisService', // Injection token for Redis client
+  SESSION_SERVICE: 'SessionService', // Injection token for session service
 
   // Future tokens can be added here for other modules
 } as const;

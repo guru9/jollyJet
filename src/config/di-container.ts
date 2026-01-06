@@ -13,9 +13,10 @@
  */
 import 'reflect-metadata'; // Required for tsyringe to work with decorators and reflection metadata
 
-import { IProductRepository, IRedisService } from '@/domain/interfaces';
+import { IProductRepository, IRedisService, ISessionService } from '@/domain/interfaces';
 import { ProductService, RedisService } from '@/domain/services';
 import { ProductRepository } from '@/infrastructure/repositories';
+import { SessionService } from '@/infrastructure/services';
 import { ProductController } from '@/interface/controllers';
 import { DI_TOKENS, logger } from '@/shared';
 
@@ -97,6 +98,12 @@ export const initializeDIContainer = (): void => {
   // Register Redis Service
   container.register<IRedisService>(DI_TOKENS.REDIS_SERVICE, {
     useClass: RedisService,
+  });
+
+  // Register Session Service - Maps ISessionService interface to SessionService implementation
+  // SessionService provides Redis-based session management for user authentication
+  container.register<ISessionService>(DI_TOKENS.SESSION_SERVICE, {
+    useClass: SessionService,
   });
 
   logger.info('DI container initialized successfully');

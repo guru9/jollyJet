@@ -13,6 +13,63 @@ This comprehensive Redis integration plan provides a complete implementation gui
 
 We will follow **Clean Architecture** principles, ensuring our Redis integration remains independent of business logic while providing significant performance benefits and robust cache consistency guarantees.
 
+## 📂 Implemented Folder Structure
+
+The Redis implementation follows strict Clean Architecture principles, separating domain contracts from infrastructure implementations:
+
+```
+src/
+├── domain/                    # 🟢 Domain Layer (Core Business Rules)
+│   ├── interfaces/
+│   │   ├── redis/
+│   │   │   └── IRedisService.ts          # Step 1.2 [No deps]
+│   │   ├── session/
+│   │   │   └── ISessionService.ts        # Step 2.2 [No deps]
+│   │   └── ratelimit/
+│   │       └── IRateLimitingService.ts   # Step 2.3 (Planned)
+│   └── services/
+│       ├── cache/
+│       │   └── CacheConsistencyService.ts # Step 2.1 [Dep: 1.3]
+│       └── redis/
+│           └── RedisService.ts           # Step 1.3 [Dep: 1.1, 1.2]
+│
+├── usecases/                  # 🟠 Application Layer (Business Orchestration)
+│   └── product/
+│       ├── GetProductUseCase.ts          # Step 4.1 [Dep: 1.3]
+│       ├── CreateProductUseCase.ts       # Step 4.1 [Dep: 1.3]
+│       └── ...
+│
+├── interface/                 # 🔴 Interface Layer (Presentation/Adapters)
+│   ├── controllers/
+│   │   └── product/
+│   │       └── ProductController.ts      # Step 4.1
+│   ├── middlewares/
+│   │   ├── redisCacheMiddleware.ts       # Step 3.1 [Dep: 1.3, 2.1]
+│   │   └── rateLimitingMiddleware.ts     # Step 3.2 [Dep: 2.3]
+│   └── routes/
+│       └── product/
+│           └── productRoutes.ts
+│
+├── infrastructure/            # 🔵 Infrastructure Layer (External Details)
+│   └── services/
+│       ├── session/
+│       │   └── SessionService.ts         # Step 2.2 [Dep: 1.3]
+│       └── ratelimit/
+│           └── RateLimitingService.ts    # Step 2.3 (Planned) [Dep: 1.3]
+│
+├── shared/                    # 🟡 Shared Layer
+    ├── decorators/
+    │   └── cache.decorator.ts            # Step 2.4 (Planned) [Dep: 1.3]
+    └── constants.ts                      # Step 1.1
+
+└── __tests__/                 # 🧪 Tests
+    └── unit/
+        └── infrastructure/
+            └── services/
+                └── session/
+                    └── SessionService.test.ts # Step 2.2 (Test)
+```
+
 ---
 
 ## 🎯 Implementation Dependency Flow
@@ -49,22 +106,22 @@ graph TD
 
 ### Dependency Flow Table
 
-| Step    | Component                   | Required Dependencies                                                                              | Layer          | Est. Time |
-| ------- | --------------------------- | -------------------------------------------------------------------------------------------------- | -------------- | --------- |
-| **1.1** | Redis Configuration         | None                                                                                               | Shared         | 30m       |
-| **1.2** | IRedisService Interface     | None                                                                                               | Domain         | 45m       |
-| **1.3** | RedisService Implementation | 1.1 (Config), 1.2 (Interface)                                                                      | Infrastructure | 2h        |
-| **2.1** | Cache Consistency Service   | 1.3 (RedisService)                                                                                 | Domain         | 2h        |
-| **2.2** | Session Management          | 1.3 (RedisService), 2.1 (ConsistencyService)                                                       | Infrastructure | 1.5h      |
-| **2.3** | Rate Limiting Service       | 1.3 (RedisService), 2.1 (ConsistencyService)                                                       | Infrastructure | 1h        |
-| **2.4** | Cache Decorators            | 1.3 (RedisService), 2.1 (ConsistencyService)                                                       | Shared         | 1.5h      |
-| **2.5** | DI Container Registration   | 1.3 (RedisService), 2.1 (ConsistencyService), 2.2 (Session), 2.3 (Rate Limiting), 2.4 (Decorators) | Config         | 30m       |
-| **3.1** | Redis Cache Middleware      | 1.3 (RedisService), 2.1 (ConsistencyService)                                                       | Interface      | 1h        |
-| **3.2** | Rate Limiting Middleware    | 2.4 (RateLimitingService)                                                                          | Interface      | 1h        |
-| **4.1** | Product Use Cases           | 1.3, 2.1, 3.1, 3.2 (All Previous Components)                                                       | Use Cases      | 3h        |
-| **5.1** | Swagger Documentation       | 4.1 (Product Use Cases)                                                                            | Config         | 30m       |
-| **5.2** | Redis Integration Tests     | 1.3, 2.1, 2.3, 2.4, 4.1 (Multiple Components)                                                      | Tests          | 2h        |
-| **5.3** | Verification Scripts        | 4.1 (Product Use Cases)                                                                            | Scripts        | 1h        |
+| Step    | Component                   | Required Dependencies                                                                              | Layer                   | Est. Time |
+| ------- | --------------------------- | -------------------------------------------------------------------------------------------------- | ----------------------- | --------- |
+| **1.1** | Redis Configuration         | None                                                                                               | Shared                  | 30m       |
+| **1.2** | IRedisService Interface     | None                                                                                               | Domain                  | 45m       |
+| **1.3** | RedisService Implementation | 1.1 (Config), 1.2 (Interface)                                                                      | Infrastructure          | 2h        |
+| **2.1** | Cache Consistency Service   | 1.3 (RedisService)                                                                                 | Domain                  | 2h        |
+| **2.2** | Session Management          | 1.3 (RedisService)                                                                                 | Domain & Infrastructure | 1.5h      |
+| **2.3** | Rate Limiting Service       | 1.3 (RedisService)                                                                                 | Domain & Infrastructure | 1h        |
+| **2.4** | Cache Decorators            | 1.3 (RedisService), 2.1 (ConsistencyService)                                                       | Shared                  | 1.5h      |
+| **2.5** | DI Container Registration   | 1.3 (RedisService), 2.1 (ConsistencyService), 2.2 (Session), 2.3 (Rate Limiting), 2.4 (Decorators) | Config                  | 30m       |
+| **3.1** | Redis Cache Middleware      | 1.3 (RedisService), 2.1 (ConsistencyService)                                                       | Interface               | 1h        |
+| **3.2** | Rate Limiting Middleware    | 2.4 (RateLimitingService)                                                                          | Interface               | 1h        |
+| **4.1** | Product Use Cases           | 1.3, 2.1, 3.1, 3.2 (All Previous Components)                                                       | Use Cases               | 3h        |
+| **5.1** | Swagger Documentation       | 4.1 (Product Use Cases)                                                                            | Config                  | 30m       |
+| **5.2** | Redis Integration Tests     | 1.3, 2.1, 2.3, 2.4, 4.1 (Multiple Components)                                                      | Tests                   | 2h        |
+| **5.3** | Verification Scripts        | 4.1 (Product Use Cases)                                                                            | Scripts                 | 1h        |
 
 ### Critical Dependency Notes:
 
@@ -635,10 +692,12 @@ export class CacheConsistencyService {
 #### ✅ **Step 2.2: Implement Session Management with Redis**
 
 - **Objective:** Add Redis-based session management for `user authentication`
-- **Implementation:** Create session store and management utilities
-- **Dependencies:** Redis service (Step 1.3), Cache consistency service (Step 2.1)
+- **Implementation:** Create session interface in domain layer and implementation in infrastructure layer (Clean Architecture)
+- **Dependencies:** Redis service (Step 1.3)
 - **Files to Create:**
-  - `src/infrastructure/redis/services/SessionService.ts` - Session management service
+  - `src/domain/interfaces/session/ISessionService.ts` - Session service interface
+  - `src/infrastructure/services/session/SessionService.ts` - Session service implementation
+  - `src/__tests__/unit/infrastructure/services/session/SessionService.test.ts` - Unit tests
 - **Session Features:**
   - Session creation and validation
   - Session expiration handling
@@ -647,7 +706,67 @@ export class CacheConsistencyService {
   - Distributed session support for load balancing
 - **Implementation Time:** 1.5 hours
 
-**File:** `src/infrastructure/redis/services/SessionService.ts`
+**File:** `src/domain/interfaces/session/ISessionService.ts`
+
+```typescript
+export interface SessionData {
+  userId: string;
+  email: string;
+  roles: string[];
+  preferences: Record<string, unknown>;
+  createdAt: Date;
+  lastAccessedAt: Date;
+}
+
+export interface CreateSessionOptions {
+  userId: string;
+  email: string;
+  roles: string[];
+  preferences?: Record<string, unknown>;
+  ttl?: number;
+}
+
+export interface ISessionService {
+  createSession(options: CreateSessionOptions): Promise<string>;
+  getSession(sessionId: string): Promise<SessionData | null>;
+  updateSession(sessionId: string, updates: Partial<SessionData>): Promise<boolean>;
+  deleteSession(sessionId: string): Promise<boolean>;
+  extendSession(sessionId: string, ttl?: number): Promise<boolean>;
+  cleanupExpiredSessions(inactiveDaysThreshold?: number): Promise<number>;
+  deleteUserSessions(userId: string): Promise<number>;
+  getUserSessions(userId: string): Promise<Array<{ sessionId: string; data: SessionData }>>;
+  isValidSessionData(data: unknown): data is SessionData;
+}
+```
+
+**File:** `src/infrastructure/services/session/SessionService.ts`
+
+```typescript
+import { inject, injectable } from 'tsyringe';
+import { IRedisService } from '../../../domain/interfaces/redis/IRedisService';
+import {
+  CreateSessionOptions,
+  ISessionService,
+  SessionData,
+} from '../../../domain/interfaces/session/ISessionService';
+import {
+  CACHE_KEYS_PATTERNS,
+  CACHE_LOG_MESSAGES,
+  DI_TOKENS,
+  REDIS_CONFIG,
+} from '../../../shared/constants';
+import { Logger } from '../../../shared/logger';
+
+@injectable()
+export class SessionService implements ISessionService {
+  constructor(
+    @inject(DI_TOKENS.REDIS_SERVICE) private redisService: IRedisService,
+    @inject(DI_TOKENS.LOGGER) private logger: Logger
+  ) {}
+
+  // Implementation methods...
+}
+```
 
 ```typescript
 import { injectable, inject } from 'tsyringe';
@@ -827,13 +946,26 @@ export class SessionService {
 }
 ```
 
-#### ✅ **Step 2.3: Create Rate Limiting Service**
+**File:** `src/__tests__/unit/infrastructure/services/session/SessionService.test.ts`
+
+```typescript
+import 'reflect-metadata';
+import { SessionService } from '@/infrastructure/services/session/SessionService';
+
+describe('SessionService', () => {
+  // Test cases for create, get, update, delete, cleanup
+  // See actual file for full implementation
+});
+```
+
+#### **Step 2.3: Create Rate Limiting Service**
 
 - **Objective:** Create dedicated service for rate limiting operations
-- **Implementation:** Implement rate limiting logic as a separate service
-- **Dependencies:** Redis service (Step 1.3), Cache consistency service (Step 2.1)
+- **Implementation:** Create rate limiting interface in domain layer and implementation in infrastructure layer
+- **Dependencies:** Redis service (Step 1.3)
 - **Files to Create:**
-  - `src/infrastructure/redis/services/RateLimitingService.ts` - Rate limiting service
+  - `src/domain/interfaces/ratelimit/IRateLimitingService.ts` - Rate limiting interface
+  - `src/infrastructure/services/ratelimit/RateLimitingService.ts` - Rate limiting implementation
 - **Service Features:**
   - Sliding window rate limiting
   - Multiple rate limit strategies
@@ -842,7 +974,30 @@ export class SessionService {
   - Metrics collection for rate limiting
 - **Implementation Time:** 1 hour
 
-**File:** `src/infrastructure/redis/services/RateLimitingService.ts`
+**File:** `src/domain/interfaces/ratelimit/IRateLimitingService.ts`
+
+```typescript
+export interface RateLimitResult {
+  allowed: boolean;
+  remaining: number;
+  resetAt: Date;
+  totalRequests: number;
+}
+
+export interface RateLimitConfig {
+  windowSize: number; // in seconds
+  limit: number;
+  keyPrefix?: string;
+}
+
+export interface IRateLimitingService {
+  checkRateLimit(key: string, config?: RateLimitConfig): Promise<RateLimitResult>;
+  resetRateLimit(key: string): Promise<boolean>;
+  getRateLimitStatus(key: string): Promise<RateLimitResult | null>;
+}
+```
+
+**File:** `src/infrastructure/services/ratelimit/RateLimitingService.ts`
 
 ```typescript
 import { injectable, inject } from 'tsyringe';
@@ -1091,7 +1246,7 @@ export class RateLimitingService {
 }
 ```
 
-#### ✅ **Step 2.4: Create Cache Decorators with Consistency Features**
+#### **Step 2.4: Create Cache Decorators with Consistency Features**
 
 - **Objective:** Implement caching decorators with consistency checking and invalidation strategies
 - **Implementation:** Create TypeScript decorators for cache operations with consistency options
@@ -1349,7 +1504,7 @@ if (typeof window === 'undefined') {
 
 ### 🟡 **PHASE 3: INTERFACE LAYER**
 
-#### ✅ **Step 3.2: Add Redis Cache Middleware with Consistency Handling**
+#### ⏳ **Step 3.1: Add Redis Cache Middleware with Consistency Handling**
 
 - **Objective:** Implement Express middleware for Redis caching with consistency management
 - **Implementation:** Create middleware for caching API responses with consistency features
