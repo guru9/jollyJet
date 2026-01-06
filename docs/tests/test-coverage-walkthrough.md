@@ -236,6 +236,20 @@ Complete SessionService testing:
 
 ---
 
+#### [`src/__tests__/unit/infrastructure/services/ratelimit/RateLimitingService.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/infrastructure/services/ratelimit/RateLimitingService.test.ts)
+
+Complete RateLimitingService testing:
+
+- ✅ **checkRateLimit**: Sliding window enforcement (success AND block scenarios)
+- ✅ **getRateLimitStatus**: Read-only status check without incrementing counter
+- ✅ **resetRateLimit**: Explicit cache cleanup for specific keys
+- ✅ **Custom Config**: Verification of custom window and limit overrides
+- ✅ **Resilience**: Handling of Redis pipeline failures
+
+**Test Coverage:** 1 test suite, 7 tests
+
+---
+
 ### 3. Jest Configuration Update
 
 Updated [`jest.config.ts`](file:///e:/Project/jollyJet/jest.config.ts) to focus coverage on testable code:
@@ -300,14 +314,16 @@ src/__tests__/
 │       └── productController.test.ts            # 8 test suites, 22 tests
 ├── infrastructure/      # Infrastructure Tests
 │   └── services/
-│       └── session/
-│           └── SessionService.test.ts # 1 test suite, 6 tests
+│       ├── session/
+│       │   └── SessionService.test.ts # 1 test suite, 6 tests
+│       └── ratelimit/
+│           └── RateLimitingService.test.ts # 1 test suite, 7 tests
 ├── integration/             # Integration Tests
 │   └── app.test.ts         # 4 test suites, 7 tests
 └── setup.ts                # Test environment setup
 ```
 
-### Total Test Suites: 19
+### Total Test Suites: 20
 
 1. **Integration:** App Endpoints (app.test.ts) - 4 test suites, 7 tests
 2. **Unit:** Middleware Tests (middleware.test.ts) - 2 test suites, 8 tests
@@ -328,8 +344,9 @@ src/__tests__/
 17. **Unit:** Product Controller Tests ([Product Controller Test Documentation](./products/step5.1-product-controller-testcase.md)) - 8 test suites, 22 tests
 18. **Unit:** Redis Service Tests ([Redis Service Test Documentation](./redis/step1.3-redis-service-test.md)) - 6 test suites, 12 tests
 19. **Unit:** SessionService Tests ([Session Service Test Documentation](./redis/step2.2-session-management-tests.md)) - 1 test suite, 6 tests
+20. **Unit:** RateLimitingService Tests ([Rate Limiting Test Documentation](./redis/step2.3-rate-limiting-tests.md)) - 1 test suite, 7 tests (Added in Step 2.3)
 
-### Total Tests: 230 individual test cases
+### Total Tests: 237 individual test cases
 
 ### Coverage Metrics: 100%
 
@@ -556,8 +573,8 @@ After running `npm run test:coverage`, view the detailed coverage report at:
 ✅ **Type-safe API responses** with `ApiResponse<T>` and `ValidationError` integration
 ✅ **Enhanced pagination** using `PaginationParams` and `PaginationMeta`
 ✅ **Tests organized** into unit and integration folders
-✅ **19 comprehensive test suites** created with type system validation
-✅ **230 test cases** covering all code paths with type safety
+✅ **20 comprehensive test suites** created with type system validation
+✅ **237 test cases** covering all code paths with type safety
 ✅ **Jest configuration optimized** to focus on testable code
 ✅ **All tests passing** with no errors or warnings
 ✅ **Full type system integration** from `types/index.d.ts`

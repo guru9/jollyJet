@@ -13,10 +13,15 @@
  */
 import 'reflect-metadata'; // Required for tsyringe to work with decorators and reflection metadata
 
-import { IProductRepository, IRedisService, ISessionService } from '@/domain/interfaces';
+import {
+  IProductRepository,
+  IRateLimitingService,
+  IRedisService,
+  ISessionService,
+} from '@/domain/interfaces';
 import { ProductService, RedisService } from '@/domain/services';
 import { ProductRepository } from '@/infrastructure/repositories';
-import { SessionService } from '@/infrastructure/services';
+import { RateLimitingService, SessionService } from '@/infrastructure/services';
 import { ProductController } from '@/interface/controllers';
 import { DI_TOKENS, logger } from '@/shared';
 
@@ -104,6 +109,11 @@ export const initializeDIContainer = (): void => {
   // SessionService provides Redis-based session management for user authentication
   container.register<ISessionService>(DI_TOKENS.SESSION_SERVICE, {
     useClass: SessionService,
+  });
+
+  // Register Rate Limiting Service - Maps IRateLimitingService interface to RateLimitingService implementation
+  container.register<IRateLimitingService>(DI_TOKENS.RATE_LIMIT_SERVICE, {
+    useClass: RateLimitingService,
   });
 
   logger.info('DI container initialized successfully');

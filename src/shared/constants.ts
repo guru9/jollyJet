@@ -62,6 +62,7 @@ export const DI_TOKENS = {
   LOGGER: 'Logger', // Injection token for logger service
   REDIS_SERVICE: 'RedisService', // Injection token for Redis client
   SESSION_SERVICE: 'SessionService', // Injection token for session service
+  RATE_LIMIT_SERVICE: 'RateLimitingService', // Injection token for rate limiting service
 
   // Future tokens can be added here for other modules
 } as const;
