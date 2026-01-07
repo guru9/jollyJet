@@ -232,12 +232,11 @@ src/
 │   ├── errors.ts                           # Error definitions
 │   └── utils.ts                            # Shared helpers
 │
-├── 🧪 test/                                # Test suites (Unit & Integration)
-│
 ├── 🏷️ types/                               # Type definitions
-│
 ├── 🚀 app.ts                               # App setup
 └── 🎬 server.ts                            # Entry point
+
+tests/                                      # 🧪 Test suites (Unit & Integration)
 ```
 
 ---

@@ -2,7 +2,7 @@ import { CacheConsistencyService } from '@/domain/services';
 import { DI_TOKENS } from '@/shared/constants';
 import { Cacheable, CacheEvict } from '@/shared/decorators/cache.decorator';
 import 'reflect-metadata';
-import { container } from 'tsyringe';
+import { container, InjectionToken } from 'tsyringe';
 
 // Mock Dependencies
 const mockRedisService = {
@@ -30,11 +30,14 @@ const mockLogger = {
 };
 
 // Mock Container Resolve
-jest.spyOn(container, 'resolve').mockImplementation((token: any) => {
+jest.spyOn(container, 'resolve').mockImplementation((token: InjectionToken<unknown>) => {
   if (token === DI_TOKENS.REDIS_SERVICE) return mockRedisService;
   if (token === DI_TOKENS.LOGGER) return mockLogger;
   // Use identity check AND name check for robustness in test environment
-  if (token === CacheConsistencyService || token.name === 'CacheConsistencyService') {
+  if (
+    token === CacheConsistencyService ||
+    (typeof token === 'function' && 'name' in token && token.name === 'CacheConsistencyService')
+  ) {
     return mockCacheConsistencyService;
   }
   return null;

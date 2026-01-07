@@ -6,7 +6,7 @@ Comprehensive test suite for the `ToggleWishlistProductUseCase` implementation, 
 
 ## Test File Location
 
-**File:** [`src/__tests__/unit/products/toggleWishlistProductUseCase.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/products/toggleWishlistProductUseCase.test.ts)
+**File:** [`tests/unit/products/toggleWishlistProductUseCase.test.ts`](file:///e:/Project/jollyJet/tests/unit/products/toggleWishlistProductUseCase.test.ts)
 
 ## Test Structure
 
@@ -385,6 +385,3 @@ This test suite integrates with the overall test coverage strategy:
 ## Conclusion
 
 The `ToggleWishlistProductUseCase` test suite provides comprehensive coverage of the use case implementation, ensuring proper functionality, input validation, and error handling. The tests follow established patterns and integrate seamlessly with the overall test strategy, contributing to the project's test coverage goals. The suite validates both success and failure scenarios, ensuring the use case behaves correctly under all conditions.
-
-
-

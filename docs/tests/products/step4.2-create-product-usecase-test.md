@@ -6,7 +6,7 @@ Comprehensive test suite for the `CreateProductUseCase` implementation, ensuring
 
 ## Test File Location
 
-**File:** [`src/__tests__/unit/products/createProductUseCase.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/products/createProductUseCase.test.ts)
+**File:** [`tests/unit/products/createProductUseCase.test.ts`](file:///e:/Project/jollyJet/tests/unit/products/createProductUseCase.test.ts)
 
 ## Test Structure
 
@@ -382,6 +382,3 @@ This test suite integrates with the overall test coverage strategy:
 ## Conclusion
 
 The `CreateProductUseCase` test suite provides comprehensive coverage of the use case implementation, ensuring proper functionality, type safety, and error handling. The tests follow established patterns and integrate seamlessly with the overall test strategy, contributing to the project's 100% test coverage goal.
-
-
-

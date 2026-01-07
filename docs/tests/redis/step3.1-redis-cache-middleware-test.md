@@ -74,6 +74,27 @@ This document outlines the test cases for the Redis Cache Middleware as describe
   4. Verify that the cache has expired and a fresh response is generated.
 - **Expected Result**: The cache should respect the configured TTL and expire accordingly.
 
+## Actual Test Execution Results
+
+**Test File:** `tests/unit/interface/middlewares/redisCacheHandler.test.ts`
+**Status:** ✅ Completed
+
+```text
+PASS tests/unit/interface/middlewares/redisCacheHandler.test.ts
+  redisCacheHandler
+    √ should serve from cache on hit (4 ms)
+    √ should proceed to next and cache on miss (1 ms)
+    √ should bypass caching for non-GET requests
+    √ should handle redis errors gracefully and proceed to next (2 ms)
+    √ should track stale data and trigger background refresh if enabled (5 ms)
+    √ should use default TTL if none provided (2 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       6 passed, 6 total
+Snapshots:   0 total
+Time:        4.694 s
+```
+
 ## Conclusion
 
 These test cases cover the core functionality of the Redis Cache Middleware, including cache hits and misses, method-specific behavior, expiration handling, error resilience, and key generation. Implementing these tests will ensure the middleware performs reliably under various conditions, improving application performance through effective caching while maintaining correctness.

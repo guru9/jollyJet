@@ -44,27 +44,20 @@ The project follows strict Clean Architecture principles to separate concerns an
 
 ```
 src/
-├── 🧠 domain/                 # Pure Business Logic
-│   ├── entities/              # Core business models
-│   ├── interfaces/            # Contracts & Abstractions
-│   └── services/              # Pure domain logic
-├── 💼 usecases/               # Application Use Cases
-├── 🔌 infrastructure/         # External Services
-│   ├── database/              # DB implementations
-│   ├── repositories/          # Data access
-│   └── external/              # 3rd party adapters
-├── 📡 interface/              # HTTP Layer
-│   ├── controllers/           # Request handlers
-│   ├── routes/                # API definitions
-│   ├── middlewares/           # Request processing
-│   ├── dtos/                  # Input/Output schemas
-│   └── validators/            # Zod validation schemas
-├── 🧩 shared/                 # Shared Utilities
-├── 🏷️ types/                  # TypeScript Types
-├── ⚙️ config/                 # Configuration & DI
-├── 🧪 test/                   # Test Suites
-├── 🚀 app.ts                  # App Entry Point
-└── 🎬 server.ts               # Server Bootstrap
+├── 🧠 domain/ # Pure Business Logic
+├── 💼 usecases/ # Application Use Cases
+├── 🔌 infrastructure/ # External Services
+├── 📡 interface/ # HTTP Layer
+├── 🧩 shared/ # Shared Utilities
+├── 🏷️ types/ # TypeScript Types
+├── ⚙️ config/ # Configuration & DI
+├── 🚀 app.ts # App Entry Point
+└── 🎬 server.ts # Server Bootstrap
+
+tests/ # 🧪 Test Suites (Root Level)
+├── unit/ # Unit tests
+├── integration/ # Integration tests
+└── setup.ts # Test setup
 ```
 
 </details>
@@ -1282,7 +1275,7 @@ Testing structure and practices.
 - **Unit Tests**: Isolated business logic testing
 - **Integration Tests**: End-to-end API testing with in-memory MongoDB
 - **100% Coverage**: Critical paths fully verified
-- **Test Structure**: Mirror source structure in `src/__tests__/`
+- **Test Structure**: Mirror source structure in root-level `tests/`
 
 ### Testing Tools
 
@@ -1294,7 +1287,7 @@ Testing structure and practices.
 ### Test Organization
 
 ```
-src/__tests__/
+tests/
 ├── setup.ts                    # Global test setup
 ├── unit/                       # Unit tests
 │   ├── entities/               # Entity validation tests

@@ -48,7 +48,8 @@ export function Cacheable(options: number | CacheOptions = 3600) {
 
       // Generate a unique cache key based on the class name, method name, and arguments
       // Note: We use the constructor name for the class name
-      const className = (this as any)?.constructor?.name || 'Anonymous';
+      const className =
+        (this as { constructor?: { name?: string } })?.constructor?.name || 'Anonymous';
       const prefix = keyPrefix || `${className}:${propertyKey}`;
       const cacheKey = `${prefix}:${JSON.stringify(args)}`;
 
@@ -113,11 +114,11 @@ export function Cacheable(options: number | CacheOptions = 3600) {
             } finally {
               await redisService.releaseLock(lockKey);
             }
-          } else {
             // Wait and retry if lock not acquired
             await new Promise((resolve) => setTimeout(resolve, 100));
             // Recursively call the same method (which will now hit either the cache or wait for the lock again)
-            return (this as any)[propertyKey](...args);
+            const target = this as Record<string, (...args: unknown[]) => Promise<unknown>>;
+            return target[propertyKey](...args);
           }
         }
 
@@ -142,7 +143,7 @@ export function Cacheable(options: number | CacheOptions = 3600) {
  *
  * @param pattern - Cache key pattern to evict (supports wildcard if redis service supports it)
  */
-export function CacheEvict(pattern: string | ((...args: any[]) => string)) {
+export function CacheEvict(pattern: string | ((...args: unknown[]) => string)) {
   return function (_target: unknown, _propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 

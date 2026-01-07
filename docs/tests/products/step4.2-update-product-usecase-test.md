@@ -6,7 +6,7 @@ Comprehensive test suite for the `UpdateProductUseCase` implementation, ensuring
 
 ## Test File Location
 
-**File:** [`src/__tests__/unit/products/updateProductUseCase.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/products/updateProductUseCase.test.ts)
+**File:** [`tests/unit/products/updateProductUseCase.test.ts`](file:///e:/Project/jollyJet/tests/unit/products/updateProductUseCase.test.ts)
 
 ## Test Structure
 
@@ -580,6 +580,3 @@ Key achievements:
 - ✅ Integration with existing test infrastructure
 - ✅ Follows Clean Architecture testing principles
 - ✅ Contributes to overall 100% test coverage goal
-
-
-

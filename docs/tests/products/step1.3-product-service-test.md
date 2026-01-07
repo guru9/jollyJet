@@ -6,7 +6,7 @@ This document outlines the test coverage for the `ProductService` class, ensurin
 
 ## Test File Location
 
-- `src/__tests__/unit/products/productService.test.ts`
+- `tests/unit/products/productService.test.ts`
 
 ## Test Coverage
 
@@ -69,6 +69,3 @@ npm test -- productService.test.ts
 ## Conclusion
 
 The `ProductService` test suite provides comprehensive coverage of all business logic methods, ensuring that the service layer functions correctly and handles edge cases appropriately. The tests follow the Arrange-Act-Assert pattern and cover both happy paths and error conditions.
-
-
-
