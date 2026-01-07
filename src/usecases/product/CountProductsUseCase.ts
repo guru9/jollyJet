@@ -1,6 +1,7 @@
 import { IProductRepository, ProductFilter } from '@/domain/interfaces';
 import { ProductService } from '@/domain/services';
-import { DI_TOKENS, Logger } from '@/shared';
+import { DI_TOKENS, Logger, REDIS_CONFIG } from '@/shared';
+import { Cacheable } from '@/shared/decorators/cache.decorator';
 
 import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
@@ -34,6 +35,10 @@ export class CountProductsUseCase {
     // 💡 This enables loose coupling and easy testing
   ) {}
 
+  @Cacheable({
+    ttl: Number(REDIS_CONFIG.TTL.SHORT),
+    backgroundRefresh: true,
+  })
   public async execute(query: CountProductsQuery): Promise<number> {
     // Build filter object from query parameters
     // 💡 Business Rule: Convert string parameters to proper types

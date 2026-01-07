@@ -3,6 +3,7 @@ import { IProductRepository } from '@/domain/interfaces';
 import { ProductService } from '@/domain/services';
 import { CreateProductDTO } from '@/interface/dtos';
 import { BadRequestError, DI_TOKENS, Logger, PRODUCT_ERROR_MESSAGES } from '@/shared';
+import { CacheEvict } from '@/shared/decorators/cache.decorator';
 import 'reflect-metadata'; // Required for tsyringe to work with decorators and reflection metadata
 
 import { inject, injectable } from 'tsyringe';
@@ -30,6 +31,8 @@ export class CreateProductUseCase {
    * 🔧 Flow: DTO → Domain Entity → Repository → Persisted Entity
    * 📋 Business Rules: Enforced by domain entity validation
    */
+  @CacheEvict('ListProductsUseCase:execute:*')
+  @CacheEvict('CountProductsUseCase:execute:*')
   public async execute(productData: CreateProductDTO): Promise<Product> {
     // Transform DTO to Domain Entity
     const newProduct = new Product({

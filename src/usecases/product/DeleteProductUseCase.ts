@@ -1,5 +1,6 @@
 import { IProductRepository } from '@/domain/interfaces';
 import { BadRequestError, DI_TOKENS, Logger, PRODUCT_ERROR_MESSAGES } from '@/shared';
+import { CacheEvict } from '@/shared/decorators/cache.decorator';
 
 import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
@@ -25,6 +26,9 @@ export class DeleteProductUseCase {
    * 🔧 Flow: ID → Repository → Delete Operation
    * 📋 Business Rules: Validates product exists before deletion
    */
+  @CacheEvict((...args: unknown[]) => `GetProductUseCase:execute:*${args[0] as string}*`)
+  @CacheEvict('ListProductsUseCase:execute:*')
+  @CacheEvict('CountProductsUseCase:execute:*')
   public async execute(productId: string): Promise<boolean> {
     // Validate input
     if (!productId?.trim()) {

@@ -9,6 +9,7 @@ import {
   NotFoundError,
   PRODUCT_ERROR_MESSAGES,
 } from '@/shared';
+import { CacheEvict } from '@/shared/decorators/cache.decorator';
 
 import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
@@ -37,6 +38,9 @@ export class UpdateProductUseCase {
    * 🔧 Flow: ID → Repository → Domain Entity → Service → Updated Entity → Repository
    * 📋 Business Rules: Enforced by domain entity validation
    */
+  @CacheEvict((...args: unknown[]) => `GetProductUseCase:execute:*${args[0] as string}*`)
+  @CacheEvict('ListProductsUseCase:execute:*')
+  @CacheEvict('CountProductsUseCase:execute:*')
   public async execute(productId: string, productData: UpdateProductDTO): Promise<Product> {
     // Validate input
     if (!productId?.trim()) {

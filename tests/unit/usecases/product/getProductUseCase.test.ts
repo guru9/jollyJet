@@ -69,6 +69,21 @@ describe('GetProductUseCase', () => {
       expect(result).toBeNull();
     });
 
+    it('should throw error for empty product ID', async () => {
+      await expect(useCase.execute('')).rejects.toThrow('Product ID is required for retrieval.');
+      expect(mockRepository.findById).not.toHaveBeenCalled();
+    });
+
+    it('should throw error for null/undefined product ID', async () => {
+      await expect(useCase.execute(null as unknown as string)).rejects.toThrow(
+        'Product ID is required for retrieval.'
+      );
+      await expect(useCase.execute(undefined as unknown as string)).rejects.toThrow(
+        'Product ID is required for retrieval.'
+      );
+      expect(mockRepository.findById).not.toHaveBeenCalled();
+    });
+
     it('should handle repository errors', async () => {
       const error = new Error('Database error');
       mockRepository.findById.mockRejectedValue(error);

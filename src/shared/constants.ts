@@ -96,7 +96,7 @@ export const PRODUCT_ERROR_MESSAGES = {
   NOT_AVAILABLE: 'Product is not available.',
   NOT_FOUND: 'Product not found.',
   PRODUCT_NOT_FOUND_UPDATE: 'Product not found for update.',
-  PRODUCT_ID_REQ_RETRIEVE: 'Product ID is required to retrieve the product.',
+  PRODUCT_ID_REQ_RETRIEVE: 'Product ID is required for retrieval.',
   PRODUCT_ID_REQ_UPDATE: 'Product ID is required for updation.',
   PRODUCT_ID_REQ_DELETE: 'Product ID is required for deletion.',
   PRODUCT_ID_REQ_WISHLIST: 'Product ID is required for wishlist toggle.',

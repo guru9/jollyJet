@@ -1,7 +1,8 @@
 import { Product } from '@/domain/entities';
 import { IProductRepository, ProductFilter } from '@/domain/interfaces';
 import { ProductService } from '@/domain/services';
-import { DI_TOKENS, Logger } from '@/shared';
+import { DI_TOKENS, Logger, REDIS_CONFIG } from '@/shared';
+import { Cacheable } from '@/shared/decorators/cache.decorator';
 
 import { PaginationParams } from '@/types';
 import 'reflect-metadata';
@@ -38,6 +39,11 @@ export class ListProductsUseCase {
     // 💡 This enables loose coupling and easy testing
   ) {}
 
+  @Cacheable({
+    ttl: Number(REDIS_CONFIG.TTL.SHORT),
+    backgroundRefresh: true,
+    consistencyCheck: true,
+  })
   public async execute(query: ListProductsQuery): Promise<{
     products: Product[];
     total: number;
