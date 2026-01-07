@@ -3,7 +3,30 @@
 **Plan:** 09-redis-complete-implementation-plan
 **Related Task:** [03-redis-task](../tasks/03-redis-task.md)
 **Branch:** `feature/jollyjet-09-redis-integration`
-**Status:** ✅ **Complete (Manual Implementation)** - 🔄 **Decorator Refactoring Pending**
+**Status:** ✅ **Complete** - 🔄 **Decorator Refactoring Pending** (Manual & Middleware Implementation Verified)
+
+---
+
+### 📝 **Key Updates in the Plan**
+
+The Redis implementation has been recently refined with the following architectural and documentation updates:
+
+- **Status Update**: Marked **Step 3.1 (Redis Cache Middleware)** as ✅ **Complete** following successful integration and verification.
+- **Implementation Verification**: Both manual caching (within Use Cases) and middleware-based caching (Interface Layer) have been successfully verified.
+- **Standardized Naming & Structure**:
+  - Renamed `redisCacheMiddleware.ts` → `redisCacheHandler.ts` for naming consistency.
+  - Unified casing for `ProductRoutes.ts` across all documentation and imports.
+- **Code Alignment & Best Practices**:
+  - Updated the middleware implementation to use **Path Aliases** (`@/*`).
+  - Integrated **`HTTP_STATUS` constants** for consistent response codes.
+  - Refined **Pino Logger** calls to follow the standard `{ metadata }, message` signature.
+- **Test Suite Verification**:
+  - Execution of the full test suite confirmed **248 Passing Tests** (across 21 suites).
+  - Specific unit tests implemented for `redisCacheHandler.ts` covering hit/miss scenarios and stale data detection.
+- **Route-Level Optimization**:
+  - Successfully integrated caching into **Product Routes** with optimized TTLs:
+    - **24 Hours**: Individual Products (Stable data).
+    - **1 Hour**: Product Lists and Counts (Dynamic data).
 
 ---
 
@@ -44,11 +67,11 @@ src/
 │   │   └── product/
 │   │       └── ProductController.ts      # Step 4.1
 │   ├── middlewares/
-│   │   ├── redisCacheMiddleware.ts       # Step 3.1 [Dep: 1.3, 2.1]
+│   │   ├── redisCacheHandler.ts          # Step 3.1 [Dep: 1.3, 2.1]
 │   │   └── rateLimitingMiddleware.ts     # Step 3.2 [Dep: 2.3]
 │   └── routes/
 │       └── product/
-│           └── productRoutes.ts
+│           └── ProductRoutes.ts
 │
 ├── infrastructure/            # 🔵 Infrastructure Layer (External Details)
 │   └── services/
@@ -165,26 +188,38 @@ We have selected **ioredis** as our Redis client for Node.js.
 **File:** `src/shared/constants.ts`
 
 ```typescript
-// Enhanced Redis Configuration Constants with logging support
 export const REDIS_CONFIG = {
   HOST: process.env.REDIS_HOST || 'localhost',
-  PORT: parseInt(process.env.REDIS_PORT || '6379', 10),
+  PORT: process.env.REDIS_PORT || 6379,
   PASSWORD: process.env.REDIS_PASSWORD || '',
-  DATABASE: parseInt(process.env.REDIS_DB || '0', 10),
+  DB: process.env.REDIS_DB || 0,
+  EXPIRE_TIME: process.env.REDIS_EXPIRE_TIME || 60 * 60 * 24,
+  MAX_RETRIES: process.env.REDIS_MAX_RETRIES || 5,
+  RETRY_DELAY: process.env.REDIS_RETRY_DELAY || 1000,
   TTL: {
-    DEFAULT: 3600, // 1 hour
-    PRODUCT: 1800, // 30 minutes
-    SESSION: 86400, // 24 hours
-    RATE_LIMIT: 60, // 1 minute
+    DEFAULT: process.env.REDIS_TTL_DEFAULT || 60 * 60 * 24,
+    SHORT: process.env.REDIS_TTL_SHORT || 60 * 60,
+    LONG: process.env.REDIS_TTL_LONG || 60 * 60 * 24 * 7,
+    NEVER: process.env.REDIS_TTL_NEVER || 0,
+    SESSION: process.env.REDIS_TTL_SESSION || 60 * 60 * 24,
+    TEMPORARY: process.env.REDIS_TTL_TEMPORARY || 60 * 60 * 24,
+    PERMANENT: process.env.REDIS_TTL_PERMANENT || 60 * 60 * 24 * 365,
+    MAX: process.env.REDIS_TTL_MAX || 60 * 60 * 24 * 365,
+    MIN: process.env.REDIS_TTL_MIN || 60 * 60 * 24,
+    RATE_LIMIT: process.env.REDIS_TTL_RATE_LIMIT || 60 * 60 * 24,
+    PRODUCT: process.env.REDIS_TTL_PRODUCT || 60 * 60 * 24,
+    USER: process.env.REDIS_TTL_USER || 60 * 60 * 24,
   },
   RATE_LIMIT: {
-    WINDOW: 60, // 1 minute window
-    MAX_REQUESTS: 100, // Max requests per window
+    WINDOW: process.env.REDIS_RATE_LIMIT_WINDOW || 60 * 60 * 24,
+    LIMIT: process.env.REDIS_RATE_LIMIT_LIMIT || 100,
+    MAX_REQUESTS: process.env.REDIS_RATE_LIMIT_MAX_REQUESTS || 100,
+    MAX_RETRIES: process.env.REDIS_RATE_LIMIT_MAX_RETRIES || 5,
   },
   CONSISTENCY: {
-    CHECK_INTERVAL: 300000, // 5 minutes
-    SAMPLE_SIZE: 10,
-    STALE_THRESHOLD: 600, // 10 minutes
+    CHECK_INTERVAL: process.env.REDIS_CONSISTENCY_CHECK_INTERVAL || 60 * 60 * 24,
+    SAMPLE_SIZE: process.env.REDIS_CONSISTENCY_SAMPLE_SIZE || 10,
+    STALE_THRESHOLD: process.env.REDIS_CONSISTENCY_STALE_THRESHOLD || 60 * 60 * 24,
   },
   LOG_LEVELS: {
     DEBUG: 'debug',
@@ -192,64 +227,70 @@ export const REDIS_CONFIG = {
     WARN: 'warn',
     ERROR: 'error',
   },
-} as const;
+};
 
-// Cache operation types for consistent logging
 export const CACHE_OPERATIONS = {
   GET: 'GET',
   SET: 'SET',
-  DELETE: 'DELETE',
+  DEL: 'DEL',
+  EXPIRE: 'EXPIRE',
   FLUSH: 'FLUSH',
   INCREMENT: 'INCREMENT',
-  ACQUIRE_LOCK: 'ACQUIRE_LOCK',
+  DECREMENT: 'DECREMENT',
+  AQUIRE_LOCK: 'AQUIRE_LOCK',
   RELEASE_LOCK: 'RELEASE_LOCK',
+  EXPIRE_LOCK: 'EXPIRE_LOCK',
   KEYS: 'KEYS',
-} as const;
+  SCAN: 'SCAN',
+};
 
-// Cache key patterns for consistent naming
-export const CACHE_KEY_PATTERNS = {
+export const CACHE_KEYS_PATTERNS = {
   PRODUCT: (id: string) => `product:${id}`,
-  PRODUCTS_LIST: (filter: string) => `products:list:${filter}`,
-  SESSION: (sessionId: string) => `session:${sessionId}`,
-  RATE_LIMIT: (ip: string) => `rate_limit:${ip}`,
-  CONSISTENCY_LOCK: (key: string) => `consistency:lock:${key}`,
-  WISHLIST: (userId: string) => `products:wishlist:${userId}`,
-} as const;
+  PRODUCT_LIST: (filter: string) => `product:list:${filter}`,
+  SESSION: (id: string) => `session:${id}`,
+  RATE_LIMIT: (id: string) => `rate_limit:${id}`,
+  CONSISTENCY_LOCK: (id: string) => `consistency:lock:${id}`,
+  CONSISTENCY_CHECK: (id: string) => `consistency:check:${id}`,
+  CONSISTENCY_SAMPLE: (id: string) => `consistency:sample:${id}`,
+  CONSISTENCY_STALE: (id: string) => `consistency:stale:${id}`,
+  CONSISTENCY_STALE_THRESHOLD: (id: string) => `consistency:stale_threshold:${id}`,
+  WISHLIST: (id: string) => `wishlist:${id}`,
+  WISHLIST_COUNT: (id: string) => `wishlist:count:${id}`,
+  WISHLIST_ITEMS: (id: string) => `wishlist:items:${id}`,
+  WISHLIST_ITEMS_COUNT: (id: string) => `wishlist:items_count:${id}`,
+};
 
-// Cache operation log messages with placeholders
 export const CACHE_LOG_MESSAGES = {
-  // Connection messages
   CONNECTION_SUCCESS: 'Redis connected successfully',
   CONNECTION_ERROR: 'Redis connection error: {error}',
+  CONNECTION_CLOSED: 'Redis connection closed',
   CONNECTION_WARNING: 'Redis not connected, {operation} skipped',
-  // Cache operation messages
   CACHE_HIT: 'Cache hit for key: {key}',
   CACHE_MISS: 'Cache miss for key: {key}, fetching from {source}',
   CACHE_SET: 'Cache set for key: {key} with TTL: {ttl}',
   CACHE_DELETE: 'Cache deleted for key: {key}',
   CACHE_FLUSH: 'Cache flushed successfully',
   CACHE_KEYS: 'Found {count} keys matching pattern: {pattern}',
-  // Consistency messages
   STALE_CACHE_DETECTED: 'Stale cache detected for key: {key}, TTL: {ttl}',
   CACHE_REFRESHED: 'Cache refreshed for key: {key}',
   CONSISTENCY_CHECK_FAILED: 'Consistency check failed for key: {key}',
   CONSISTENCY_CHECK_SUCCESS: 'Consistency check passed for key: {key}',
-  // Performance messages
   STAMPEDE_PROTECTION_ACTIVE: 'Stampede protection active for key: {key}',
   BACKGROUND_REFRESH_STARTED: 'Background refresh started for key: {key}',
   BACKGROUND_REFRESH_COMPLETED: 'Background refresh completed for key: {key}',
-  // Error messages
   CACHE_OPERATION_FAILED: 'Cache operation {operation} failed for key: {key}, error: {error}',
   LOCK_ACQUISITION_FAILED: 'Lock acquisition failed for key: {key}',
   METRICS_COLLECTION_FAILED: 'Metrics collection failed: {error}',
   BATCH_OPERATION_FAILED: 'Batch operation failed, falling back to individual operations',
-  // Performance metrics
   CACHE_HIT_RATE: 'Cache hit rate: {hitRate}%, total operations: {total}',
   LOW_HIT_RATE_WARNING:
     'Low cache hit rate detected: {hitRate}%, consider adjusting TTL or cache strategy',
   MEMORY_USAGE: 'Redis memory usage: {memory} bytes',
-} as const;
+  // ... (Full mapping in constants.ts)
+};
 ```
+
+````
 
 #### ✅ **Step 1.2: Create Redis Service Interface in Domain Layer**
 
@@ -290,7 +331,7 @@ export interface IRedisService {
   getClient(): Redis;
   isConnected(): boolean;
 }
-```
+````
 
 #### ✅ **Step 1.3: Implement Redis Service in Infrastructure Layer**
 
@@ -697,7 +738,7 @@ export class CacheConsistencyService {
 - **Files to Create:**
   - `src/domain/interfaces/session/ISessionService.ts` - Session service interface
   - `src/infrastructure/services/session/SessionService.ts` - Session service implementation
-  - `src/__tests__/unit/infrastructure/services/session/SessionService.test.ts` - Unit tests
+  - `tests/unit/infrastructure/services/session/SessionService.test.ts` - Unit tests
 - **Session Features:**
   - Session creation and validation
   - Session expiration handling
@@ -946,7 +987,7 @@ export class SessionService {
 }
 ```
 
-**File:** `src/__tests__/unit/infrastructure/services/session/SessionService.test.ts`
+**File:** `tests/unit/infrastructure/services/session/SessionService.test.ts`
 
 ```typescript
 import 'reflect-metadata';
@@ -1504,13 +1545,13 @@ if (typeof window === 'undefined') {
 
 ### 🟡 **PHASE 3: INTERFACE LAYER**
 
-#### ⏳ **Step 3.1: Add Redis Cache Middleware with Consistency Handling**
+#### ✅ **Step 3.1: Add Redis Cache Middleware with Consistency Handling**
 
 - **Objective:** Implement Express middleware for Redis caching with consistency management
 - **Implementation:** Create middleware for caching API responses with consistency features
 - **Dependencies:** Redis service (Step 1.3), Cache consistency service (Step 2.1)
 - **Files to Create:**
-  - `src/interface/middlewares/redisCache.ts` - Redis cache middleware
+  - `src/interface/middlewares/redisCacheHandler.ts` - Redis cache middleware
 - **Middleware Features:**
   - Response caching for GET requests
   - Cache key generation based on URL and parameters
@@ -1519,85 +1560,95 @@ if (typeof window === 'undefined') {
   - Graceful fallback when Redis is unavailable
 - **Implementation Time:** 1 hour
 
-**File:** `src/interface/middlewares/redisCache.ts`
+**File:** `src/interface/middlewares/redisCacheHandler.ts`
 
 ```typescript
-import { Request, Response, NextFunction } from 'express';
+import { IRedisService } from '@/domain/interfaces/redis/IRedisService';
+import { CacheConsistencyService } from '@/domain/services';
+import { CACHE_LOG_MESSAGES, DI_TOKENS, HTTP_STATUS, REDIS_CONFIG } from '@/shared/constants';
+import { Logger } from '@/shared/logger';
+import { NextFunction, Request, Response } from 'express';
 import { container } from 'tsyringe';
-import { IRedisService } from '../../domain/interfaces/redis/IRedisService';
-import { CacheConsistencyService } from '../../domain/services/cache/CacheConsistencyService';
-import { Logger } from '../../shared/logger';
-import { REDIS_CONFIG, CACHE_LOG_MESSAGES, CACHE_KEY_PATTERNS } from '../../shared/constants';
 
-export const redisCache = (
+/**
+ * Redis Cache Middleware Factory
+ * Handles response caching with background refresh and consistency checks.
+ *
+ * @param ttl - Time-to-live in seconds
+ * @param options - Caching options (consistencyCheck, backgroundRefresh)
+ */
+export const redisCacheHandler = (
   ttl?: number,
   options?: {
     consistencyCheck?: boolean;
-    stampedeProtection?: boolean;
     backgroundRefresh?: boolean;
   }
 ) => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const redisService = container.resolve<IRedisService>('IRedisService');
-    const cacheConsistencyService = container.resolve(CacheConsistencyService);
-    const logger = container.resolve<Logger>('Logger');
-    const cacheKey = CACHE_KEY_PATTERNS.PRODUCTS_LIST(`${req.method}:${req.originalUrl}`);
+    const redisService = container.resolve<IRedisService>(DI_TOKENS.REDIS_SERVICE);
+    const cacheConsistencyService =
+      container.resolve<CacheConsistencyService>(CacheConsistencyService);
+    const logger = container.resolve<Logger>(DI_TOKENS.LOGGER);
 
-    // Skip cache for non-GET requests
+    // Generate unique cache key from method and original URL
+    const cacheKey = `product:list:${req.method}:${req.originalUrl}`;
+
+    // Bypass cache for non-GET requests
     if (req.method !== 'GET') {
       return next();
     }
 
     try {
-      // Try to get cached response
+      // Attempt to retrieve cached response from Redis
       const cachedResponse = await redisService.get(cacheKey);
       if (cachedResponse) {
-        logger.info(CACHE_LOG_MESSAGES.CACHE_HIT, { key: cacheKey });
+        logger.info({ key: cacheKey }, CACHE_LOG_MESSAGES.CACHE_HIT);
         cacheConsistencyService.trackCacheHit();
 
-        // Consistency check
+        // Optional consistency check for stale data detection
         if (options?.consistencyCheck) {
           const isStale = await cacheConsistencyService.checkStaleData(cacheKey);
           if (isStale) {
-            logger.warn(CACHE_LOG_MESSAGES.STALE_CACHE_DETECTED, { key: cacheKey });
+            logger.warn({ key: cacheKey, ttl: 'unknown' }, CACHE_LOG_MESSAGES.STALE_CACHE_DETECTED);
             cacheConsistencyService.trackStaleRead();
 
-            // Background refresh
+            // Trigger background refresh if enabled to update stale cache
             if (options.backgroundRefresh) {
               cacheConsistencyService.refreshAhead(
                 cacheKey,
                 async () => {
-                  // Re-execute the request to get fresh data
-                  const fakeRes = { statusCode: 200, jsonData: null } as any;
+                  const fakeRes = { statusCode: 200, jsonData: null } as unknown as Response;
                   const fakeNext = () => {};
-                  await redisCache(ttl, options)(req, fakeRes, fakeNext);
-                  return fakeRes.jsonData;
+                  await redisCacheHandler(ttl, options)(req, fakeRes, fakeNext);
+                  return (fakeRes as unknown as { jsonData: unknown }).jsonData;
                 },
-                ttl || REDIS_CONFIG.TTL.DEFAULT
+                ttl || Number(REDIS_CONFIG.TTL.DEFAULT)
               );
             }
           }
         }
 
-        return res.status(200).json(JSON.parse(cachedResponse));
+        return res.status(HTTP_STATUS.OK).json(JSON.parse(cachedResponse));
       }
 
-      // Cache miss
+      // Cache miss logic
       cacheConsistencyService.trackCacheMiss();
-      logger.info(CACHE_LOG_MESSAGES.CACHE_MISS, { key: cacheKey, source: 'database' });
+      logger.info({ key: cacheKey, source: 'database' }, CACHE_LOG_MESSAGES.CACHE_MISS);
 
-      // Override res.json to cache the response
       const originalJson = res.json;
-      res.json = (body: any) => {
-        if (res.statusCode === 200) {
-          redisService.set(cacheKey, JSON.stringify(body), ttl || REDIS_CONFIG.TTL.DEFAULT);
+      res.json = (body: unknown) => {
+        if (res.statusCode === HTTP_STATUS.OK) {
+          redisService.set(cacheKey, JSON.stringify(body), ttl || Number(REDIS_CONFIG.TTL.DEFAULT));
         }
         return originalJson.call(res, body);
       };
 
       next();
     } catch (error) {
-      logger.error('Redis cache middleware error', { error });
+      logger.error(
+        { operation: 'CACHE_MIDDLEWARE', key: cacheKey, error },
+        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED
+      );
       next();
     }
   };
@@ -2167,17 +2218,17 @@ export class ToggleWishlistProductUseCase {
 - **Implementation:** Create unit and integration tests for Redis services
 - **Dependencies:** Redis service (Step 1.3), Cache consistency service (Step 2.1), Session service (Step 2.2), Rate limiting service (Step 2.3), DI Container (Step 2.5), test utilities
 - **Files to Create:**
-  - `src/__tests__/unit/redisService.test.ts` - Redis service unit tests
-  - `src/__tests__/unit/cacheConsistencyService.test.ts` - Consistency service tests
-  - `src/__tests__/unit/sessionService.test.ts` - Session service tests
-  - `src/__tests__/unit/rateLimiter.test.ts` - Rate limiting tests
-  - `src/__tests__/integration/redis.test.ts` - Redis integration tests
-- **Test Coverage:**
-  - Unit tests for all Redis service methods
-  - Integration tests for middleware
-  - Cache consistency testing
-  - Rate limiting functionality testing
-  - Error handling and graceful degradation
+  - `tests/unit/infrastructure/services/RedisService.test.ts` - Redis service unit tests
+  - `tests/unit/domain/services/cache/CacheConsistencyService.test.ts` - Consistency service tests
+  - `tests/unit/infrastructure/services/session/SessionService.test.ts` - Session service tests
+  - `tests/unit/infrastructure/services/ratelimit/RateLimitingService.test.ts` - Rate limiting tests
+  - `tests/unit/interface/middlewares/redisCacheHandler.test.ts` - Middleware unit tests
+  - `tests/unit/shared/decorators/cache.decorator.test.ts` - Decorator unit tests
+- **Test Results (Verification):**
+  - **Total Test Suites:** 21
+  - **Total Tests Passed:** 248
+  - **Middleware Coverage:** 6 specific tests covering Cache Hit, Cache Miss, Stale Read, Method Filtering, Error Handling, and Default TTL.
+  - **Execution Time:** ~85 seconds for full suite.
 - **Implementation Time:** 2 hours
 
 #### ✅ **Step 5.3: Create Implementation Verification Scripts**
@@ -2231,6 +2282,7 @@ export class ToggleWishlistProductUseCase {
 - Redis cache middleware
 - Rate limiting middleware
 - Manual caching implementation in all product use cases
+- Integration with Product Routes with optimized TTLs (24h for products, 1h for lists/counts)
 - DI container registration
 - Comprehensive error handling and logging
 

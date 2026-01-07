@@ -281,28 +281,28 @@ This task follows Clean Architecture principles with clear layer separation:
 
 ### Unit Tests - Domain Layer
 
-- **Step 7.1:** Product Entity Tests (`src/__tests__/unit/product/Product.test.ts`)
+- **Step 7.1:** Product Entity Tests (`tests/unit/product/Product.test.ts`)
   - Entity validation and business logic including Wishlist functionality
   - Immutable property tests and Wishlist method validation
   - Business rule enforcement for all operations
 
 ### Unit Tests - Infrastructure Layer
 
-- **Step 7.2:** Repository Tests (`src/__tests__/unit/product/MongoProductRepository.test.ts`)
+- **Step 7.2:** Repository Tests (`tests/unit/product/MongoProductRepository.test.ts`)
   - Mocked MongoDB operations
   - Domain mapping verification
   - Error handling tests
 
 ### Unit Tests - Application Layer
 
-- **Step 7.3:** Use Case Tests (`src/__tests__/unit/product/*UseCase.test.ts`)
+- **Step 7.3:** Use Case Tests (`tests/unit/product/*UseCase.test.ts`)
   - Business logic validation including Wishlist operations
   - Mocked dependency injection for all use cases
   - Success and failure scenarios for CRUD and Wishlist operations
 
 ### Integration Tests
 
-- **Step 7.4:** Full Flow Tests (`src/__tests__/integration/product/product.test.ts`)
+- **Step 7.4:** Full Flow Tests (`tests/integration/product/product.test.ts`)
   - End-to-end API testing including Wishlist endpoints
   - Database integration with Wishlist data
   - Complete request/response cycle for all operations
