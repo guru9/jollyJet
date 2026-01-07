@@ -3,6 +3,7 @@ import { CacheConsistencyService } from '@/domain/services/cache/CacheConsistenc
 import {
   CACHE_KEYS_PATTERNS,
   CACHE_LOG_MESSAGES,
+  CACHE_OPERATIONS,
   DI_TOKENS,
   REDIS_CONFIG,
 } from '@/shared/constants';
@@ -104,7 +105,7 @@ export const redisCacheHandler = (
       // Log cache middleware errors and continue with request processing
       logger.error(
         {
-          operation: 'CACHE_MIDDLEWARE',
+          operation: CACHE_OPERATIONS.CACHE_MIDDLEWARE,
           key: cacheKey,
           error: error instanceof Error ? error.message : String(error),
         },

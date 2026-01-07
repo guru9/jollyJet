@@ -26,6 +26,7 @@ export enum HTTP_STATUS {
   UNPROCESSABLE_ENTITY = 422,
   INTERNAL_SERVER_ERROR = 500,
   SERVICE_UNAVAILABLE = 503,
+  TOO_MANY_REQUESTS = 429,
 }
 
 /**
@@ -142,6 +143,22 @@ export const PRODUCT_CONSTANTS = {
   MIN_WISHLIST_COUNT: 0,
   MAX_WISHLIST_COUNT: 1000000,
   MAX_WISHLIST_ITEMS_PER_USER: 100,
+};
+
+/**
+ * Rate limit specific constants for headers and default messages.
+ */
+export const RATE_LIMIT_HEADERS = {
+  LIMIT: 'X-RateLimit-Limit',
+  REMAINING: 'X-RateLimit-Remaining',
+  RESET: 'X-RateLimit-Reset',
+};
+
+export const RATE_LIMIT_MESSAGES = {
+  TOO_MANY_REQUESTS: 'Too many requests, please try again later.',
+  CHECK_FAILED_FALLBACK: 'Rate limit check failed, allowing request as fallback',
+  EXCEEDED: 'Rate limit exceeded',
+  UNKNOWN_CLIENT: 'unknown',
 };
 
 /**
@@ -269,6 +286,8 @@ export const CACHE_OPERATIONS = {
   EXPIRE_LOCK: 'EXPIRE_LOCK',
   KEYS: 'KEYS',
   SCAN: 'SCAN',
+  CACHE_MIDDLEWARE: 'CACHE_MIDDLEWARE',
+  RATE_LIMIT_MIDDLEWARE: 'RATE_LIMIT_MIDDLEWARE',
 };
 
 /**
@@ -373,4 +392,6 @@ export const CACHE_LOG_MESSAGES = {
   PATTERN_INVALIDATION_FAILED: 'Pattern invalidation failed for pattern: {pattern}, error: {error}',
   METRICS_RESET: 'Cache consistency metrics reset',
   SERVICE_CLEANUP_COMPLETED: 'Cache consistency service cleanup completed',
+  RATE_LIMIT_EXCEEDED: 'Rate limit exceeded for key: {key}',
+  RATE_LIMIT_CHECK_FAILED: 'Rate limit check failed for key: {key}, error: {error}',
 };

@@ -81,6 +81,18 @@ Intelligent Redis caching middleware testing:
 
 ---
 
+#### [`tests/unit/interface/middlewares/rateLimitHandler.test.ts`](file:///e:/Project/jollyJet/tests/unit/interface/middlewares/rateLimitHandler.test.ts)
+
+Robust Redis-based rate limiting middleware testing:
+
+- ✅ **Allow Request**: Permits requests within the limit and sets `X-RateLimit-*` headers
+- ✅ **Block Request**: Returns 429 Too Many Requests when limit is exceeded with proper headers
+- ✅ **Key Identification**: Correctly identifies clients using IP and optional key prefixes
+- ✅ **Custom Config**: Respects route-specific overrides for window size and limits
+- ✅ **Resilience**: Implements fail-open logic to allow requests if the Redis service fails
+
+---
+
 #### [`tests/unit/utils.test.ts`](file:///e:/Project/jollyJet/tests/unit/utils.test.ts)
 
 Full utility function coverage:
@@ -333,32 +345,33 @@ tests/
 └── setup.ts                     # Test environment setup
 ```
 
-### Total Test Suites: 22
+### Total Test Suites: 23
 
 1. **Integration:** App Endpoints (app.test.ts) - 4 test suites, 7 tests
 2. **Unit:** General Middleware Tests (middleware.test.ts) - 2 test suites, 8 tests
 3. **Unit:** Redis Cache Middleware Tests (redisCacheHandler.test.ts) - 1 test suite, 6 tests (Added in Step 3.1)
-4. **Unit:** Utility Functions (utils.test.ts) - 14 test suites, 30 tests
-5. **Unit:** Error Classes (errors.test.ts) - 8 test suites, 22 tests
-6. **Unit:** CacheConsistencyService Tests ([Cache Consistency Service Test Documentation](./redis/step2.1-cache-consistency-service-test.md)) - 9 test suites, 18 tests
-7. **Unit:** Product Entity Tests ([Product Entity Test Documentation](./products/step1.1-product-entity-test.md)) - 2 test suites, 5 tests
-8. **Unit:** Product Repository Tests ([Product Repository Test Documentation](./products/step2.2-product-repository-test.md)) - 9 test suites, 18 tests
-9. **Unit:** ProductService Tests ([ProductService Test Documentation](./products/step1.3-product-service-test.md)) - 4 test suites, 15 tests
-10. **Unit:** Product Validators Tests ([Product Validators Test Documentation](./products/step3.2-product-validators-test.md)) - 6 test suites, 47 tests
-11. **Unit:** CreateProductUseCase Tests ([CreateProductUseCase Test Documentation](./products/step4.2-create-product-usecase-test.md)) - 2 test suites, 9 tests
-12. **Unit:** ListProductsUseCase Tests ([ListProductsUseCase Test Documentation](./products/step4.2-list-products-usecase-test.md)) - 2 test suites, 14 tests
-13. **Unit:** UpdateProductUseCase Tests ([UpdateProductUseCase Test Documentation](./products/step4.2-update-product-usecase-test.md)) - 3 test suites, 15 tests
-14. **Unit:** GetProductUseCase Tests ([GetProductUseCase Test Documentation](./products/step4.2-get-product-usecase-test.md)) - 1 test suite, 4 tests
-15. **Unit:** DeleteProductUseCase Tests ([DeleteProductUseCase Test Documentation](./products/step4.2-delete-product-usecase-test.md)) - 4 test suites, 12 tests
-16. **Unit:** ToggleWishlistProductUseCase Tests ([ToggleWishlistProductUseCase Test Documentation](./products/step4.2-toggle-wishlist-product-usecase-test.md)) - 2 test suites, 8 tests
-17. **Unit:** CountProductsUseCase Tests ([CountProductsUseCase Test Documentation](./products/step4.2-count-products-usecase-test.md)) - 2 test suites, 13 tests
-18. **Unit:** Product Controller Tests ([Product Controller Test Documentation](./products/step5.1-product-controller-testcase.md)) - 8 test suites, 22 tests
-19. **Unit:** Redis Service Tests ([Redis Service Test Documentation](./redis/step1.3-redis-service-test.md)) - 6 test suites, 12 tests
-20. **Unit:** SessionService Tests ([Session Service Test Documentation](./redis/step2.2-session-management-test.md)) - 1 test suite, 6 tests
-21. **Unit:** RateLimitingService Tests ([Rate Limiting Test Documentation](./redis/step2.3-rate-limiting-test.md)) - 1 test suite, 7 tests
-22. **Unit:** Cache Decorator Tests ([Cache Decorator Test Documentation](./redis/step2.4-cache-decorators-test.md)) - 1 test suite, 4 tests (Added in Step 2.4)
+4. **Unit:** Rate Limiting Middleware Tests (rateLimitHandler.test.ts) - 1 test suite, 5 tests (Added in Step 3.2)
+5. **Unit:** Utility Functions (utils.test.ts) - 14 test suites, 30 tests
+6. **Unit:** Error Classes (errors.test.ts) - 8 test suites, 22 tests
+7. **Unit:** CacheConsistencyService Tests ([Cache Consistency Service Test Documentation](./redis/step2.1-cache-consistency-service-test.md)) - 9 test suites, 18 tests
+8. **Unit:** Product Entity Tests ([Product Entity Test Documentation](./products/step1.1-product-entity-test.md)) - 2 test suites, 5 tests
+9. **Unit:** Product Repository Tests ([Product Repository Test Documentation](./products/step2.2-product-repository-test.md)) - 9 test suites, 18 tests
+10. **Unit:** ProductService Tests ([ProductService Test Documentation](./products/step1.3-product-service-test.md)) - 4 test suites, 15 tests
+11. **Unit:** Product Validators Tests ([Product Validators Test Documentation](./products/step3.2-product-validators-test.md)) - 6 test suites, 47 tests
+12. **Unit:** CreateProductUseCase Tests ([CreateProductUseCase Test Documentation](./products/step4.2-create-product-usecase-test.md)) - 2 test suites, 9 tests
+13. **Unit:** ListProductsUseCase Tests ([ListProductsUseCase Test Documentation](./products/step4.2-list-products-usecase-test.md)) - 2 test suites, 14 tests
+14. **Unit:** UpdateProductUseCase Tests ([UpdateProductUseCase Test Documentation](./products/step4.2-update-product-usecase-test.md)) - 3 test suites, 15 tests
+15. **Unit:** GetProductUseCase Tests ([GetProductUseCase Test Documentation](./products/step4.2-get-product-usecase-test.md)) - 1 test suite, 4 tests
+16. **Unit:** DeleteProductUseCase Tests ([DeleteProductUseCase Test Documentation](./products/step4.2-delete-product-usecase-test.md)) - 4 test suites, 12 tests
+17. **Unit:** ToggleWishlistProductUseCase Tests ([ToggleWishlistProductUseCase Test Documentation](./products/step4.2-toggle-wishlist-product-usecase-test.md)) - 2 test suites, 8 tests
+18. **Unit:** CountProductsUseCase Tests ([CountProductsUseCase Test Documentation](./products/step4.2-count-products-usecase-test.md)) - 2 test suites, 13 tests
+19. **Unit:** Product Controller Tests ([Product Controller Test Documentation](./products/step5.1-product-controller-testcase.md)) - 8 test suites, 22 tests
+20. **Unit:** Redis Service Tests ([Redis Service Test Documentation](./redis/step1.3-redis-service-test.md)) - 6 test suites, 12 tests
+21. **Unit:** SessionService Tests ([Session Service Test Documentation](./redis/step2.2-session-management-test.md)) - 1 test suite, 6 tests
+22. **Unit:** RateLimitingService Tests ([Rate Limiting Test Documentation](./redis/step2.3-rate-limiting-test.md)) - 1 test suite, 7 tests
+23. **Unit:** Cache Decorator Tests ([Cache Decorator Test Documentation](./redis/step2.4-cache-decorators-test.md)) - 1 test suite, 4 tests (Added in Step 2.4)
 
-### Total Tests: 248 individual test cases
+### Total Tests: 253 individual test cases
 
 ### Coverage Metrics: 100%
 
@@ -585,8 +598,8 @@ After running `npm run test:coverage`, view the detailed coverage report at:
 ✅ **Type-safe API responses** with `ApiResponse<T>` and `ValidationError` integration
 ✅ **Enhanced pagination** using `PaginationParams` and `PaginationMeta`
 ✅ **Tests organized** into unit and integration folders
-✅ **20 comprehensive test suites** created with type system validation
-✅ **237 test cases** covering all code paths with type safety
+✅ **23 comprehensive test suites** created with type system validation
+✅ **253 test cases** covering all code paths with type safety
 ✅ **Jest configuration optimized** to focus on testable code
 ✅ **All tests passing** with no errors or warnings
 ✅ **Full type system integration** from `types/index.d.ts`
