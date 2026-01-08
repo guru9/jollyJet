@@ -110,6 +110,68 @@ const options: swaggerJsdoc.Options = {
             },
           },
         },
+        CacheInfo: {
+          type: 'object',
+          properties: {
+            cacheStatus: {
+              type: 'string',
+              description: 'Cache status (hit/miss)',
+              enum: ['hit', 'miss', 'bypass'],
+              example: 'hit',
+            },
+            cacheKey: {
+              type: 'string',
+              description: 'Redis cache key used',
+              example: 'products:page:1:limit:10',
+            },
+            ttl: {
+              type: 'integer',
+              description: 'Time-to-live in seconds',
+              example: 86400,
+            },
+            cachedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'When the cache was created',
+              example: '2023-12-01T10:00:00.000Z',
+            },
+          },
+        },
+        CacheStatistics: {
+          type: 'object',
+          properties: {
+            hitRate: {
+              type: 'number',
+              description: 'Cache hit rate percentage',
+              minimum: 0,
+              maximum: 100,
+              example: 95.5,
+            },
+            totalRequests: {
+              type: 'integer',
+              description: 'Total number of cache requests',
+              minimum: 0,
+              example: 1000,
+            },
+            cacheHits: {
+              type: 'integer',
+              description: 'Number of cache hits',
+              minimum: 0,
+              example: 955,
+            },
+            cacheMisses: {
+              type: 'integer',
+              description: 'Number of cache misses',
+              minimum: 0,
+              example: 45,
+            },
+            memoryUsage: {
+              type: 'string',
+              description: 'Redis memory usage',
+              example: '10.5 MB',
+            },
+          },
+        },
       },
       responses: {
         UnauthorizedError: {
@@ -118,10 +180,57 @@ const options: swaggerJsdoc.Options = {
         NotFoundError: {
           description: 'Resource not found',
         },
+        CacheResponse: {
+          description: 'Cached response with cache metadata',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success',
+                  },
+                  data: {
+                    type: 'object',
+                    description: 'The actual response data',
+                  },
+                  cacheInfo: {
+                    $ref: '#/components/schemas/CacheInfo',
+                  },
+                },
+              },
+            },
+          },
+        },
+        CacheStatisticsResponse: {
+          description: 'Redis cache statistics',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success',
+                  },
+                  data: {
+                    $ref: '#/components/schemas/CacheStatistics',
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     },
   },
-  apis: ['./src/app.ts', './src/interface/routes/**/*.ts', './src/interface/dtos/**/*.ts'],
+  apis: [
+    './src/app.ts',
+    './src/interface/routes/**/*.ts',
+    './src/interface/dtos/**/*.ts',
+    './src/interface/controllers/**/*.ts',
+  ],
 };
 
 export const swaggerSpec = swaggerJsdoc(options);

@@ -226,6 +226,67 @@ export class MockRedisService implements IRedisService {
       isMock: true,
       store: this.store,
       locks: this.locks,
+      exists: async (key: string): Promise<number> => {
+        if (!this.connectedState) {
+          this.logger.warn('MockRedis: Not connected, exists returning 0');
+          return 0;
+        }
+        const item = this.store.get(key);
+        if (!item) {
+          this.logger.debug(`MockRedis: Key does not exist: ${key}`);
+          return 0;
+        }
+        if (item.expiresAt && Date.now() > item.expiresAt) {
+          this.store.delete(key);
+          this.logger.debug(`MockRedis: Key expired: ${key}`);
+          return 0;
+        }
+        this.logger.debug(`MockRedis: Key exists: ${key}`);
+        return 1;
+      },
+      ttl: async (key: string): Promise<number> => {
+        if (!this.connectedState) {
+          this.logger.warn('MockRedis: Not connected, ttl returning -2');
+          return -2;
+        }
+        const item = this.store.get(key);
+        if (!item) {
+          this.logger.debug(`MockRedis: Key does not exist for ttl: ${key}`);
+          return -2;
+        }
+        if (item.expiresAt && Date.now() > item.expiresAt) {
+          this.store.delete(key);
+          this.logger.debug(`MockRedis: Key expired for ttl: ${key}`);
+          return -2;
+        }
+        if (!item.ttl || !item.expiresAt) {
+          this.logger.debug(`MockRedis: Key has no TTL: ${key}`);
+          return -1;
+        }
+        const remainingTTL = Math.floor((item.expiresAt - Date.now()) / 1000);
+        this.logger.debug(`MockRedis: Key TTL: ${key} = ${remainingTTL}`);
+        return remainingTTL;
+      },
+      dbsize: async (): Promise<number> => {
+        if (!this.connectedState) {
+          this.logger.warn('MockRedis: Not connected, dbsize returning 0');
+          return 0;
+        }
+        return this.store.size;
+      },
+      info: async (section: string): Promise<string> => {
+        if (!this.connectedState) {
+          this.logger.warn('MockRedis: Not connected, info returning empty');
+          return '';
+        }
+        if (section === 'server') {
+          return 'uptime_in_seconds:1000\r\nredis_version:7.0.0';
+        }
+        if (section === 'memory') {
+          return 'used_memory:1048576\r\nused_memory_rss:2097152';
+        }
+        return '';
+      },
     };
   }
 

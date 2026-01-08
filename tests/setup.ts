@@ -37,14 +37,38 @@ beforeAll(async () => {
   const { CacheConsistencyService } =
     await import('@/domain/services/cache/CacheConsistencyService');
 
-  container.registerInstance(CacheConsistencyService, {
+  // Create a complete mock for CacheConsistencyService
+  const cacheConsistencyMock = {
     trackCacheHit: jest.fn(),
     trackCacheMiss: jest.fn(),
     trackStaleRead: jest.fn(),
     trackConsistencyError: jest.fn(),
-    checkStaleData: jest.fn().mockResolvedValue({ isStale: false }),
-    refreshAhead: jest.fn().mockResolvedValue(undefined),
-  } as any);
+    checkStaleData: jest
+      .fn()
+      .mockResolvedValue({ isStale: false, ttl: 3600, age: 0, threshold: 3600 }),
+    refreshAhead: jest.fn().mockResolvedValue({}),
+    getMetrics: jest.fn().mockReturnValue({
+      cacheHits: 0,
+      cacheMisses: 0,
+      staleReads: 0,
+      consistencyErrors: 0,
+      hitRate: 0,
+      consistencyScore: 100,
+      totalOperations: 0,
+      lastCheckTime: undefined,
+    }),
+    forceRefresh: jest.fn().mockResolvedValue({}),
+    invalidatePattern: jest.fn().mockResolvedValue(0),
+    getPerformanceStats: jest.fn().mockReturnValue({
+      hitRate: 0,
+      consistencyScore: 100,
+      totalOperations: 0,
+    }),
+    resetMetrics: jest.fn(),
+    cleanup: jest.fn(),
+  } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+  container.registerInstance(CacheConsistencyService, cacheConsistencyMock);
 
   mongoServer = await MongoMemoryServer.create();
   const uri = mongoServer.getUri();

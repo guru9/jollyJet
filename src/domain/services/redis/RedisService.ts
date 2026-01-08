@@ -1,11 +1,11 @@
 import Redis from 'ioredis';
 import { inject, injectable } from 'tsyringe';
+import redisConnection from '../../../infrastructure/database/redis';
 import {
   CACHE_KEYS_PATTERNS,
   CACHE_LOG_MESSAGES,
   CACHE_OPERATIONS,
   DI_TOKENS,
-  REDIS_CONFIG,
 } from '../../../shared/constants';
 import { Logger } from '../../../shared/logger';
 import { IRedisService } from '../../interfaces/redis/IRedisService';
@@ -25,63 +25,14 @@ import { IRedisService } from '../../interfaces/redis/IRedisService';
  */
 @injectable()
 export class RedisService implements IRedisService {
-  private client: Redis;
-  private isConnectedVal: boolean = false;
   private logger: Logger;
 
   /**
-   * Constructor - Initializes Redis client and sets up event handlers
+   * Constructor - Initializes Redis service with logger
    * @param logger - Injected logger instance for logging operations
    */
   constructor(@inject(DI_TOKENS.LOGGER) logger: Logger) {
     this.logger = logger;
-    this.client = new Redis({
-      host: REDIS_CONFIG.HOST as string,
-      port: REDIS_CONFIG.PORT as number,
-      password: REDIS_CONFIG.PASSWORD as string,
-      db: REDIS_CONFIG.DB as number,
-      lazyConnect: true,
-      retryStrategy: (times) => {
-        const delay = Math.min(times * 50, 2000);
-        return delay;
-      },
-    });
-
-    this.setupEventHandlers();
-    this.connect();
-  }
-
-  /**
-   * Sets up event handlers for Redis client events
-   * Handles connection, error, and close events with appropriate logging
-   */
-  private setupEventHandlers() {
-    this.client.on('connect', () => {
-      this.isConnectedVal = true;
-      this.logger.info(CACHE_LOG_MESSAGES.CONNECTION_SUCCESS);
-    });
-
-    this.client.on('error', (err) => {
-      this.isConnectedVal = false;
-      this.logger.error(CACHE_LOG_MESSAGES.CONNECTION_ERROR.replace('{error}', err.message));
-    });
-
-    this.client.on('close', () => {
-      this.isConnectedVal = false;
-      this.logger.warn(CACHE_LOG_MESSAGES.CONNECTION_CLOSED);
-    });
-  }
-
-  /**
-   * Establishes connection to Redis server
-   * Errors are handled by the event listener to avoid duplicate error handling
-   */
-  private async connect(): Promise<void> {
-    try {
-      await this.client.connect();
-    } catch {
-      // Error handled by event listener
-    }
   }
 
   /**
@@ -96,7 +47,7 @@ export class RedisService implements IRedisService {
    * - Logs detailed error information including operation type, key, and error message
    */
   public async get(key: string): Promise<string | null> {
-    if (!this.isConnectedVal) {
+    if (!this.isConnected()) {
       this.logger.warn(
         CACHE_LOG_MESSAGES.CONNECTION_WARNING.replace('{operation}', CACHE_OPERATIONS.GET)
       );
@@ -104,7 +55,7 @@ export class RedisService implements IRedisService {
     }
 
     try {
-      const result = await this.client.get(key);
+      const result = await this.getClient().get(key);
       if (result) {
         this.logger.debug(CACHE_LOG_MESSAGES.CACHE_HIT.replace('{key}', key));
       }
@@ -132,7 +83,7 @@ export class RedisService implements IRedisService {
    * - Logs detailed error information including operation type, key, and error message
    */
   public async set(key: string, value: string, ttl?: number): Promise<void> {
-    if (!this.isConnectedVal) {
+    if (!this.isConnected()) {
       this.logger.warn(
         CACHE_LOG_MESSAGES.CONNECTION_WARNING.replace('{operation}', CACHE_OPERATIONS.SET)
       );
@@ -141,12 +92,12 @@ export class RedisService implements IRedisService {
 
     try {
       if (ttl) {
-        await this.client.set(key, value, 'EX', ttl);
+        await this.getClient().set(key, value, 'EX', ttl);
         this.logger.debug(
           CACHE_LOG_MESSAGES.CACHE_SET.replace('{key}', key).replace('{ttl}', ttl.toString())
         );
       } else {
-        await this.client.set(key, value);
+        await this.getClient().set(key, value);
         this.logger.debug(
           CACHE_LOG_MESSAGES.CACHE_SET.replace('{key}', key).replace('{ttl}', 'no TTL')
         );
@@ -172,7 +123,7 @@ export class RedisService implements IRedisService {
    * - Logs detailed error information including operation type, key, and error message
    */
   public async delete(key: string): Promise<void> {
-    if (!this.isConnectedVal) {
+    if (!this.isConnected()) {
       this.logger.warn(
         CACHE_LOG_MESSAGES.CONNECTION_WARNING.replace('{operation}', CACHE_OPERATIONS.DEL)
       );
@@ -180,7 +131,7 @@ export class RedisService implements IRedisService {
     }
 
     try {
-      await this.client.del(key);
+      await this.getClient().del(key);
       this.logger.debug(CACHE_LOG_MESSAGES.CACHE_DELETE.replace('{key}', key));
     } catch (error) {
       this.logger.error(
@@ -203,11 +154,11 @@ export class RedisService implements IRedisService {
    * - Logs detailed error information including operation type, pattern, and error message
    */
   public async keys(pattern: string): Promise<string[]> {
-    if (!this.isConnectedVal) {
+    if (!this.isConnected()) {
       return [];
     }
     try {
-      const result = await this.client.keys(pattern);
+      const result = await this.getClient().keys(pattern);
       this.logger.debug(
         CACHE_LOG_MESSAGES.CACHE_KEYS.replace('{pattern}', pattern).replace(
           '{count}',
@@ -234,8 +185,8 @@ export class RedisService implements IRedisService {
    * - Re-throws Redis operation errors for caller to handle
    */
   public async flush(): Promise<void> {
-    if (!this.isConnectedVal) return;
-    await this.client.flushdb();
+    if (!this.isConnected()) return;
+    await this.getClient().flushdb();
     this.logger.info(CACHE_LOG_MESSAGES.CACHE_FLUSH);
   }
 
@@ -249,9 +200,9 @@ export class RedisService implements IRedisService {
    * - Re-throws Redis operation errors for caller to handle
    */
   public async increment(key: string): Promise<number> {
-    if (!this.isConnectedVal) return 0;
+    if (!this.isConnected()) return 0;
     try {
-      return await this.client.incr(key);
+      return await this.getClient().incr(key);
     } catch (error) {
       this.logger.error(
         CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED.replace('{operation}', CACHE_OPERATIONS.INCREMENT)
@@ -272,9 +223,9 @@ export class RedisService implements IRedisService {
    * - Re-throws Redis operation errors for caller to handle
    */
   public async setWithExpiration(key: string, ttl: number): Promise<void> {
-    if (!this.isConnectedVal) return;
+    if (!this.isConnected()) return;
     try {
-      await this.client.set(key, '1', 'EX', ttl, 'NX');
+      await this.getClient().set(key, '1', 'EX', ttl, 'NX');
     } catch (error) {
       this.logger.error(
         CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED.replace('{operation}', CACHE_OPERATIONS.SET)
@@ -297,10 +248,10 @@ export class RedisService implements IRedisService {
    * - Re-throws Redis operation errors for caller to handle
    */
   public async acquireLock(key: string, ttl: number): Promise<boolean> {
-    if (!this.isConnectedVal) return false;
+    if (!this.isConnected()) return false;
     try {
       const lockKey = CACHE_KEYS_PATTERNS.CONSISTENCY_LOCK(key);
-      const result = await this.client.set(lockKey, '1', 'EX', ttl, 'NX');
+      const result = await this.getClient().set(lockKey, '1', 'EX', ttl, 'NX');
       return result === 'OK';
     } catch (error) {
       this.logger.error(
@@ -324,10 +275,10 @@ export class RedisService implements IRedisService {
    * - Re-throws Redis operation errors for caller to handle
    */
   public async releaseLock(key: string): Promise<void> {
-    if (!this.isConnectedVal) return;
+    if (!this.isConnected()) return;
     try {
       const lockKey = CACHE_KEYS_PATTERNS.CONSISTENCY_LOCK(key);
-      await this.client.del(lockKey);
+      await this.getClient().del(lockKey);
     } catch (error) {
       this.logger.error(
         CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED.replace(
@@ -348,7 +299,7 @@ export class RedisService implements IRedisService {
    * Note: Use with caution - direct client access bypasses service-level error handling
    */
   public getClient(): Redis {
-    return this.client;
+    return redisConnection.getClient();
   }
 
   /**
@@ -356,6 +307,6 @@ export class RedisService implements IRedisService {
    * @returns true if connected, false otherwise
    */
   public isConnected(): boolean {
-    return this.isConnectedVal;
+    return redisConnection.getConnectionStatus();
   }
 }

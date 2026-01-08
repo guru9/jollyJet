@@ -345,7 +345,7 @@ tests/
 └── setup.ts                     # Test environment setup
 ```
 
-### Total Test Suites: 23
+### Total Test Suites: 24
 
 1. **Integration:** App Endpoints (app.test.ts) - 4 test suites, 7 tests
 2. **Unit:** General Middleware Tests (middleware.test.ts) - 2 test suites, 8 tests
@@ -370,8 +370,10 @@ tests/
 21. **Unit:** SessionService Tests ([Session Service Test Documentation](./redis/step2.2-session-management-test.md)) - 1 test suite, 6 tests
 22. **Unit:** RateLimitingService Tests ([Rate Limiting Test Documentation](./redis/step2.3-rate-limiting-test.md)) - 1 test suite, 7 tests
 23. **Unit:** Cache Decorator Tests ([Cache Decorator Test Documentation](./redis/step2.4-cache-decorators-test.md)) - 1 test suite, 4 tests (Added in Step 2.4)
+24. **Unit:** RedisController Tests ([RedisController Test Documentation](./redis/RedisController-test-analysis.md)) - 4 test suites, 12 tests (Added in Step 5.1)
+25. **Unit:** RedisController Tests ([RedisController Test Documentation](./redis/RedisController-test-analysis.md)) - 4 test suites, 12 tests (Added in Step 5.1)
 
-### Total Tests: 253 individual test cases
+### Total Tests: 265 individual test cases
 
 ### Coverage Metrics: 100%
 
@@ -598,8 +600,8 @@ After running `npm run test:coverage`, view the detailed coverage report at:
 ✅ **Type-safe API responses** with `ApiResponse<T>` and `ValidationError` integration
 ✅ **Enhanced pagination** using `PaginationParams` and `PaginationMeta`
 ✅ **Tests organized** into unit and integration folders
-✅ **23 comprehensive test suites** created with type system validation
-✅ **253 test cases** covering all code paths with type safety
+✅ **24 comprehensive test suites** created with type system validation
+✅ **265 test cases** covering all code paths with type safety
 ✅ **Jest configuration optimized** to focus on testable code
 ✅ **All tests passing** with no errors or warnings
 ✅ **Full type system integration** from `types/index.d.ts`

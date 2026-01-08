@@ -180,6 +180,7 @@ export const RATE_LIMIT_MESSAGES = {
  * - Rate limiting configuration for API protection
  * - Cache consistency mechanisms for data integrity
  * - Structured logging for cache operations
+ * - RedisController-specific constants for API responses
  */
 
 /**
@@ -330,10 +331,13 @@ export const CACHE_KEYS_PATTERNS = {
  */
 export const CACHE_LOG_MESSAGES = {
   // Connection management messages
-  CONNECTION_SUCCESS: 'Redis connected successfully',
-  CONNECTION_ERROR: 'Redis connection error: {error}',
-  CONNECTION_CLOSED: 'Redis connection closed',
+  CONNECTION_SUCCESS: 'Successfully established connection to Redis server',
+  CONNECTION_ERROR: 'Failed to connect to Redis: {error}',
+  CONNECTION_CLOSED: 'Redis connection has been closed',
   CONNECTION_WARNING: 'Redis not connected, {operation} skipped',
+  CONNECTION_CLOSE_ERROR: 'Error occurred while closing Redis connection',
+  CONNECTION_RETRY_LIMIT:
+    'Redis connection attempts exhausted after 3 retries. No further retries in development mode.',
 
   // Cache operation lifecycle messages
   CACHE_HIT: 'Cache hit for key: {key}',
@@ -394,4 +398,32 @@ export const CACHE_LOG_MESSAGES = {
   SERVICE_CLEANUP_COMPLETED: 'Cache consistency service cleanup completed',
   RATE_LIMIT_EXCEEDED: 'Rate limit exceeded for key: {key}',
   RATE_LIMIT_CHECK_FAILED: 'Rate limit check failed for key: {key}, error: {error}',
+};
+
+/**
+ * RedisController-specific constants for API responses and error messages.
+ * These constants ensure consistent messaging across all Redis cache management endpoints.
+ */
+export const REDIS_CONTROLLER_MESSAGES = {
+  // Success messages
+  CACHE_STATS_RETRIEVED: 'Cache statistics retrieved successfully',
+  CACHE_KEY_CHECKED: 'Cache key check completed successfully',
+  CACHE_INVALIDATED: 'Cache invalidation completed successfully',
+  CACHE_STATUS_RETRIEVED: 'Cache connection status retrieved successfully',
+
+  // Error messages
+  ERROR_RETRIEVING_CACHE_STATS: 'Error retrieving cache statistics',
+  ERROR_CHECKING_CACHE_KEY: 'Error checking cache key',
+  ERROR_INVALIDATING_CACHE: 'Error invalidating cache',
+  ERROR_GETTING_CACHE_STATUS: 'Error getting cache status',
+  KEY_PARAMETER_REQUIRED: 'Key parameter is required',
+  PATTERN_PARAMETER_REQUIRED: 'Pattern parameter is required',
+
+  // Cache statistics placeholders
+  CACHE_STATS_PLACEHOLDER: {
+    HIT_RATE: 95.5,
+    TOTAL_REQUESTS: 1000,
+    CACHE_HITS: 955,
+    CACHE_MISSES: 45,
+  },
 };

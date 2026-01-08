@@ -53,6 +53,7 @@ const createProductRoutes = (): Router => {
    *   get:
    *     tags: [Products]
    *     summary: Get all products with optional filtering
+   *     description: Retrieve paginated list of products with Redis caching for optimal performance
    *     parameters:
    *       - in: query
    *         name: page
@@ -91,7 +92,7 @@ const createProductRoutes = (): Router => {
    *         description: Filter by wishlist status
    *     responses:
    *       200:
-   *         description: List of products (cached response)
+   *         $ref: '#/components/responses/CacheResponse'
    *         content:
    *           application/json:
    *             schema:
@@ -110,6 +111,8 @@ const createProductRoutes = (): Router => {
    *                   type: array
    *                   items:
    *                     $ref: '#/components/schemas/Product'
+   *                 cacheInfo:
+   *                   $ref: '#/components/schemas/CacheInfo'
    */
   router.get(
     '/',
@@ -161,7 +164,7 @@ const createProductRoutes = (): Router => {
    *         description: JSON string with min/max price range
    *     responses:
    *       200:
-   *         description: Product count retrieved successfully
+   *         $ref: '#/components/responses/CacheResponse'
    *         content:
    *           application/json:
    *             schema:
@@ -176,6 +179,8 @@ const createProductRoutes = (): Router => {
    *                 message:
    *                   type: string
    *                   example: "Products count retrieved successfully"
+   *                 cacheInfo:
+   *                   $ref: '#/components/schemas/CacheInfo'
    */
   router.get(
     '/count',
@@ -216,7 +221,7 @@ const createProductRoutes = (): Router => {
    *         description: Number of products per page
    *     responses:
    *       200:
-   *         description: List of wishlist products
+   *         $ref: '#/components/responses/CacheResponse'
    *         content:
    *           application/json:
    *             schema:
@@ -235,6 +240,8 @@ const createProductRoutes = (): Router => {
    *                   type: array
    *                   items:
    *                     $ref: '#/components/schemas/Product'
+   *                 cacheInfo:
+   *                   $ref: '#/components/schemas/CacheInfo'
    */
   router.get(
     '/wishlist',
@@ -267,7 +274,7 @@ const createProductRoutes = (): Router => {
    *         description: Product ID (UUID or MongoDB ObjectId depending on implementation)
    *     responses:
    *       200:
-   *         description: Product found
+   *         $ref: '#/components/responses/CacheResponse'
    *         content:
    *           application/json:
    *             schema:
@@ -278,6 +285,8 @@ const createProductRoutes = (): Router => {
    *                   example: success
    *                 data:
    *                   $ref: '#/components/schemas/Product'
+   *                 cacheInfo:
+   *                   $ref: '#/components/schemas/CacheInfo'
    *       404:
    *         description: Product not found
    */

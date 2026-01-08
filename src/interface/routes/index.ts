@@ -53,6 +53,16 @@ export const routeModuleFactories: RouteModule[] = [
 
     middleware: [], // Add module-specific middleware here (auth, rate limiting, etc.)
   },
+  {
+    name: 'Redis Cache Routes',
+    path: '/api/cache',
+    routerFactory: async () => {
+      const { default: createRedisRoutes } = await import('./redis/redisRoutes');
+      return createRedisRoutes();
+    },
+
+    middleware: [], // Add module-specific middleware here (auth, rate limiting, etc.)
+  },
   // Future modules will be added here:
   // {
   //   name: 'Order Routes',

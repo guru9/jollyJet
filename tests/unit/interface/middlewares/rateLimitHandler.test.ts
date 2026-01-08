@@ -20,30 +20,30 @@ describe('rateLimitHandler', () => {
       checkRateLimit: jest.fn(),
       resetRateLimit: jest.fn(),
       getRateLimitStatus: jest.fn(),
-    } as any;
+    } as unknown as jest.Mocked<IRateLimitingService>;
 
     mockLogger = {
       info: jest.fn(),
       warn: jest.fn(),
       error: jest.fn(),
       debug: jest.fn(),
-    } as any;
+    } as unknown as jest.Mocked<Logger>;
 
     container.registerInstance(DI_TOKENS.RATE_LIMIT_SERVICE, mockRateLimitingService);
     container.registerInstance(DI_TOKENS.LOGGER, mockLogger);
 
     mockRequest = {
       ip: '127.0.0.1',
-      socket: {} as any,
-    };
+      socket: {},
+    } as Partial<Request>;
 
     mockResponse = {
       set: jest.fn().mockReturnThis(),
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
-    };
+    } as Partial<Response>;
 
-    nextFunction = jest.fn();
+    nextFunction = jest.fn() as NextFunction;
   });
 
   it('should allow request if rate limit is not exceeded', async () => {
