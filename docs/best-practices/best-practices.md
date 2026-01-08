@@ -1208,7 +1208,12 @@ Shared utilities and common code.
 - **Type Safety**: Strongly typed utility functions
 - **Error Classes**: Custom error classes extending base errors
 - **Constants**: Centralized application constants, kept clean by removing unused ones to maintain maintainability
-- **Logger**: Structured logging with Pino
+- **Logger**: Centralized Pino logger instance as a shared utility/service, properly placed in `src/shared/logger.ts` rather than middleware. Middleware consumes the shared logger for request logging, maintaining separation of concerns and cross-cutting concern principles.
+- **Best practice:** The logger should not be in middleware. The current structure is correct:
+  - `src/shared/logger.ts` provides a centralized Pino logger instance as a shared utility/service, which is the appropriate place for it.
+  - `src/interface/middlewares/requestLogger.ts` is a middleware that uses the shared logger to log HTTP requests.
+
+  This follows clean architecture principles where logging is a cross-cutting concern handled by a shared service, and middleware consumes it for request logging. Moving the logger into middleware would violate separation of concerns.
 
 ### Configuration Module Best Practices (`src/config`)
 

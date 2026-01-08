@@ -1177,7 +1177,38 @@ npm run dev
 npm run debug
 ```
 
-**Debugging with Chrome DevTools:**
+**Debugging with VSCode:**
+
+1. **Start the debug server:**
+
+   ```bash
+   npm run debug
+   ```
+
+   This starts the server with Node.js inspector on port 9228.
+
+2. **Attach VSCode Debugger:**
+   - Open VSCode
+   - Go to Run and Debug panel (Ctrl+Shift+D)
+   - Select "Debug Backend (Node.js)" from the dropdown
+   - Click the green play button to attach the debugger
+   - The debugger will connect to the running server process
+
+3. **Set Breakpoints:**
+   - Open your TypeScript files (e.g., ProductController.ts, ProductRepository.ts)
+   - Click in the gutter next to line numbers to set breakpoints
+   - Make requests to trigger the code execution
+
+4. **Access API Documentation:**
+   - Swagger UI: `http://localhost:3000/api-docs`
+   - API JSON Schema: `http://localhost:3000/api-docs.json`
+
+5. **Test API Endpoints:**
+   - Use Swagger UI for interactive API testing
+   - Or use curl/Postman to test endpoints directly
+   - Example: `GET http://localhost:3000/api/products?page=1&limit=10`
+
+**Debugging with Chrome DevTools (Alternative):**
 
 1. **Start the debug server:**
 
@@ -1189,7 +1220,7 @@ npm run debug
 
 2. **Open Chrome DevTools:**
    - Open Chrome browser
-   - Navigate to `chrome://inspect/#devices` (for edge - `edge://inspect/#devices` )
+   - Navigate to `chrome://inspect/#devices` (for Edge - `edge://inspect/#devices`)
    - Click "Open dedicated DevTools for Node" under "Remote Target"
 
 3. **Access API Documentation:**
@@ -1221,16 +1252,21 @@ curl http://localhost:3000/health
 
 The project includes optimized VSCode launch configurations for development and debugging:
 
-- **Launch Chrome**: Opens Swagger UI at `http://localhost:3000/api-docs`
-- **Debug Server**: Node.js debugger with `--inspect=8080` for Chrome DevTools
-- **Debug Server and Launch Chrome**: Combined configuration for full debugging experience
+- **Debug Backend (Node.js)**: Attach to Node.js debug process (port 9228) for server-side debugging
+- **Launch Edge (Frontend Debug)**: Launch Edge with debugging enabled for frontend/API testing
+- **Attach to Edge (Inspect Mode)**: Attach to running Edge instance for inspection
+- **Launch Chrome (Frontend Debug)**: Launch Chrome with debugging enabled for frontend/API testing
+- **Attach to Chrome (Inspect Mode)**: Attach to running Chrome instance for inspection
 
 **Debug Features:**
 
-- Node.js inspector on port 8080
-- Chrome DevTools integration
-- Automatic Swagger UI launch
+- Node.js inspector on port 9228 with source maps
+- Edge debugging with remote debugging port 3000
+- Automatic Swagger UI access at `http://localhost:3000/api-docs`
 - Hot reload with nodemon
+- Organized configuration groups (backend/frontend)
+- 🔴 Redis caching integration - cached requests bypass controller execution for performance
+- 🔴 Breakpoints trigger only on uncached requests or new query parameters
 
 **Related Documentation:**
 

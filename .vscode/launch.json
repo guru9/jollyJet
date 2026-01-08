@@ -1,0 +1,80 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Backend (Node.js)",
+      "type": "node",
+      "request": "attach",
+      "port": 9228,
+      "restart": true,
+      "skipFiles": ["<node_internals>/**"],
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/**/*.js"],
+      "presentation": {
+        "group": "backend",
+        "order": 1
+      }
+    },
+    {
+      "name": "Launch Edge (Frontend Debug)",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}",
+      "runtimeArgs": ["--remote-debugging-port=3000"],
+      "presentation": {
+        "group": "frontend",
+        "order": 1
+      }
+    },
+    {
+      "name": "Attach to Edge (Inspect Mode)",
+      "type": "msedge",
+      "request": "attach",
+      "port": 3000,
+      "urlFilter": "http://localhost:3000*",
+      "webRoot": "${workspaceFolder}",
+      "presentation": {
+        "group": "frontend",
+        "order": 2
+      }
+    },
+    {
+      "name": "Launch Chrome (Frontend Debug)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}",
+      "runtimeArgs": ["--remote-debugging-port=3000"],
+      "presentation": {
+        "group": "frontend",
+        "order": 3
+      }
+    },
+    {
+      "name": "Attach to Chrome (Inspect Mode)",
+      "type": "chrome",
+      "request": "attach",
+      "port": 3000,
+      "urlFilter": "http://localhost:3000*",
+      "webRoot": "${workspaceFolder}",
+      "presentation": {
+        "group": "frontend",
+        "order": 4
+      }
+    },
+    {
+      "name": "Open Edge Inspect (Node.js)",
+      "type": "msedge",
+      "request": "launch",
+      "url": "edge://inspect/#devices",
+      "presentation": {
+        "group": "backend",
+        "order": 2
+      }
+    }
+  ]
+}

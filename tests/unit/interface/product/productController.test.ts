@@ -144,7 +144,7 @@ describe('ProductController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(HTTP_STATUS.CREATED);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: RESPONSE_STATUS.SUCCESS,
-        data: createdProduct,
+        data: createdProduct.toProps(),
         message: PRODUCT_SUCCESS_MESSAGES.PRODUCT_CREATED,
       });
       expect(mockNext).not.toHaveBeenCalled();
@@ -201,7 +201,7 @@ describe('ProductController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: RESPONSE_STATUS.SUCCESS,
-        data: product,
+        data: product.toProps(),
         message: PRODUCT_SUCCESS_MESSAGES.PRODUCT_RETRIEVED,
       });
       expect(mockNext).not.toHaveBeenCalled();
@@ -483,7 +483,7 @@ describe('ProductController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: RESPONSE_STATUS.SUCCESS,
-        data: updatedProduct,
+        data: updatedProduct.toProps(),
         message: PRODUCT_SUCCESS_MESSAGES.PRODUCT_UPDATED,
       });
       expect(mockNext).not.toHaveBeenCalled();
@@ -571,7 +571,7 @@ describe('ProductController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: RESPONSE_STATUS.SUCCESS,
-        data: updatedProduct,
+        data: updatedProduct.toProps(),
         message: PRODUCT_SUCCESS_MESSAGES.WISHLIST_TOGGLED,
       });
       expect(mockNext).not.toHaveBeenCalled();

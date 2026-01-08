@@ -1,7 +1,6 @@
 import { Product } from '@/domain/entities';
 import { IProductRepository } from '@/domain/interfaces';
-import { BadRequestError, DI_TOKENS, Logger, PRODUCT_ERROR_MESSAGES, REDIS_CONFIG } from '@/shared';
-import { Cacheable } from '@/shared/decorators/cache.decorator';
+import { BadRequestError, DI_TOKENS, Logger, PRODUCT_ERROR_MESSAGES } from '@/shared';
 
 import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
@@ -27,11 +26,6 @@ export class GetProductUseCase {
    * 🔧 Flow: ID → Repository → Domain Entity
    * 📋 Business Rules: Enforced by domain entity validation
    */
-  @Cacheable({
-    ttl: Number(REDIS_CONFIG.TTL.PRODUCT),
-    consistencyCheck: true,
-    stampedeProtection: true,
-  })
   public async execute(productId: string): Promise<Product | null> {
     // Validate input
     if (!productId?.trim()) {
