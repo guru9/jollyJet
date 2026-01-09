@@ -148,14 +148,14 @@ src/
 
 ```
 jollyJet/
-├── src/
-│   ├── domain/                    # ✅ Completed for Product Domain Entities/Interfaces/services
+├── 📂 src/
+│   ├──📂domain/                    # ✅ Completed for Product Domain Entities/Interfaces/services
 │   │   ├── entities/              # ✅ Product, Order, User entities
 │   │   ├── interfaces/            # ✅ Repository interfaces
 │   │   └── services/              # ✅ Domain services
 │   │
-│   ├── usecases/                  # ✅ Completed for products - Use cases implementation
-│   │   ├── product/               # Product use cases
+│   ├──📂usecases/                  # ✅ Completed for products - Use cases implementation
+│   │   ├── 📂product/               # Product use cases
 │   │   │   ├── CreateProductUseCase.ts  # ✅ Create product use case
 │   │   │   ├── GetProductUseCase.ts     # ✅ Get product use case
 │   │   │   ├── ListProductsUseCase.ts   # ✅ List products use case
@@ -163,52 +163,55 @@ jollyJet/
 │   │   │   ├── DeleteProductUseCase.ts  # ✅ Delete product use case
 │   │   │   ├── CountProductsUseCase.ts  # ✅ Count products use case
 │   │   │   └── ToggleWishlistProductUseCase.ts  # ✅ Toggle wishlist use case
-│   │   └── order/                 # Order use cases
+│   │   │
+│   │   └── 📂order/                 # Order use cases
 │   │
-│   ├── infrastructure/            # ✅ Partially Complete
+│   ├──📂infrastructure/            # ✅ Partially Complete
 │   │   ├── database/
 │   │   │   └── mongodb.ts         # ✅ MongoDB connection
 │   │   ├── repositories/          # ✅ Product Repository implementations
 │   │   └── external/              # ❌ Empty - For 3rd party integrations
 │   │
-│   ├── interface/                 # ✅ Complete
-│   │   ├── controllers/           # ✅ Completed - ProductController implemented
-│   │   ├── routes/                # ✅ Completed - Product routes configured
-│   │   ├── dtos/                  # ✅ Completed- Product DTOs
-│   │   └── middlewares/           # ✅ Complete
+│   ├──📂interface/                 # ✅ Complete
+│   │   ├──📂controllers/           # ✅ Completed - ProductController implemented
+│   │   ├──📂routes/                # ✅ Completed - Product routes configured
+│   │   ├──📂dtos/                  # ✅ Completed- Product DTOs
+│   │   └──📂middlewares/           # ✅ Complete
 │   │       ├── errorHandler.ts    # ✅ Error handling
 │   │       ├── requestLogger.ts   # ✅ Request logging
 │   │       └── index.ts           # ✅ Middleware exports
 │   │
-│   ├── config/                    # ✅ Complete
+│   ├──📂config/                    # ✅ Complete
 │   │   ├── index.ts               # ✅ App configuration
 │   │   ├── di-container.ts        # ✅ Dependency injection
 │   │   ├── env.validation.ts      # ✅ Environment validation
 │   │   └── swagger.ts             # ✅ Swagger configuration
 │   │
-│   ├── shared/                    # ✅ Complete
+│   ├──📂shared/                    # ✅ Complete
 │   │   ├── constants.ts           # ✅ HTTP status, error messages, validation rules
 │   │   ├── errors.ts              # ✅ Custom error classes
 │   │   ├── logger.ts              # ✅ Pino logger
 │   │   └── utils.ts               # ✅ Utility functions
 │   │
-│   ├── types/                     # ✅ Complete
+│   ├──📂types/                     # ✅ Complete
 │   │   └── index.d.ts             # ✅ TypeScript type definitions
-│   │
-│   ├── test/                      # ✅ Complete
-│   │   ├── unit/                  # ✅ Unit tests
-│   │   │   ├── utils.test.ts              # ✅ Utility function tests
-│   │   │   ├── errors.test.ts             # ✅ Error class tests
-│   │   │   ├── middleware.test.ts         # ✅ Middleware tests
-│   │   │   └── products/                  # ✅ Product module tests
-│   │   │       ├── createProductUseCase.test.ts  # ✅ Create product use case tests
-│   │   │       └── getProductUseCase.test.ts     # ✅ Get product use case tests
-│   │   ├── integration/           # ✅ Integration tests
-│   │   │   └── app.test.ts        # ✅ App endpoint tests
-│   │   └── setup.ts               # ✅ Test environment setup
 │   │
 │   ├── app.ts                     # ✅ Express app setup
 │   └── server.ts                  # ✅ Server bootstrap
+│   │
+│   │
+├── 📂 test/                      # ✅ Complete
+│      ├── unit/                     # ✅ Unit tests
+|         ├── utils.test.ts              # ✅ Utility function tests
+|         │   ├── errors.test.ts             # ✅ Error class tests
+|         │   ├── middleware.test.ts         # ✅ Middleware tests
+|         │   └── products/                  # ✅ Product module tests
+|         │       ├── createProductUseCase.test.ts  # ✅ Create product use case tests
+|         │       └── getProductUseCase.test.ts     # ✅ Get product use case tests
+|         ├── integration/           # ✅ Integration tests
+|         │   └── app.test.ts        # ✅ App endpoint tests
+|         └── setup.ts               # ✅ Test environment setup
+│
 │
 ├── implementation-plans/          # 📋 Implementation guides
 │   ├── 01-mongodb-setup-plan.md
@@ -279,40 +282,40 @@ To prepare for Redis integration and future feature modules, we're reorganizing 
 
 ```
 src/
-├── config/
+├── 📂config/
 │   ├── index.ts (Barrel export for env, di-container, swagger)
 │   ├── env.validation.ts
 │   ├── di-container.ts
 │   └── swagger.ts
 │
-├── domain/
-│   ├── entities/
+├── 📂domain/
+│   ├── 📂entities/
 │   │   ├── product/
 │   │   │   └── Product.ts
 │   │   └── index.ts (Exports everything from product/)
-│   ├── interfaces/
+│   ├── 📂interfaces/
 │   │   ├── product/
 │   │   │   └── IProductRepository.ts
 │   │   └── index.ts (Exports everything from product/)
-│   └── services/
+│   └── 📂services/
 │       ├── product/
 │       │   └── ProductService.ts
 │       └── index.ts (Exports everything from product/)
 │
-├── infrastructure/
-│   ├── models/
+├── 📂infrastructure/
+│   ├── 📂models/
 │   │   ├── product/
 │   │   │   └── ProductModel.ts
 │   │   └── index.ts (Exports everything from product/)
-│   ├── repositories/
+│   ├── 📂repositories/
 │   │   ├── product/
 │   │   │   └── ProductRepository.ts
 │   │   └── index.ts (Exports everything from product/)
-│   └── database/
+│   └── 📂database/
 │       └── mongodb.ts
 │
-├── usecases/
-│   ├── product/
+├── 📂usecases/
+│   ├── 📂product/
 │   │   ├── CreateProductUseCase.ts
 │   │   ├── GetProductUseCase.ts
 │   │   ├── ListProductsUseCase.ts
@@ -322,49 +325,50 @@ src/
 │   │   └── ToggleWishlistProductUseCase.ts
 │   └── index.ts (Exports all use cases)
 │
-├── interface/
-│   ├── controllers/
+├── 📂interface/
+│   ├── 📂controllers/
 │   │   ├── product/
 │   │   │   └── ProductController.ts
 │   │   └── index.ts (Exports everything from product/)
-│   ├── routes/
+│   ├── 📂routes/
 │   │   ├── product/
 │   │   │   └── productRoutes.ts
 │   │   └── index.ts (Centralized route registry)
-│   ├── dtos/
+│   ├── 📂dtos/
 │   │   ├── product/
 │   │   │   ├── CreateProductDTO.ts
 │   │   │   ├── UpdateProductDTO.ts
 │   │   │   ├── ProductResponseDTO.ts
 │   │   │   └── ToggleWishlistDTO.ts
 │   │   └── index.ts (Exports all product DTOs)
-│   ├── validators/
+│   ├── 📂validators/
 │   │   ├── product/
 │   │   │   └── ProductValidators.ts
 │   │   └── index.ts (Exports all validators)
-│   └── middlewares/
+│   └── 📂middlewares/
 │       ├── index.ts
 │       ├── errorHandler.ts
 │       └── requestLogger.ts
 │
-├── shared/
+├── 📂shared/
 │   ├── index.ts (Barrel export for constants, errors, logger, utils)
 │   ├── constants.ts
 │   ├── errors.ts
 │   ├── logger.ts
 │   └── utils.ts
-│
-└── __tests__/
-    ├── unit/
-    │   ├── domain/product/
-    │   ├── infrastructure/product/
-    │   ├── interface/product/
-    │   ├── usecases/product/
-    │   ├── errors.test.ts
-    │   ├── middleware.test.ts
-    │   └── utils.test.ts
-    └── integration/
-        └── app.test.ts
+
+📂test/                                   # ✅ Complete
+    ├── unit/                              # ✅ Unit tests
+        ├── utils.test.ts                  # ✅ Utility function tests
+        │   ├── errors.test.ts             # ✅ Error class tests
+        │   ├── middleware.test.ts         # ✅ Middleware tests
+        │   └── products/                  # ✅ Product module tests
+        │       ├── createProductUseCase.test.ts          # ✅ Create product use case tests
+        │       └── getProductUseCase.test.ts             # ✅ Get product use case tests
+        ├── integration/                   # ✅ Integration tests
+        │   └── app.test.ts                # ✅ App endpoint tests
+        └── setup.ts                       # ✅ Test environment setup
+
 ```
 
 ### **Import Strategy**
