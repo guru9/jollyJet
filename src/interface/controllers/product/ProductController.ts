@@ -1,14 +1,24 @@
-import { Product } from '@/domain/entities';
+import { ProductProps } from '@/domain/entities';
 import { ToggleWishlistDTO, UpdateProductDTO } from '@/interface/dtos';
 import { productFilterSchema } from '@/interface/validators';
 import {
   BadRequestError,
+  DI_TOKENS,
   HTTP_STATUS,
+  Logger,
   PRODUCT_ERROR_MESSAGES,
   PRODUCT_SUCCESS_MESSAGES,
   RESPONSE_STATUS,
   safeParseString,
 } from '@/shared';
+
+interface ListProductsResponse {
+  products: ProductProps[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
 
 import { ApiResponse } from '@/types';
 import {
@@ -23,7 +33,7 @@ import {
   UpdateProductUseCase,
 } from '@/usecases';
 import { NextFunction, Request, Response } from 'express';
-import { injectable } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
 
 /**
  * Product Controller - Handles HTTP requests for product operations
@@ -64,7 +74,8 @@ export class ProductController {
     private countProductsUseCase: CountProductsUseCase,
     private updateProductUseCase: UpdateProductUseCase,
     private deleteProductUseCase: DeleteProductUseCase,
-    private toggleWishlistUseCase: ToggleWishlistProductUseCase
+    private toggleWishlistUseCase: ToggleWishlistProductUseCase,
+    @inject(DI_TOKENS.LOGGER) private logger: Logger
   ) {}
 
   /**
@@ -92,9 +103,9 @@ export class ProductController {
     try {
       const productData = req.body;
       const product = await this.createProductUseCase.execute(productData);
-      const response: ApiResponse<Product> = {
+      const response: ApiResponse<ProductProps> = {
         status: RESPONSE_STATUS.SUCCESS,
-        data: product,
+        data: product.toProps(),
         message: PRODUCT_SUCCESS_MESSAGES.PRODUCT_CREATED,
       };
       res.status(HTTP_STATUS.CREATED).json(response);
@@ -152,9 +163,9 @@ export class ProductController {
 
       if (product) {
         // Product found, return 200 OK
-        const response: ApiResponse<Product> = {
+        const response: ApiResponse<ProductProps> = {
           status: RESPONSE_STATUS.SUCCESS,
-          data: product,
+          data: product.toProps(),
           message: PRODUCT_SUCCESS_MESSAGES.PRODUCT_RETRIEVED,
         };
         res.status(HTTP_STATUS.OK).json(response);
@@ -228,9 +239,12 @@ export class ProductController {
         priceRange: validatedQuery.priceRange,
       };
       const result = await this.listProductsUseCase.execute(queryParams);
-      const response: ApiResponse<typeof result> = {
+      const response: ApiResponse<ListProductsResponse> = {
         status: RESPONSE_STATUS.SUCCESS,
-        data: result,
+        data: {
+          ...result,
+          products: result.products.map((p) => p.toProps()),
+        },
         message: PRODUCT_SUCCESS_MESSAGES.PRODUCTS_RETRIEVED,
       };
       res.status(HTTP_STATUS.OK).json(response);
@@ -319,9 +333,9 @@ export class ProductController {
       const productData: UpdateProductDTO = req.body;
       const product = await this.updateProductUseCase.execute(productId, productData);
       if (product) {
-        const response: ApiResponse<Product> = {
+        const response: ApiResponse<ProductProps> = {
           status: RESPONSE_STATUS.SUCCESS,
-          data: product,
+          data: product.toProps(),
           message: PRODUCT_SUCCESS_MESSAGES.PRODUCT_UPDATED,
         };
         res.status(HTTP_STATUS.OK).json(response);
@@ -412,9 +426,12 @@ export class ProductController {
         isWishlistStatus: true, // Filter specifically for wishlist products
       };
       const result = await this.listProductsUseCase.execute(queryParams);
-      const response: ApiResponse<typeof result> = {
+      const response: ApiResponse<ListProductsResponse> = {
         status: RESPONSE_STATUS.SUCCESS,
-        data: result,
+        data: {
+          ...result,
+          products: result.products.map((p) => p.toProps()),
+        },
         message: PRODUCT_SUCCESS_MESSAGES.WISHLIST_RETRIEVED,
       };
       res.status(HTTP_STATUS.OK).json(response);
@@ -476,9 +493,9 @@ export class ProductController {
       const productId = req.params.id;
       const wishlistData: ToggleWishlistDTO = req.body;
       const product = await this.toggleWishlistUseCase.execute(productId, wishlistData);
-      const response: ApiResponse<Product> = {
+      const response: ApiResponse<ProductProps> = {
         status: RESPONSE_STATUS.SUCCESS,
-        data: product,
+        data: product.toProps(),
         message: PRODUCT_SUCCESS_MESSAGES.WISHLIST_TOGGLED,
       };
       res.status(HTTP_STATUS.OK).json(response);

@@ -6,7 +6,7 @@ Comprehensive test suite for the `DeleteProductUseCase` implementation, ensuring
 
 ## Test File Location
 
-**File:** [`src/__tests__/unit/products/deleteProductUseCase.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/products/deleteProductUseCase.test.ts)
+**File:** [`tests/unit/products/deleteProductUseCase.test.ts`](file:///e:/Project/jollyJet/tests/unit/products/deleteProductUseCase.test.ts)
 
 ## Test Structure
 
@@ -390,6 +390,3 @@ This test suite integrates with the overall test coverage strategy:
 ## Conclusion
 
 The `DeleteProductUseCase` test suite provides comprehensive coverage of the deletion functionality, ensuring proper validation, business rule enforcement, and error handling. The tests validate that the use case safely handles all scenarios including input validation, product existence verification, and various failure modes. This contributes to the overall robustness and reliability of the product management system.
-
-
-

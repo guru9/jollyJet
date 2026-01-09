@@ -14,12 +14,13 @@
  * - Dependency injection initialization via reflect-metadata
  */
 
+import 'reflect-metadata'; // Required for tsyringe to work with decorators and reflection metadata
+
 import { jollyJetApp } from '@/app';
 import config from '@/config';
 import mongoDBConnection from '@/infrastructure/database/mongodb';
+import redisConnection from '@/infrastructure/database/redis';
 import { logger } from '@/shared';
-
-import 'reflect-metadata';
 
 // Graceful shutdown handler
 const gracefulShutdown = async (signal: string) => {
@@ -27,6 +28,8 @@ const gracefulShutdown = async (signal: string) => {
   try {
     await mongoDBConnection.disconnect();
     logger.info('MongoDB disconnected');
+    await redisConnection.disconnect();
+    logger.info('Redis disconnected');
     process.exit(0);
   } catch (error) {
     logger.error({ err: error }, 'Error during shutdown');
@@ -62,7 +65,16 @@ const startServer = async () => {
     // Continue without database connection
   }
 
-  // Start the server regardless of MongoDB connection status
+  try {
+    // Try to connect to Redis
+    await redisConnection.connect();
+    logger.info('Redis connected successfully.');
+  } catch (error) {
+    logger.warn({ error: error }, 'Redis connection failed. Starting server without Redis.');
+    // Continue without Redis connection
+  }
+
+  // Start the server regardless of MongoDB and Redis connection status
   app.listen(config.port, () => {
     logger.info(`🛫 jollyJet Server listening on port ${config.port}.`);
   });

@@ -13,11 +13,11 @@ Successfully improved test coverage from minimal coverage to **100% coverage** f
 Tests are now organized into **unit** and **integration** subdirectories for better separation of concerns:
 
 ```
-src/__tests__/
+tests/
 ├── unit/                    # Unit tests (isolated component testing)
 │   ├── utils.test.ts       # Utility function tests
-│   ├── errors.test.ts      # Error class tests
-│   ├── middleware.test.ts  # Middleware tests
+│   ├── middleware.test.ts  # General middleware tests
+│   ├── redisCacheHandler.test.ts # Redis cache middleware tests
 │   └── products/           # Product module tests
 │       ├── productEntity.test.ts       # Product entity tests
 │       ├── productRepository.test.ts   # Product repository tests
@@ -39,7 +39,7 @@ src/__tests__/
 
 ### 2. New Test Files Created
 
-#### [`src/__tests__/integration/app.test.ts`](file:///e:/Project/jollyJet/src/__tests__/integration/app.test.ts)
+#### [`tests/integration/app.test.ts`](file:///e:/Project/jollyJet/tests/integration/app.test.ts)
 
 Comprehensive integration tests for all application endpoints:
 
@@ -52,7 +52,7 @@ Comprehensive integration tests for all application endpoints:
 
 ---
 
-#### [`src/__tests__/unit/middleware.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/middleware.test.ts)
+#### [`tests/unit/middleware.test.ts`](file:///e:/Project/jollyJet/tests/unit/middleware.test.ts)
 
 Complete middleware unit testing:
 
@@ -66,7 +66,34 @@ Complete middleware unit testing:
 
 ---
 
-#### [`src/__tests__/unit/utils.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/utils.test.ts)
+#### [`tests/unit/interface/middlewares/redisCacheHandler.test.ts`](file:///e:/Project/jollyJet/tests/unit/interface/middlewares/redisCacheHandler.test.ts)
+
+Intelligent Redis caching middleware testing:
+
+- ✅ **Cache Hit**: Returns cached response, tracks hits, and bypasses next middleware
+- ✅ **Cache Miss**: Proceeds to next middleware, intercepts response, and caches if 200 OK
+- ✅ **Method Filter**: Bypasses caching for non-GET requests
+- ✅ **Resilience**: Gracefully handles Redis errors and continues request flow
+- ✅ **Consistency**: Tracks stale data and triggers background refresh when configured
+- ✅ **Defaults**: Uses configured default TTL when none is provided
+
+**Test Coverage:** 1 test suite, 6 tests
+
+---
+
+#### [`tests/unit/interface/middlewares/rateLimitHandler.test.ts`](file:///e:/Project/jollyJet/tests/unit/interface/middlewares/rateLimitHandler.test.ts)
+
+Robust Redis-based rate limiting middleware testing:
+
+- ✅ **Allow Request**: Permits requests within the limit and sets `X-RateLimit-*` headers
+- ✅ **Block Request**: Returns 429 Too Many Requests when limit is exceeded with proper headers
+- ✅ **Key Identification**: Correctly identifies clients using IP and optional key prefixes
+- ✅ **Custom Config**: Respects route-specific overrides for window size and limits
+- ✅ **Resilience**: Implements fail-open logic to allow requests if the Redis service fails
+
+---
+
+#### [`tests/unit/utils.test.ts`](file:///e:/Project/jollyJet/tests/unit/utils.test.ts)
 
 Full utility function coverage:
 
@@ -88,7 +115,7 @@ Full utility function coverage:
 
 ---
 
-#### [`src/__tests__/unit/errors.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/errors.test.ts)
+#### [`tests/unit/errors.test.ts`](file:///e:/Project/jollyJet/tests/unit/errors.test.ts)
 
 Complete error class testing:
 
@@ -104,7 +131,7 @@ Complete error class testing:
 
 ---
 
-#### [`src/__tests__/unit/products/productValidators.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/products/productValidators.test.ts)
+#### [`tests/unit/products/productValidators.test.ts`](file:///e:/Project/jollyJet/tests/unit/products/productValidators.test.ts)
 
 Comprehensive product validators testing:
 
@@ -119,7 +146,7 @@ Comprehensive product validators testing:
 
 ---
 
-#### [`src/__tests__/unit/products/createProductUseCase.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/products/createProductUseCase.test.ts)
+#### [`tests/unit/products/createProductUseCase.test.ts`](file:///e:/Project/jollyJet/tests/unit/products/createProductUseCase.test.ts)
 
 Complete CreateProductUseCase testing:
 
@@ -130,7 +157,7 @@ Complete CreateProductUseCase testing:
 
 ---
 
-#### [`src/__tests__/unit/products/productService.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/products/productService.test.ts)
+#### [`tests/unit/products/productService.test.ts`](file:///e:/Project/jollyJet/tests/unit/products/productService.test.ts)
 
 Complete ProductService testing:
 
@@ -143,7 +170,7 @@ Complete ProductService testing:
 
 ---
 
-#### [`src/__tests__/unit/products/listProductsUseCase.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/products/listProductsUseCase.test.ts)
+#### [`tests/unit/products/listProductsUseCase.test.ts`](file:///e:/Project/jollyJet/tests/unit/products/listProductsUseCase.test.ts)
 
 Complete ListProductsUseCase testing:
 
@@ -154,7 +181,7 @@ Complete ListProductsUseCase testing:
 
 ---
 
-#### [`src/__tests__/unit/products/updateProductUseCase.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/products/updateProductUseCase.test.ts)
+#### [`tests/unit/products/updateProductUseCase.test.ts`](file:///e:/Project/jollyJet/tests/unit/products/updateProductUseCase.test.ts)
 
 Complete UpdateProductUseCase testing:
 
@@ -166,7 +193,7 @@ Complete UpdateProductUseCase testing:
 
 ---
 
-#### [`src/__tests__/unit/products/deleteProductUseCase.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/products/deleteProductUseCase.test.ts)
+#### [`tests/unit/products/deleteProductUseCase.test.ts`](file:///e:/Project/jollyJet/tests/unit/products/deleteProductUseCase.test.ts)
 
 Complete DeleteProductUseCase testing:
 
@@ -179,7 +206,7 @@ Complete DeleteProductUseCase testing:
 
 ---
 
-#### [`src/__tests__/unit/products/toggleWishlistProductUseCase.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/products/toggleWishlistProductUseCase.test.ts)
+#### [`tests/unit/products/toggleWishlistProductUseCase.test.ts`](file:///e:/Project/jollyJet/tests/unit/products/toggleWishlistProductUseCase.test.ts)
 
 Complete ToggleWishlistProductUseCase testing:
 
@@ -190,7 +217,7 @@ Complete ToggleWishlistProductUseCase testing:
 
 ---
 
-#### [`src/__tests__/unit/products/productController.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/products/productController.test.ts)
+#### [`tests/unit/products/productController.test.ts`](file:///e:/Project/jollyJet/tests/unit/products/productController.test.ts)
 
 Complete ProductController testing with type-safe API responses and comprehensive wishlist functionality:
 
@@ -209,7 +236,7 @@ Complete ProductController testing with type-safe API responses and comprehensiv
 
 ---
 
-#### [`src/__tests__/unit/products/countProductsUseCase.test.ts`](file:///e:/Project/jollyJet/src/__tests__/unit/products/countProductsUseCase.test.ts)
+#### [`tests/unit/products/countProductsUseCase.test.ts`](file:///e:/Project/jollyJet/tests/unit/products/countProductsUseCase.test.ts)
 
 Complete CountProductsUseCase testing:
 
@@ -217,6 +244,36 @@ Complete CountProductsUseCase testing:
 - ✅ **priceRange validation**: ProductService integration, negative min/max value rejection
 
 **Test Coverage:** 2 test suites, 13 tests
+
+---
+
+---
+
+#### [`tests/unit/infrastructure/services/session/SessionService.test.ts`](file:///e:/Project/jollyJet/tests/unit/infrastructure/services/session/SessionService.test.ts)
+
+Complete SessionService testing:
+
+- ✅ **createSession**: Successful session creation with Redis storage
+- ✅ **getSession**: Cache hit (returns data + updates TTL) AND Cache miss scenarios
+- ✅ **updateSession**: Partial updates preserving immutable fields
+- ✅ **deleteSession**: Successful session removal
+- ✅ **cleanupExpiredSessions**: Removal of stale sessions based on timestamp
+
+**Test Coverage:** 1 test suite, 6 tests
+
+---
+
+#### [`tests/unit/infrastructure/services/ratelimit/RateLimitingService.test.ts`](file:///e:/Project/jollyJet/tests/unit/infrastructure/services/ratelimit/RateLimitingService.test.ts)
+
+Complete RateLimitingService testing:
+
+- ✅ **checkRateLimit**: Sliding window enforcement (success AND block scenarios)
+- ✅ **getRateLimitStatus**: Read-only status check without incrementing counter
+- ✅ **resetRateLimit**: Explicit cache cleanup for specific keys
+- ✅ **Custom Config**: Verification of custom window and limit overrides
+- ✅ **Resilience**: Handling of Redis pipeline failures
+
+**Test Coverage:** 1 test suite, 7 tests
 
 ---
 
@@ -231,7 +288,7 @@ collectCoverageFrom: [
   'src/shared/utils.ts', // Utility functions
   'src/shared/errors.ts', // Error classes
   '!src/**/*.d.ts', // Exclude type definitions
-  '!src/__tests__/**', // Exclude test files
+  '!tests/**', // Exclude test files
   '!src/server.ts', // Exclude server bootstrap
   '!src/config/**', // Exclude configuration files
 ];
@@ -250,12 +307,12 @@ collectCoverageFrom: [
 
 **Test files reorganized into:**
 
-- **Unit tests** (`src/__tests__/unit/`) - Isolated component testing
-- **Integration tests** (`src/__tests__/integration/`) - Full application testing
+- **Unit tests** (`tests/unit/`) - Isolated component testing
+- **Integration tests** (`tests/integration/`) - Full application testing
 
 **Files removed:**
 
-- ❌ `src/__tests__/health.test.ts` - Replaced by comprehensive `app.test.ts`
+- ❌ `tests/health.test.ts` - Replaced by comprehensive `app.test.ts`
 
 ---
 
@@ -264,49 +321,59 @@ collectCoverageFrom: [
 ### Test Structure
 
 ```
-src/__tests__/
-├── unit/                    # Unit Tests
-│   ├── utils.test.ts       # 14 test suites, 30 tests
-│   ├── errors.test.ts      # 8 test suites, 22 tests
-│   ├── middleware.test.ts  # 2 test suites, 8 tests
-│   └── products/           # Product module tests
-│       ├── productEntity.test.ts       # 2 test suites, 5 tests
-│       ├── productRepository.test.ts   # 9 test suites, 18 tests
-│       ├── productValidators.test.ts   # 6 test suites, 47 tests
-│       ├── createProductUseCase.test.ts # 2 test suites, 9 tests
-│       ├── productService.test.ts      # 4 test suites, 15 tests
-│       ├── listProductsUseCase.test.ts # 2 test suites, 14 tests
-│       ├── updateProductUseCase.test.ts # 3 test suites, 15 tests
-│       ├── deleteProductUseCase.test.ts # 4 test suites, 12 tests
-│       ├── getProductUseCase.test.ts    # 1 test suite, 4 tests
-│       ├── toggleWishlistProductUseCase.test.ts # 2 test suites, 8 tests
-│       ├── countProductsUseCase.test.ts # 2 test suites, 13 tests
-│       └── productController.test.ts            # 8 test suites, 22 tests
-├── integration/             # Integration Tests
-│   └── app.test.ts         # 4 test suites, 7 tests
-└── setup.ts                # Test environment setup
+tests/
+├── unit/                        # Unit Tests
+│   ├── infrastructure/          # Infrastructure Unit Tests
+│   │   ├── product/             # productRepository.test.ts
+│   │   ├── ratelimit/           # RateLimitingService.test.ts
+│   │   └── session/             # SessionService.test.ts
+│   ├── domain/                  # Domain Unit Tests
+│   │   ├── cache/               # CacheConsistencyService.test.ts
+│   │   ├── entities/            # productEntity.test.ts
+│   │   └── services/            # productService.test.ts
+│   ├── interface/               # Interface Unit Tests
+│   │   └── product/             # productController.test.ts, productValidators.test.ts
+│   ├── usecases/                # Application Unit Tests
+│   │   └── product/             # UseCase tests (7 files)
+│   ├── shared/                  # Shared Component Tests
+│   │   └── decorators/          # cache.decorator.test.ts
+│   ├── errors.test.ts           # Shared Error tests
+│   ├── middleware.test.ts       # Shared Middleware tests
+│   ├── redisCacheHandler.test.ts # Redis Cache Middleware tests
+│   └── utils.test.ts            # Shared Utility tests
+├── integration/                 # Integration Tests (app.test.ts)
+└── setup.ts                     # Test environment setup
 ```
 
-### Total Test Suites: 16
+### Total Test Suites: 24
 
 1. **Integration:** App Endpoints (app.test.ts) - 4 test suites, 7 tests
-2. **Unit:** Middleware Tests (middleware.test.ts) - 2 test suites, 8 tests
-3. **Unit:** Utility Functions (utils.test.ts) - 14 test suites, 30 tests
-4. **Unit:** Error Classes (errors.test.ts) - 8 test suites, 22 tests
-5. **Unit:** Product Entity Tests ([Product Entity Test Documentation](./products/step1.1-product-entity-test.md)) - 2 test suites, 5 tests
-6. **Unit:** Product Repository Tests ([Product Repository Test Documentation](./products/step2.2-product-repository-test.md)) - 9 test suites, 18 tests
-7. **Unit:** ProductService Tests ([ProductService Test Documentation](./products/step1.3-product-service-test.md)) - 4 test suites, 15 tests
-8. **Unit:** Product Validators Tests ([Product Validators Test Documentation](./products/step3.2-product-validators-test.md)) - 6 test suites, 47 tests
-9. **Unit:** CreateProductUseCase Tests ([CreateProductUseCase Test Documentation](./products/step4.2-create-product-usecase-test.md)) - 2 test suites, 9 tests
-10. **Unit:** ListProductsUseCase Tests ([ListProductsUseCase Test Documentation](./products/step4.2-list-products-usecase-test.md)) - 2 test suites, 14 tests
-11. **Unit:** UpdateProductUseCase Tests ([UpdateProductUseCase Test Documentation](./products/step4.2-update-product-usecase-test.md)) - 3 test suites, 15 tests
-12. **Unit:** GetProductUseCase Tests ([GetProductUseCase Test Documentation](./products/step4.2-get-product-usecase-test.md)) - 1 test suite, 4 tests
-13. **Unit:** DeleteProductUseCase Tests ([DeleteProductUseCase Test Documentation](./products/step4.2-delete-product-usecase-test.md)) - 4 test suites, 12 tests
-14. **Unit:** ToggleWishlistProductUseCase Tests ([ToggleWishlistProductUseCase Test Documentation](./products/step4.2-toggle-wishlist-product-usecase-test.md)) - 2 test suites, 8 tests
-15. **Unit:** CountProductsUseCase Tests ([CountProductsUseCase Test Documentation](./products/step4.2-count-products-usecase-test.md)) - 2 test suites, 13 tests
-16. **Unit:** Product Controller Tests ([Product Controller Test Documentation](./products/step5.1-product-controller-testcase.md)) - 8 test suites, 22 tests
+2. **Unit:** General Middleware Tests (middleware.test.ts) - 2 test suites, 8 tests
+3. **Unit:** Redis Cache Middleware Tests (redisCacheHandler.test.ts) - 1 test suite, 6 tests (Added in Step 3.1)
+4. **Unit:** Rate Limiting Middleware Tests (rateLimitHandler.test.ts) - 1 test suite, 5 tests (Added in Step 3.2)
+5. **Unit:** Utility Functions (utils.test.ts) - 14 test suites, 30 tests
+6. **Unit:** Error Classes (errors.test.ts) - 8 test suites, 22 tests
+7. **Unit:** CacheConsistencyService Tests ([Cache Consistency Service Test Documentation](./redis/step2.1-cache-consistency-service-test.md)) - 9 test suites, 18 tests
+8. **Unit:** Product Entity Tests ([Product Entity Test Documentation](./products/step1.1-product-entity-test.md)) - 2 test suites, 5 tests
+9. **Unit:** Product Repository Tests ([Product Repository Test Documentation](./products/step2.2-product-repository-test.md)) - 9 test suites, 18 tests
+10. **Unit:** ProductService Tests ([ProductService Test Documentation](./products/step1.3-product-service-test.md)) - 4 test suites, 15 tests
+11. **Unit:** Product Validators Tests ([Product Validators Test Documentation](./products/step3.2-product-validators-test.md)) - 6 test suites, 47 tests
+12. **Unit:** CreateProductUseCase Tests ([CreateProductUseCase Test Documentation](./products/step4.2-create-product-usecase-test.md)) - 2 test suites, 9 tests
+13. **Unit:** ListProductsUseCase Tests ([ListProductsUseCase Test Documentation](./products/step4.2-list-products-usecase-test.md)) - 2 test suites, 14 tests
+14. **Unit:** UpdateProductUseCase Tests ([UpdateProductUseCase Test Documentation](./products/step4.2-update-product-usecase-test.md)) - 3 test suites, 15 tests
+15. **Unit:** GetProductUseCase Tests ([GetProductUseCase Test Documentation](./products/step4.2-get-product-usecase-test.md)) - 1 test suite, 4 tests
+16. **Unit:** DeleteProductUseCase Tests ([DeleteProductUseCase Test Documentation](./products/step4.2-delete-product-usecase-test.md)) - 4 test suites, 12 tests
+17. **Unit:** ToggleWishlistProductUseCase Tests ([ToggleWishlistProductUseCase Test Documentation](./products/step4.2-toggle-wishlist-product-usecase-test.md)) - 2 test suites, 8 tests
+18. **Unit:** CountProductsUseCase Tests ([CountProductsUseCase Test Documentation](./products/step4.2-count-products-usecase-test.md)) - 2 test suites, 13 tests
+19. **Unit:** Product Controller Tests ([Product Controller Test Documentation](./products/step5.1-product-controller-testcase.md)) - 8 test suites, 22 tests
+20. **Unit:** Redis Service Tests ([Redis Service Test Documentation](./redis/step1.3-redis-service-test.md)) - 6 test suites, 12 tests
+21. **Unit:** SessionService Tests ([Session Service Test Documentation](./redis/step2.2-session-management-test.md)) - 1 test suite, 6 tests
+22. **Unit:** RateLimitingService Tests ([Rate Limiting Test Documentation](./redis/step2.3-rate-limiting-test.md)) - 1 test suite, 7 tests
+23. **Unit:** Cache Decorator Tests ([Cache Decorator Test Documentation](./redis/step2.4-cache-decorators-test.md)) - 1 test suite, 4 tests (Added in Step 2.4)
+24. **Unit:** RedisController Tests ([RedisController Test Documentation](./redis/RedisController-test-analysis.md)) - 4 test suites, 12 tests (Added in Step 5.1)
+25. **Unit:** RedisController Tests ([RedisController Test Documentation](./redis/RedisController-test-analysis.md)) - 4 test suites, 12 tests (Added in Step 5.1)
 
-### Total Tests: 206 individual test cases
+### Total Tests: 265 individual test cases
 
 ### Coverage Metrics: 100%
 
@@ -318,7 +385,7 @@ src/__tests__/
 ### Current Test Execution Results
 
 ```
- PASS  src/__tests__/unit/products/createProductUseCase.test.ts
+ PASS  tests/unit/products/createProductUseCase.test.ts
   CreateProductUseCase
     execute method
       √ should create a product successfully (5 ms)
@@ -332,7 +399,7 @@ src/__tests__/
     dependency injection
       √ should inject repository and service dependencies (1 ms)
 
- PASS  src/__tests__/unit/products/getProductUseCase.test.ts
+ PASS  tests/unit/products/getProductUseCase.test.ts
   GetProductUseCase
     execute method
       √ should retrieve a product by ID successfully (6 ms)
@@ -341,7 +408,7 @@ src/__tests__/
     dependency injection
       √ should inject repository dependency (1 ms)
 
- PASS  src/__tests__/unit/products/listProductsUseCase.test.ts
+ PASS  tests/unit/products/listProductsUseCase.test.ts
   ListProductsUseCase
     execute
       √ should handle empty query parameters with defaults (7 ms)
@@ -360,7 +427,7 @@ src/__tests__/
       √ should reject priceRange with negative min value (1 ms)
       √ should reject priceRange with negative max value (1 ms)
 
- PASS  src/__tests__/unit/products/updateProductUseCase.test.ts
+ PASS  tests/unit/products/updateProductUseCase.test.ts
   UpdateProductUseCase
     execute method
       √ should throw error when product not found (22 ms)
@@ -381,7 +448,7 @@ src/__tests__/
       √ should handle undefined values in UpdateProductDTO (1 ms)
       √ should handle empty string values appropriately (2 ms)
 
- PASS  src/__tests__/unit/products/deleteProductUseCase.test.ts
+ PASS  tests/unit/products/deleteProductUseCase.test.ts
   DeleteProductUseCase
     execute method
       √ should successfully delete an existing product (3 ms)
@@ -400,7 +467,7 @@ src/__tests__/
       √ should propagate repository errors (1 ms)
       √ should handle network timeouts gracefully (1 ms)
 
- PASS  src/__tests__/unit/products/toggleWishlistProductUseCase.test.ts
+ PASS  tests/unit/products/toggleWishlistProductUseCase.test.ts
   ToggleWishlistProductUseCase
     execute method
       √ should toggle wishlist status successfully (13 ms)
@@ -413,7 +480,7 @@ src/__tests__/
     dependency injection
       √ should inject repository dependency (1 ms)
 
-  PASS  src/__tests__/unit/products/countProductsUseCase.test.ts
+  PASS  tests/unit/products/countProductsUseCase.test.ts
   CountProductsUseCase
     execute
       √ should handle empty query parameters (1 ms)
@@ -430,7 +497,7 @@ src/__tests__/
       √ should reject priceRange with negative min value (1 ms)
       √ should reject priceRange with negative max value (1 ms)
 
-  PASS  src/__tests__/unit/products/productController.test.ts
+  PASS  tests/unit/products/productController.test.ts
   ProductController
     createProduct
       √ should create a product successfully (5 ms)
@@ -463,7 +530,7 @@ src/__tests__/
       √ should retrieve wishlist products with default parameters (1 ms)
       √ should handle errors and pass them to next middleware (1 ms)
 
- PASS  src/__tests__/integration/app.test.ts (5.325 s)
+ PASS  tests/integration/app.test.ts (5.325 s)
   App Endpoints
     GET /health
       √ should return status ok with timestamp (25 ms)
@@ -513,7 +580,7 @@ npm run test:watch
 npm run test:coverage
 
 # Run tests for single file
-npm test -- src/__tests__/unit/utils.test.ts
+npm test -- tests/unit/utils.test.ts
 ```
 
 ---
@@ -533,11 +600,14 @@ After running `npm run test:coverage`, view the detailed coverage report at:
 ✅ **Type-safe API responses** with `ApiResponse<T>` and `ValidationError` integration
 ✅ **Enhanced pagination** using `PaginationParams` and `PaginationMeta`
 ✅ **Tests organized** into unit and integration folders
-✅ **16 comprehensive test suites** created with type system validation
-✅ **206 test cases** covering all code paths with type safety
+✅ **24 comprehensive test suites** created with type system validation
+✅ **265 test cases** covering all code paths with type safety
 ✅ **Jest configuration optimized** to focus on testable code
 ✅ **All tests passing** with no errors or warnings
 ✅ **Full type system integration** from `types/index.d.ts`
 ✅ **All utility functions implemented** and fully tested
+✅ **Redis Service Test Cases Analysis** added for Redis integration
+✅ **Rate Limiting Service Tests** documented (Step 2.3)
+✅ **Cache Decorator Tests** documented (Step 2.4)
 
 The JollyJet application now has robust test coverage ensuring code quality and reliability! 🎉

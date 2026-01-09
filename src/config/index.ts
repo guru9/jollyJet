@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { validateEnv } from './env.validation';
+import { IEnvConfig, validateEnv } from './env.validation';
 
 // Load environment variables
 dotenv.config({ path: '.env' });
@@ -7,7 +7,21 @@ dotenv.config({ path: '.env' });
 // Define config
 const env = validateEnv();
 
-export const config = {
+/**
+ * Main Application Configuration Interface
+ */
+export interface IAppConfig {
+  env: IEnvConfig['NODE_ENV'];
+  port: number;
+  mongoUri: string;
+  logLevel: IEnvConfig['LOG_LEVEL'];
+}
+
+/**
+ * Application configuration object populated from validated environment variables.
+ * Uses the IAppConfig interface for strong typing throughout the application.
+ */
+export const config: IAppConfig = {
   env: env.NODE_ENV,
   port: env.PORT,
   mongoUri: env.MONGO_URI,

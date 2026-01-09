@@ -3,7 +3,7 @@
 **Step:** 5.1 - Product Controller Test Cases  
 **Phase:** Unit Testing - Controller Layer  
 **Status:** ✅ Completed  
-**Test File:** `src/__tests__/unit/products/productController.test.ts`
+**Test File:** `tests/unit/products/productController.test.ts`
 **Test Count:** 22 test cases
 **Coverage:** 100% of controller methods
 

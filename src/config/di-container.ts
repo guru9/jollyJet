@@ -11,10 +11,17 @@
  * - Maintainability: Centralized dependency management
  * - Flexibility: Easy to swap implementations without changing consuming code
  */
+import 'reflect-metadata'; // Required for tsyringe to work with decorators and reflection metadata
 
-import { IProductRepository } from '@/domain/interfaces';
-import { ProductService } from '@/domain/services';
+import {
+  IProductRepository,
+  IRateLimitingService,
+  IRedisService,
+  ISessionService,
+} from '@/domain/interfaces';
+import { CacheConsistencyService, ProductService, RedisService } from '@/domain/services';
 import { ProductRepository } from '@/infrastructure/repositories';
+import { RateLimitingService, SessionService } from '@/infrastructure/services';
 import { ProductController } from '@/interface/controllers';
 import { DI_TOKENS, logger } from '@/shared';
 
@@ -85,6 +92,31 @@ export const initializeDIContainer = (): void => {
   // Controllers handle HTTP requests and orchestrate use case execution
   container.register<ProductController>(ProductController, {
     useClass: ProductController,
+  });
+
+  // Register Global Services
+  // Registering the logger allows other services to inject it rather than importing it directly
+  container.register(DI_TOKENS.LOGGER, {
+    useValue: logger,
+  });
+
+  // Register Redis Service
+  container.register<IRedisService>(DI_TOKENS.REDIS_SERVICE, {
+    useClass: RedisService,
+  });
+
+  // Register Cache Consistency Service - Performs background consistency checks and metrics collection
+  container.registerSingleton<CacheConsistencyService>(CacheConsistencyService);
+
+  // Register Session Service - Maps ISessionService interface to SessionService implementation
+  // SessionService provides Redis-based session management for user authentication
+  container.register<ISessionService>(DI_TOKENS.SESSION_SERVICE, {
+    useClass: SessionService,
+  });
+
+  // Register Rate Limiting Service - Maps IRateLimitingService interface to RateLimitingService implementation
+  container.register<IRateLimitingService>(DI_TOKENS.RATE_LIMIT_SERVICE, {
+    useClass: RateLimitingService,
   });
 
   logger.info('DI container initialized successfully');

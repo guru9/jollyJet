@@ -6,7 +6,7 @@ This document outlines the comprehensive test coverage for the `ListProductsUseC
 
 ## Test File Location
 
-- `src/__tests__/unit/products/listProductsUseCase.test.ts`
+- `tests/unit/products/listProductsUseCase.test.ts`
 
 ## Test Coverage
 
@@ -81,7 +81,7 @@ The test suite follows a comprehensive approach:
 **Actual Test Execution Output:**
 
 ```
- PASS  src/__tests__/unit/products/listProductsUseCase.test.ts
+ PASS  tests/unit/products/listProductsUseCase.test.ts
   ListProductsUseCase
     execute
       √ should handle empty query parameters with defaults (7 ms)
@@ -107,6 +107,3 @@ Tests:       14 passed, 14 total
 ## Conclusion
 
 The `ListProductsUseCase` test suite provides comprehensive coverage of all filtering, pagination, and validation logic. The tests ensure that the use case correctly integrates with the service layer and repository, handles edge cases appropriately, and maintains data consistency throughout the product listing process.
-
-
-

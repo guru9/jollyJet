@@ -6,7 +6,7 @@ Comprehensive test suite for the `CountProductsUseCase` implementation, ensuring
 
 ## Test File Location
 
-**File:** [`src/__tests__/unit/products/countProductsUseCase.test.ts`](src/__tests__/unit/products/countProductsUseCase.test.ts)
+**File:** [`tests/unit/products/countProductsUseCase.test.ts`](tests/unit/products/countProductsUseCase.test.ts)
 
 ## Test Structure
 

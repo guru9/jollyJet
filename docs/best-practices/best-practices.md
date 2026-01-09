@@ -44,27 +44,20 @@ The project follows strict Clean Architecture principles to separate concerns an
 
 ```
 src/
-├── 🧠 domain/                 # Pure Business Logic
-│   ├── entities/              # Core business models
-│   ├── interfaces/            # Contracts & Abstractions
-│   └── services/              # Pure domain logic
-├── 💼 usecases/               # Application Use Cases
-├── 🔌 infrastructure/         # External Services
-│   ├── database/              # DB implementations
-│   ├── repositories/          # Data access
-│   └── external/              # 3rd party adapters
-├── 📡 interface/              # HTTP Layer
-│   ├── controllers/           # Request handlers
-│   ├── routes/                # API definitions
-│   ├── middlewares/           # Request processing
-│   ├── dtos/                  # Input/Output schemas
-│   └── validators/            # Zod validation schemas
-├── 🧩 shared/                 # Shared Utilities
-├── 🏷️ types/                  # TypeScript Types
-├── ⚙️ config/                 # Configuration & DI
-├── 🧪 test/                   # Test Suites
-├── 🚀 app.ts                  # App Entry Point
-└── 🎬 server.ts               # Server Bootstrap
+├── 🧠 domain/ # Pure Business Logic
+├── 💼 usecases/ # Application Use Cases
+├── 🔌 infrastructure/ # External Services
+├── 📡 interface/ # HTTP Layer
+├── 🧩 shared/ # Shared Utilities
+├── 🏷️ types/ # TypeScript Types
+├── ⚙️ config/ # Configuration & DI
+├── 🚀 app.ts # App Entry Point
+└── 🎬 server.ts # Server Bootstrap
+
+tests/ # 🧪 Test Suites (Root Level)
+├── unit/ # Unit tests
+├── integration/ # Integration tests
+└── setup.ts # Test setup
 ```
 
 </details>
@@ -166,6 +159,250 @@ ProductSchema.index({ name: 1 }); // Indexing
 - **Transaction Support**: Use transactions for multi-document operations
 - **ID Validation**: Validate MongoDB ObjectIds before database queries for better performance and error handling
 
+#### Redis and Caching (`src/domain/services/redis`, `src/infrastructure/services`)
+
+- **Connection Management**: Proper Redis connection lifecycle and pooling
+- **Configuration**: Environment-based Redis configuration with validation
+- **Health Checks**: Redis connectivity monitoring and graceful degradation
+- **Connection Reuse**: Use connection pooling for optimal performance
+- **Error Handling**: Handle Redis connection failures gracefully
+- **Graceful Degradation**: Application should function without Redis when unavailable
+
+**Example Redis Service Structure:**
+
+```typescript
+@injectable()
+export class RedisService implements IRedisService {
+  private redis: Redis;
+  private isConnected: boolean = false;
+
+  constructor(@inject(DI_TOKENS.REDIS_CONFIG) private config: RedisConfig) {
+    this.redis = new Redis({
+      host: config.host,
+      port: config.port,
+      password: config.password,
+      retryDelayOnFailover: 100,
+      maxRetriesPerRequest: 3,
+      lazyConnect: true,
+    });
+
+    this.setupEventHandlers();
+  }
+
+  private setupEventHandlers(): void {
+    this.redis.on('connect', () => {
+      this.isConnected = true;
+      logger.info('Redis connected successfully');
+    });
+
+    this.redis.on('error', (error) => {
+      this.isConnected = false;
+      logger.error('Redis connection error:', error);
+    });
+  }
+
+  async get<T>(key: string): Promise<T | null> {
+    try {
+      if (!this.isConnected) {
+        logger.warn('Redis not connected, skipping cache get');
+        return null;
+      }
+
+      const value = await this.redis.get(key);
+      return value ? JSON.parse(value) : null;
+    } catch (error) {
+      logger.error(`Redis GET error for key ${key}:`, error);
+      return null;
+    }
+  }
+
+  async set<T>(key: string, value: T, ttl?: number): Promise<boolean> {
+    try {
+      if (!this.isConnected) {
+        logger.warn('Redis not connected, skipping cache set');
+        return false;
+      }
+
+      const serialized = JSON.stringify(value);
+      if (ttl) {
+        await this.redis.setex(key, ttl, serialized);
+      } else {
+        await this.redis.set(key, serialized);
+      }
+      return true;
+    } catch (error) {
+      logger.error(`Redis SET error for key ${key}:`, error);
+      return false;
+    }
+  }
+
+  async del(key: string): Promise<boolean> {
+    try {
+      if (!this.isConnected) {
+        logger.warn('Redis not connected, skipping cache delete');
+        return false;
+      }
+
+      await this.redis.del(key);
+      return true;
+    } catch (error) {
+      logger.error(`Redis DEL error for key ${key}:`, error);
+      return false;
+    }
+  }
+
+  async isHealthy(): Promise<boolean> {
+    try {
+      if (!this.isConnected) return false;
+      await this.redis.ping();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async disconnect(): Promise<void> {
+    await this.redis.quit();
+  }
+}
+```
+
+**Caching Strategy Patterns:**
+
+- **Cache-Aside Pattern**: Check cache first, fallback to database
+- **Write-Through**: Update both cache and database synchronously
+- **Write-Behind**: Update database first, then update cache asynchronously
+- **Cache Warming**: Pre-populate cache with frequently accessed data
+- **Cache Invalidation**: Proper cache invalidation on data updates
+
+**Example Cache Implementation:**
+
+```typescript
+export class ProductCacheService {
+  constructor(private redisService: IRedisService) {}
+
+  private getCacheKey(productId: string): string {
+    return `product:${productId}`;
+  }
+
+  async getProduct(productId: string): Promise<Product | null> {
+    const cacheKey = this.getCacheKey(productId);
+
+    // Try cache first
+    const cached = await this.redisService.get<Product>(cacheKey);
+    if (cached) {
+      logger.info(`Cache hit for product ${productId}`);
+      return cached;
+    }
+
+    logger.info(`Cache miss for product ${productId}`);
+    return null;
+  }
+
+  async setProduct(product: Product, ttl: number = 3600): Promise<void> {
+    const cacheKey = this.getCacheKey(product.id);
+    await this.redisService.set(cacheKey, product, ttl);
+  }
+
+  async invalidateProduct(productId: string): Promise<void> {
+    const cacheKey = this.getCacheKey(productId);
+    await this.redisService.del(cacheKey);
+  }
+
+  async warmProductCache(products: Product[]): Promise<void> {
+    const pipeline = this.redisService.pipeline();
+
+    products.forEach((product) => {
+      const cacheKey = this.getCacheKey(product.id);
+      pipeline.set(cacheKey, product, 3600);
+    });
+
+    await pipeline.exec();
+  }
+}
+```
+
+**Data Serialization Best Practices:**
+
+- **JSON Serialization**: Use JSON.stringify/parse for simple objects
+- **Complex Objects**: Implement custom serialization for complex domain objects
+- **Circular References**: Avoid circular references in cached objects
+- **Date Handling**: Serialize dates as ISO strings, deserialize as Date objects
+- **Type Safety**: Maintain TypeScript types during serialization
+
+**Performance Considerations:**
+
+- **TTL Strategy**: Set appropriate TTL values based on data volatility
+- **Memory Management**: Monitor Redis memory usage and implement eviction policies
+- **Connection Pooling**: Use connection pooling for high-throughput scenarios
+- **Batch Operations**: Use Redis pipelines for multiple operations
+- **Key Naming**: Use consistent, hierarchical key naming conventions
+
+**Example Key Naming Convention:**
+
+```typescript
+// ✅ Good key naming patterns
+const KEYS = {
+  PRODUCTS: {
+    LIST: (filters: string) => `products:list:${filters}`,
+    DETAIL: (id: string) => `products:detail:${id}`,
+    SEARCH: (query: string) => `products:search:${hashQuery(query)}`,
+  },
+  SESSIONS: {
+    USER: (userId: string) => `sessions:user:${userId}`,
+    TOKEN: (token: string) => `sessions:token:${token}`,
+  },
+  RATE_LIMITS: {
+    API: (userId: string) => `rate_limit:api:${userId}`,
+    AUTH: (ip: string) => `rate_limit:auth:${ip}`,
+  },
+} as const;
+```
+
+**Cache Invalidation Strategies:**
+
+- **Time-Based**: Use TTL for automatic invalidation
+- **Event-Based**: Invalidate cache on data changes
+- **Pattern-Based**: Use Redis SCAN for pattern-based invalidation
+- **Dependency-Based**: Invalidate related cache entries on updates
+
+**Example Cache Invalidation:**
+
+```typescript
+export class ProductCacheInvalidator {
+  constructor(
+    private redisService: IRedisService,
+    private productRepository: IProductRepository
+  ) {}
+
+  async updateProduct(productId: string, updates: Partial<Product>): Promise<void> {
+    // Update database first
+    await this.productRepository.update(productId, updates);
+
+    // Invalidate related cache entries
+    await Promise.all([
+      this.redisService.del(`products:detail:${productId}`),
+      this.invalidateProductListCaches(),
+      this.invalidateSearchCaches(),
+    ]);
+  }
+
+  private async invalidateProductListCaches(): Promise<void> {
+    const keys = await this.redisService.keys('products:list:*');
+    if (keys.length > 0) {
+      await this.redisService.del(...keys);
+    }
+  }
+
+  private async invalidateSearchCaches(): Promise<void> {
+    const keys = await this.redisService.keys('products:search:*');
+    if (keys.length > 0) {
+      await this.redisService.del(...keys);
+    }
+  }
+}
+```
+
 ### Use Cases Layer Best Practices (`src/usecases`)
 
 Use cases orchestrate domain logic and implement application-specific workflows.
@@ -178,66 +415,42 @@ Use cases orchestrate domain logic and implement application-specific workflows.
 
 ### Dependency Injection Patterns
 
-**Reflect Metadata Import**: Always include `import 'reflect-metadata';` at the top of files using tsyringe decorators.
+#### 🧩 `reflect-metadata` Requirement
+
+`reflect-metadata` is **mandatory** for `tsyringe` to function correctly. It provides the runtime reflection capabilities needed to read decorator metadata.
+
+**Crucial Rules:**
+
+1.  **Absolute Entry Point**: `import 'reflect-metadata';` MUST be the **very first import** in your application's entry point (`src/server.ts`). If any module using decorators is loaded before this import, the application will throw a runtime error.
+2.  **Module Safety**: While global import in `server.ts` is sufficient for the running app, it is a best practice to also include it at the top of:
+    - `src/app.ts` (for safety during testing/modular loading)
+    - `src/config/di-container.ts` (where orchestration happens)
+    - Any file using decorators directly (optional, but helps IDEs and isolated tests)
+
+**Correct Implementation:**
 
 ```typescript
-// ✅ Required for decorator-based DI
+// src/server.ts
+/**
+ * ✅ BEST PRACTICE: Mandatory first import for Dependency Injection
+ */
 import 'reflect-metadata';
-import { inject, injectable } from 'tsyringe';
 
-@injectable()
-export class UpdateProductUseCase {
-  constructor(
-    @inject(DI_TOKENS.PRODUCT_REPOSITORY) private productRepository: IProductRepository,
-    private productService: ProductService // No @inject needed for concrete classes
-  ) {}
-}
+import { jollyJetApp } from '@/app';
+import config from '@/config';
+// ... rest of the application
 ```
 
-`import 'reflect-metadata';` **is required** in `UpdateProductUseCase.ts`. Here's why:
+**Why It's Required:**
 
-### Why It's Required
-
-### 1. **Decorator Support**
-
-The file uses TypeScript decorators from the `tsyringe` library:
-
-- `@injectable()` - Marks the class as injectable for dependency injection
-- `@inject(DI_TOKENS.PRODUCT_REPOSITORY)` - Injects the repository dependency
-
-### 2. **Metadata Reflection**
-
-`reflect-metadata` provides the runtime metadata reflection that these decorators need to function. Without it, the decorators won't work properly, and dependency injection will fail.
-
-### 3. **Standard Practice**
-
-This import is a standard requirement when using `tsyringe` decorators in TypeScript projects following Clean Architecture patterns.
-
-## Current Implementation
-
-The import is correctly present at the top of the file:
-
-```typescript
-import 'reflect-metadata';
-import { inject, injectable } from 'tsyringe';
-// ... rest of imports
-```
-
-## Alternative
-
-If you weren't using decorators, you could remove it, but since the use case relies on dependency injection through decorators (as shown in the constructor), it's essential to keep this import.
-
-## Verification
-
-The code compiles and runs successfully with this import, and removing it would cause runtime errors during dependency injection. The tests also pass, confirming that the metadata reflection is working correctly.
-
-**Bottom line:** Keep the `import 'reflect-metadata';` - it's required for the dependency injection system to work properly.
+- **Decorator Metadata**: TypeScript decorators (like `@injectable`, `@inject`) emit metadata that `tsyringe` needs to resolve dependencies at runtime.
+- **Runtime Polyfill**: `reflect-metadata` acts as a polyfill for the metadata reflection API. Without it, `tsyringe` cannot determine the types of dependencies in constructor signatures.
 
 **When to use `@inject()` decorators:**
 
-- **Interfaces**: Use `@inject(token)` for repository interfaces and abstractions
-- **Concrete Classes**: Direct injection for domain services and utilities
-- **Configuration**: Use tokens for external services that may have multiple implementations
+- **Interfaces**: Use `@inject(token)` for repository interfaces and abstractions (e.g., `IProductRepository`).
+- **Concrete Classes**: Direct injection is preferred for domain services and utilities (no decorator needed).
+- **Configuration**: Use tokens for external services that may have multiple implementations.
 
 #### Interface vs Concrete Class Injection
 
@@ -995,7 +1208,12 @@ Shared utilities and common code.
 - **Type Safety**: Strongly typed utility functions
 - **Error Classes**: Custom error classes extending base errors
 - **Constants**: Centralized application constants, kept clean by removing unused ones to maintain maintainability
-- **Logger**: Structured logging with Pino
+- **Logger**: Centralized Pino logger instance as a shared utility/service, properly placed in `src/shared/logger.ts` rather than middleware. Middleware consumes the shared logger for request logging, maintaining separation of concerns and cross-cutting concern principles.
+- **Best practice:** The logger should not be in middleware. The current structure is correct:
+  - `src/shared/logger.ts` provides a centralized Pino logger instance as a shared utility/service, which is the appropriate place for it.
+  - `src/interface/middlewares/requestLogger.ts` is a middleware that uses the shared logger to log HTTP requests.
+
+  This follows clean architecture principles where logging is a cross-cutting concern handled by a shared service, and middleware consumes it for request logging. Moving the logger into middleware would violate separation of concerns.
 
 ### Configuration Module Best Practices (`src/config`)
 
@@ -1062,7 +1280,7 @@ Testing structure and practices.
 - **Unit Tests**: Isolated business logic testing
 - **Integration Tests**: End-to-end API testing with in-memory MongoDB
 - **100% Coverage**: Critical paths fully verified
-- **Test Structure**: Mirror source structure in `src/__tests__/`
+- **Test Structure**: Mirror source structure in root-level `tests/`
 
 ### Testing Tools
 
@@ -1074,7 +1292,7 @@ Testing structure and practices.
 ### Test Organization
 
 ```
-src/__tests__/
+tests/
 ├── setup.ts                    # Global test setup
 ├── unit/                       # Unit tests
 │   ├── entities/               # Entity validation tests
@@ -1652,6 +1870,195 @@ logger.info('User login', {
 - **Don't** perform heavy operations in application threads
 - **Don't** forget to close database connections
 - **Don't** ignore database performance metrics
+
+### 🗃️ Redis & Caching Do's and Don'ts
+
+#### ✅ Do's
+
+- **Do** implement graceful degradation when Redis is unavailable
+- **Do** use connection pooling for Redis connections
+- **Do** set appropriate TTL values based on data volatility
+- **Do** use consistent hierarchical key naming conventions
+- **Do** implement proper cache invalidation strategies
+- **Do** handle Redis connection failures gracefully
+- **Do** use Redis pipelines for batch operations
+- **Do** monitor Redis memory usage and implement eviction policies
+- **Do** implement health checks for Redis connectivity
+- **Do** serialize complex objects properly (avoid circular references)
+- **Do** use cache-aside pattern for read-heavy operations
+- **Do** implement cache warming for frequently accessed data
+
+**Example: Proper Redis implementation with graceful degradation**
+
+```typescript
+// ✅ Do: Graceful degradation and proper error handling
+@injectable()
+export class RedisService implements IRedisService {
+  private redis: Redis;
+  private isConnected: boolean = false;
+
+  constructor(@inject(DI_TOKENS.REDIS_CONFIG) private config: RedisConfig) {
+    this.redis = new Redis({
+      host: config.host,
+      port: config.port,
+      password: config.password,
+      retryDelayOnFailover: 100,
+      maxRetriesPerRequest: 3,
+      lazyConnect: true,
+    });
+    this.setupEventHandlers();
+  }
+
+  private setupEventHandlers(): void {
+    this.redis.on('connect', () => {
+      this.isConnected = true;
+      logger.info('Redis connected successfully');
+    });
+
+    this.redis.on('error', (error) => {
+      this.isConnected = false;
+      logger.error('Redis connection error:', error);
+    });
+  }
+
+  async get<T>(key: string): Promise<T | null> {
+    try {
+      if (!this.isConnected) {
+        logger.warn('Redis not connected, skipping cache get');
+        return null;
+      }
+      const value = await this.redis.get(key);
+      return value ? JSON.parse(value) : null;
+    } catch (error) {
+      logger.error(`Redis GET error for key ${key}:`, error);
+      return null;
+    }
+  }
+
+  async set<T>(key: string, value: T, ttl?: number): Promise<boolean> {
+    try {
+      if (!this.isConnected) {
+        logger.warn('Redis not connected, skipping cache set');
+        return false;
+      }
+      const serialized = JSON.stringify(value);
+      if (ttl) {
+        await this.redis.setex(key, ttl, serialized);
+      } else {
+        await this.redis.set(key, serialized);
+      }
+      return true;
+    } catch (error) {
+      logger.error(`Redis SET error for key ${key}:`, error);
+      return false;
+    }
+  }
+
+  async isHealthy(): Promise<boolean> {
+    try {
+      if (!this.isConnected) return false;
+      await this.redis.ping();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
+
+// ✅ Do: Use consistent key naming conventions
+const KEYS = {
+  PRODUCTS: {
+    LIST: (filters: string) => `products:list:${filters}`,
+    DETAIL: (id: string) => `products:detail:${id}`,
+    SEARCH: (query: string) => `products:search:${hashQuery(query)}`,
+  },
+  SESSIONS: {
+    USER: (userId: string) => `sessions:user:${userId}`,
+    TOKEN: (token: string) => `sessions:token:${token}`,
+  },
+  RATE_LIMITS: {
+    API: (userId: string) => `rate_limit:api:${userId}`,
+    AUTH: (ip: string) => `rate_limit:auth:${ip}`,
+  },
+} as const;
+
+// ✅ Do: Implement proper cache invalidation
+class ProductCacheInvalidator {
+  async updateProduct(productId: string, updates: Partial<Product>): Promise<void> {
+    await Promise.all([
+      this.redisService.del(`products:detail:${productId}`),
+      this.invalidateProductListCaches(),
+      this.invalidateSearchCaches(),
+    ]);
+  }
+
+  private async invalidateProductListCaches(): Promise<void> {
+    const keys = await this.redisService.keys('products:list:*');
+    if (keys.length > 0) {
+      await this.redisService.del(...keys);
+    }
+  }
+}
+```
+
+#### ❌ Don'ts
+
+- **Don't** assume Redis is always available
+- **Don't** store sensitive data in Redis without encryption
+- **Don't** use Redis as primary data store (use for caching only)
+- **Don't** ignore Redis connection failures
+- **Don't** set TTL to 0 or negative values
+- **Don't** use generic key names without namespaces
+- **Don't** store large objects without compression
+- **Don't** create Redis connections for every operation
+- **Don't** mix different data types in the same key
+- **Don't** forget to handle Redis-specific errors
+- **Don't** use Redis for complex queries (use databases instead)
+- **Don't** cache data that changes frequently without proper invalidation
+
+**Example: Redis anti-patterns to avoid**
+
+```typescript
+// ❌ Don't: Assume Redis is always available
+class BadRedisService {
+  async get(key: string): Promise<any> {
+    // ❌ No connection checking
+    return await this.redis.get(key); // Might throw if Redis down
+  }
+}
+
+// ❌ Don't: Use generic key names
+class BadCacheService {
+  async cacheUser(user: User): Promise<void> {
+    // ❌ Generic key without namespace
+    await this.redis.set('user', user);
+  }
+
+  async cacheProduct(product: Product): Promise<void> {
+    // ❌ Same key name, will overwrite user cache!
+    await this.redis.set('user', product);
+  }
+}
+
+// ❌ Don't: Store sensitive data without encryption
+class InsecureCacheService {
+  async storePassword(userId: string, password: string): Promise<void> {
+    // ❌ Storing plain text password
+    await this.redis.set(`password:${userId}`, password);
+  }
+}
+
+// ❌ Don't: Create connections for every operation
+class BadRedisUsage {
+  async getData(key: string): Promise<any> {
+    // ❌ Creating new connection every time
+    const redis = new Redis(process.env.REDIS_URL);
+    const value = await redis.get(key);
+    await redis.quit();
+    return value;
+  }
+}
+```
 
 ### 🚀 API Design Do's and Don'ts
 

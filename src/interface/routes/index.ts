@@ -12,8 +12,8 @@
  * - Better testability and modularity
  */
 
+import { logger } from '@/shared';
 import { Application, RequestHandler, Router } from 'express';
-import logger from '../../shared/logger';
 
 /**
  * Route Module Interface
@@ -49,6 +49,16 @@ export const routeModuleFactories: RouteModule[] = [
     routerFactory: async () => {
       const { default: createProductRoutes } = await import('./product/productRoutes');
       return createProductRoutes();
+    },
+
+    middleware: [], // Add module-specific middleware here (auth, rate limiting, etc.)
+  },
+  {
+    name: 'Redis Cache Routes',
+    path: '/api/cache',
+    routerFactory: async () => {
+      const { default: createRedisRoutes } = await import('./redis/redisRoutes');
+      return createRedisRoutes();
     },
 
     middleware: [], // Add module-specific middleware here (auth, rate limiting, etc.)

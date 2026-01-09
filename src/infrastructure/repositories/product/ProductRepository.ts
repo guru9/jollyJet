@@ -1,12 +1,20 @@
 import { Product } from '@/domain/entities';
 import { IProductRepository, ProductFilter } from '@/domain/interfaces';
 import { Productmodel } from '@/infrastructure/models';
-import { PRODUCT_ERROR_MESSAGES } from '@/shared';
+import { DI_TOKENS, Logger, PRODUCT_ERROR_MESSAGES } from '@/shared';
 
 import { PaginationParams } from '@/types';
 import mongoose from 'mongoose';
+import { inject, injectable } from 'tsyringe';
 
+@injectable()
 export class ProductRepository implements IProductRepository {
+  /**
+   * Creates an instance of ProductRepository
+   * @param logger Injected logger service
+   */
+  constructor(@inject(DI_TOKENS.LOGGER) private logger: Logger) {}
+
   /**
    * Creates a new product in the database.
    * @param product Product entity to create

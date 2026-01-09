@@ -1,6 +1,6 @@
 import { Product } from '@/domain/entities';
 import { IProductRepository } from '@/domain/interfaces';
-import { BadRequestError, DI_TOKENS, PRODUCT_ERROR_MESSAGES } from '@/shared';
+import { BadRequestError, DI_TOKENS, Logger, PRODUCT_ERROR_MESSAGES } from '@/shared';
 
 import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
@@ -13,9 +13,10 @@ import { inject, injectable } from 'tsyringe';
 @injectable()
 export class GetProductUseCase {
   constructor(
-    @inject(DI_TOKENS.PRODUCT_REPOSITORY) private productRepository: IProductRepository
+    @inject(DI_TOKENS.PRODUCT_REPOSITORY) private productRepository: IProductRepository,
     // 💡 Dependency Injection: Repository is injected via DI_TOKENS
     // 💡 This enables loose coupling and easy testing
+    @inject(DI_TOKENS.LOGGER) private logger: Logger
   ) {}
 
   /**
