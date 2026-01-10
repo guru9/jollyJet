@@ -43,6 +43,10 @@ JollyJet is a **high-performance e-commerce shopping application** built with mo
 
 - 🚀 **[Microservices Migration Plan](../migrations/microservices-migration-plan.md)** - Comprehensive plan for transitioning to microservices architecture
 
+**MCP Server Integration Documentation:**
+
+- 🤖 **[MCP Server Integration Plan](../migrations/mcp-server-integration-plan.md)** - Complete implementation plan for Model Context Protocol server integration with AI assistants
+
 ---
 
 ## 🏗️ Architecture Assessment - Monolithic (NodeJS-Express)

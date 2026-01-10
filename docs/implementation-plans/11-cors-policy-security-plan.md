@@ -1,11 +1,14 @@
 # CORS Policy & Security Implementation Plan
 
-**Related Task:** [`04-cors-task.md`](../tasks/04-cors-task.md)
-**Branch:** `feature/jollyjet-11-cors-security`
+**Related Task:** [`04-cors-task.md`](../tasks/04-cors-task.md)  
+**Branch:** `feature/jollyjet-11-cors-security`  
+**Status:** Partially Implemented
 
 ## Overview
 
 This document outlines the implementation plan for securing Cross-Origin Resource Sharing (CORS) in the JollyJet E-commerce API. CORS is a critical security feature that controls which external domains can access API resources, preventing unauthorized cross-origin attacks while maintaining flexibility for legitimate web applications.
+
+**Current State:** The basic CORS middleware is integrated, but advanced security features and configuration management are pending.
 
 ## Table of Contents
 
@@ -76,6 +79,13 @@ Currently, the JollyJet API does not have a dedicated CORS configuration. The ap
 
 ### Architecture
 
+The CORS security architecture consists of the following components:
+
+1. **CORS Configuration Module**: Defines environment-specific CORS settings using the `ICorsConfig` interface.
+2. **CORS Security Middleware**: Validates origins, sanitizes headers, and enforces security policies.
+3. **CORS Logger Middleware**: Logs CORS-related activities for monitoring and debugging.
+4. **Integration Layer**: Applies CORS middleware to the Express application with environment-specific configurations.
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                           CORS Security Architecture                         │
@@ -105,26 +115,389 @@ Currently, the JollyJet API does not have a dedicated CORS configuration. The ap
 
 ```
 src/
-├── app.ts                # CORS middleware integration (Step 1)
+├── app.ts                # CORS middleware integration (Step 6)
 ├── config/
-│   └── cors.ts            # CORS configuration module (Step 2)
+│   ├── cors.ts            # CORS configuration module (Step 1)
+│   └── index.ts           # Export CORS configuration (Step 2)
 ├── interface/
 │   └── middlewares/
-│       ├── corsSecurity.ts  # CORS security middleware (Step 4)
-│       └── corsLogger.ts    # CORS logging middleware (Step 5)
+│       ├── corsSecurity.ts  # CORS security middleware (Step 3)
+│       ├── corsLogger.ts    # CORS logging middleware (Step 4)
+│       └── index.ts         # Export CORS middleware (Step 5)
 └── tests/
     ├── unit/
-    │   └── cors.test.ts      # CORS unit tests (Step 6)
+    │   └── cors.test.ts      # CORS unit tests (Step 7)
     └── integration/
-        └── cors.integration.test.ts  # CORS integration tests (Step 6)
+        └── cors.integration.test.ts  # CORS integration tests (Step 7)
 
-# Step 1 Files (Install CORS Middleware)
-package.json              # CORS dependencies (Step 1)
+# Step 1 Files (Define ICorsConfig Interface)
+src/config/cors.ts        # ICorsConfig interface and configuration (Step 1)
+
+# Step 2 Files (Update CORS Configuration)
+src/config/index.ts       # Export CORS configuration (Step 2)
+
+# Step 3 Files (Create CORS Security Middleware)
+src/interface/middlewares/corsSecurity.ts  # Security middleware (Step 3)
+
+# Step 4 Files (Create CORS Logger Middleware)
+src/interface/middlewares/corsLogger.ts    # Logging middleware (Step 4)
+
+# Step 5 Files (Update Middleware Exports)
+src/interface/middlewares/index.ts         # Export middleware (Step 5)
+
+# Step 6 Files (Integrate CORS Configuration)
+src/app.ts                                # Integrate CORS (Step 6)
+
+# Step 7 Files (Testing)
+tests/unit/cors.test.ts                    # Unit tests (Step 7)
+tests/integration/cors.integration.test.ts # Integration tests (Step 7)
 ```
 
-### CORS Configuration Strategy
+---
 
-#### Environment-Based Configuration
+## Implementation Steps
+
+### Step 1: Define `ICorsConfig` Interface
+
+**Files:** `src/config/cors.ts`
+**Dependencies:** None
+
+1. Create `src/config/cors.ts` and define the `ICorsConfig` interface
+2. Implement environment-specific CORS configurations (development, staging, production)
+3. Export `getCorsOptions()` function to return configured CORS options
+
+### Step 2: Update CORS Configuration
+
+**Files:** `src/config/index.ts`
+**Dependencies:** Step 1
+
+1. Update `src/config/index.ts` to export CORS configuration
+2. Implement origin validation logic in `src/config/cors.ts`
+3. Add configuration validation
+
+### Step 3: Create CORS Security Middleware
+
+**Files:** `src/interface/middlewares/corsSecurity.ts`
+**Dependencies:** Step 2
+
+1. Create `src/interface/middlewares/corsSecurity.ts`
+2. Implement strict origin validation
+3. Add request header sanitization
+4. Integrate with configuration module
+5. Add security logging
+
+### Step 4: Create CORS Logger Middleware
+
+**Files:** `src/interface/middlewares/corsLogger.ts`
+**Dependencies:** Step 3
+
+1. Create `src/interface/middlewares/corsLogger.ts`
+2. Log all CORS preflight requests
+3. Log CORS violations and blocked requests
+4. Track CORS metrics
+
+### Step 5: Update Middleware Exports
+
+**Files:** `src/interface/middlewares/index.ts`
+**Dependencies:** Step 4
+
+1. Update `src/interface/middlewares/index.ts` to export CORS middleware
+
+### Step 6: Integrate CORS Configuration
+
+**Files:** `src/app.ts`
+**Dependencies:** Step 5
+
+1. Update `src/app.ts` to use the new CORS configuration
+2. Replace the basic `cors()` middleware with the configured `cors(corsOptions)`
+
+**Code Snippet - src/app.ts:**
+
+```typescript
+import cors from 'cors';
+import { getCorsOptions } from '@/config';
+
+// Apply CORS middleware with environment-specific configuration
+const corsOptions = getCorsOptions();
+app.use(cors(corsOptions));
+```
+
+#### Step 7: Testing
+
+**Files:** `tests/unit/cors.test.ts`, `tests/integration/cors.integration.test.ts`
+**Dependencies:** Step 6
+
+1. Create unit tests for CORS configuration
+2. Create unit tests for origin validation
+3. Create integration tests for CORS middleware
+4. Create security tests for header sanitization
+
+---
+
+## 🛠️ Proposed Changes
+
+### Step 1: Define `ICorsConfig` Interface
+
+**Files:** `src/config/cors.ts`  
+**Dependencies:** None
+
+**Code Snippet - src/config/cors.ts:**
+
+```typescript
+// Define the ICorsConfig interface for structured CORS configuration
+interface ICorsConfig {
+  allowedOrigins: string[]; // Array of allowed origins
+  allowedMethods: string[]; // HTTP methods allowed
+  allowedHeaders: string[]; // Request headers allowed
+  exposedHeaders: string[]; // Response headers exposed to client
+  maxAge: number; // Preflight cache duration (seconds)
+  credentials: boolean; // Allow credentials (cookies, auth headers)
+  originValidationEnabled: boolean; // Enable strict origin validation
+  logViolations: boolean; // Log CORS violations
+  blockNonCorsRequests: boolean; // Block requests without Origin header in prod
+}
+
+// Environment-specific CORS configurations
+const corsConfig: Record<string, ICorsConfig> = {
+  development: {
+    allowedOrigins: ['http://localhost:3000', 'http://localhost:3001'],
+    allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['X-Total-Count'],
+    maxAge: 86400,
+    credentials: true,
+    originValidationEnabled: false,
+    logViolations: true,
+    blockNonCorsRequests: false,
+  },
+  staging: {
+    allowedOrigins: ['https://staging.jollyjet.com'],
+    allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['X-Total-Count'],
+    maxAge: 86400,
+    credentials: true,
+    originValidationEnabled: true,
+    logViolations: true,
+    blockNonCorsRequests: false,
+  },
+  production: {
+    allowedOrigins: ['https://jollyjet.com', 'https://www.jollyjet.com'],
+    allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['X-Total-Count'],
+    maxAge: 86400,
+    credentials: true,
+    originValidationEnabled: true,
+    logViolations: true,
+    blockNonCorsRequests: true,
+  },
+};
+
+// Get CORS options based on the current environment
+export const getCorsOptions = (): CorsOptions => {
+  const env = process.env.NODE_ENV || 'development';
+  const config = corsConfig[env];
+
+  return {
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (config.allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: config.allowedMethods,
+    allowedHeaders: config.allowedHeaders,
+    exposedHeaders: config.exposedHeaders,
+    credentials: config.credentials,
+    maxAge: config.maxAge,
+  };
+};
+```
+
+### Step 2: Update CORS Configuration
+
+**Files:** `src/config/index.ts`  
+**Dependencies:** Step 1
+
+**Code Snippet - src/config/index.ts:**
+
+```typescript
+// Export the CORS configuration
+import { getCorsOptions } from './cors';
+
+export { getCorsOptions };
+```
+
+#### Step 2.1: Environment-Specific Policies
+
+**Files:** `src/config/cors.ts`, `.env`  
+**Dependencies:** Step 2
+
+**Code Snippet - .env:**
+
+```env
+# CORS Configuration
+CORS_ORIGINS=https://jollyjet.com,https://www.jollyjet.com
+```
+
+**Code Snippet - src/config/cors.ts (Environment Handling):**
+
+```typescript
+// Environment-specific allowed origins
+const allowedOrigins = {
+  development: ['http://localhost:3000', 'http://localhost:3001'],
+  staging: ['https://staging.jollyjet.com'],
+  production: ['https://jollyjet.com', 'https://www.jollyjet.com'],
+};
+```
+
+### Step 3: Security Enhancements
+
+**Files:** `src/interface/middlewares/corsSecurity.ts`  
+**Dependencies:** Step 2\*
+
+**Code Snippet - src/interface/middlewares/corsSecurity.ts:**
+
+```typescript
+import { Request, Response, NextFunction } from 'express';
+
+export const corsSecurityMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+  // Security headers
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+
+  // Pre-flight caching
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Max-Age', '86400');
+  }
+
+  next();
+};
+```
+
+### Step 4 Monitoring and Logging
+
+**Files:** `src/interface/middlewares/corsLogger.ts`  
+**Dependencies:** Step 3
+
+**Code Snippet - src/interface/middlewares/corsLogger.ts:**
+
+```typescript
+import { Request, Response, NextFunction } from 'express';
+import { logger } from '@/shared/logger';
+
+export const corsLoggerMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+  const origin = req.headers.origin;
+
+  if (origin) {
+    logger.info('CORS Request', {
+      origin,
+      method: req.method,
+      path: req.path,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  next();
+};
+```
+
+### Step 5: Testing and Validation
+
+**Files:** `tests/unit/cors.test.ts`, `tests/integration/cors.integration.test.ts`  
+**Dependencies:** Step 4
+
+**Code Snippet - tests/unit/cors.test.ts:**
+
+```typescript
+import { getCorsOptions } from '@/config/cors';
+
+describe('CORS Configuration', () => {
+  it('should allow valid origins', () => {
+    const mockCallback = jest.fn();
+    const corsOptions = getCorsOptions();
+    corsOptions.origin('https://jollyjet.com', mockCallback);
+    expect(mockCallback).toHaveBeenCalledWith(null, true);
+  });
+
+  it('should reject invalid origins', () => {
+    const mockCallback = jest.fn();
+    const corsOptions = getCorsOptions();
+    corsOptions.origin('https://malicious.com', mockCallback);
+    expect(mockCallback).toHaveBeenCalledWith(expect.any(Error));
+  });
+});
+```
+
+## API Reference
+
+### Configuration Module
+
+### `getCorsOptions(): CorsOptions`
+
+Returns the configured CORS options based on the current environment.
+
+```typescript
+import { getCorsOptions } from '@/config/cors';
+
+const corsOptions = getCorsOptions();
+app.use(cors(corsOptions));
+```
+
+**Returns:**
+
+- `CorsOptions` object compatible with the `cors` package
+
+**Throws:**
+
+- `ConfigurationError` if required environment variables are missing
+
+---
+
+## Security Middleware
+
+#### `corsSecurity(req: Request, res: Response, next: NextFunction): void`
+
+Middleware that performs additional CORS security checks beyond the basic `cors` middleware.
+
+```typescript
+import { corsSecurity } from '@/interface/middlewares/corsSecurity';
+
+app.use(corsSecurity);
+```
+
+**Security Checks:**
+
+1. Validates Origin header presence
+2. Validates Origin against whitelist
+3. Sanitizes CORS-related headers
+4. Logs suspicious activities
+
+## Logger Middleware
+
+#### `corsLogger(req: Request, res: Response, next: NextFunction): void`
+
+Middleware that logs all CORS-related activities.
+
+```typescript
+import { corsLogger } from '@/interface/middlewares/corsLogger';
+
+app.use(corsLogger);
+```
+
+**Logged Events:**
+
+- Preflight requests (OPTIONS)
+- CORS violations
+- Unauthorized origin attempts
+- Invalid CORS headers
+
+## CORS Configuration Strategy
+
+### Environment-Based Configuration
 
 The CORS configuration will be environment-aware, with different settings for development, staging, and production environments.
 
@@ -142,7 +515,7 @@ interface ICorsConfig {
 }
 ```
 
-#### Configuration Levels
+### Configuration Levels
 
 1. **Development**: Permissive CORS for local development
 2. **Staging**: Semi-restrictive CORS for testing environments
@@ -207,267 +580,7 @@ const handlePreflight = (req: Request, res: Response): void => {
 };
 ```
 
-### Implementation Steps
-
-#### Step 1: CORS Configuration Module
-
-1. Create `src/config/cors.ts` with environment-specific CORS options
-2. Export `getCorsOptions()` function that returns configured CORS options
-3. Implement origin validation logic
-4. Add configuration validation
-
-#### Step 2: CORS Security Middleware
-
-1. Create `src/interface/middlewares/corsSecurity.ts`
-2. Implement strict origin validation
-3. Add request header sanitization
-4. Integrate with configuration module
-5. Add security logging
-
-#### Step 3: CORS Logger Middleware
-
-1. Create `src/interface/middlewares/corsLogger.ts`
-2. Log all CORS preflight requests
-3. Log CORS violations and blocked requests
-4. Track CORS metrics
-
-#### Step 4: Integration
-
-1. Update `src/config/index.ts` to export CORS configuration
-2. Update `src/interface/middlewares/index.ts` to export CORS middleware
-3. Update `src/app.ts` to use the new CORS middleware
-
-#### Step 5: Testing
-
-1. Create unit tests for CORS configuration
-2. Create unit tests for origin validation
-3. Create integration tests for CORS middleware
-4. Create security tests for header sanitization
-
-## Implementation Steps
-
-### Implementation Steps with Dependencies
-
-#### Step 1: Install CORS Middleware
-
-**Files:** `package.json`, `src/app.ts`
-**Dependencies:** None
-
-**Code Snippet - package.json:**
-
-```json
-{
-  "dependencies": {
-    "cors": "^2.8.5"
-  },
-  "devDependencies": {
-    "@types/cors": "^2.8.19"
-  }
-}
-```
-
-**Code Snippet - src/app.ts:**
-
-```typescript
-import cors from 'cors';
-import { getCorsOptions } from '@/config/cors';
-
-// Apply CORS middleware
-app.use(cors(getCorsOptions()));
-```
-
-#### Step 2: Configure CORS Options
-
-**Files:** `src/config/cors.ts`
-**Dependencies:** Step 1
-
-**Code Snippet - src/config/cors.ts:**
-
-```typescript
-import { CorsOptions } from 'cors';
-
-export const getCorsOptions = (): CorsOptions => {
-  const env = process.env.NODE_ENV || 'development';
-  const allowedOrigins = process.env.CORS_ORIGINS?.split(',') || [];
-
-  return {
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-    maxAge: 86400,
-  };
-};
-```
-
-#### Step 3: Environment-Specific Policies
-
-**Files:** `src/config/cors.ts`, `.env`
-**Dependencies:** Step 2
-
-**Code Snippet - .env:**
-
-```env
-# CORS Configuration
-CORS_ORIGINS=https://jollyjet.com,https://www.jollyjet.com
-```
-
-**Code Snippet - src/config/cors.ts (Environment Handling):**
-
-```typescript
-// Environment-specific allowed origins
-const allowedOrigins = {
-  development: ['http://localhost:3000', 'http://localhost:3001'],
-  staging: ['https://staging.jollyjet.com'],
-  production: ['https://jollyjet.com', 'https://www.jollyjet.com'],
-};
-```
-
-#### Step 4: Security Enhancements
-
-**Files:** `src/interface/middlewares/corsSecurity.ts`
-**Dependencies:** Step 3
-
-**Code Snippet - src/interface/middlewares/corsSecurity.ts:**
-
-```typescript
-import { Request, Response, NextFunction } from 'express';
-
-export const corsSecurityMiddleware = (req: Request, res: Response, next: NextFunction): void => {
-  // Security headers
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-
-  // Pre-flight caching
-  if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Max-Age', '86400');
-  }
-
-  next();
-};
-```
-
-#### Step 5: Monitoring and Logging
-
-**Files:** `src/interface/middlewares/corsLogger.ts`
-**Dependencies:** Step 4
-
-**Code Snippet - src/interface/middlewares/corsLogger.ts:**
-
-```typescript
-import { Request, Response, NextFunction } from 'express';
-import { logger } from '@/shared/logger';
-
-export const corsLoggerMiddleware = (req: Request, res: Response, next: NextFunction): void => {
-  const origin = req.headers.origin;
-
-  if (origin) {
-    logger.info('CORS Request', {
-      origin,
-      method: req.method,
-      path: req.path,
-      timestamp: new Date().toISOString(),
-    });
-  }
-
-  next();
-};
-```
-
-#### Step 6: Testing and Validation
-
-**Files:** `tests/unit/cors.test.ts`, `tests/integration/cors.integration.test.ts`
-**Dependencies:** Step 5
-
-**Code Snippet - tests/unit/cors.test.ts:**
-
-```typescript
-import { getCorsOptions } from '@/config/cors';
-
-describe('CORS Configuration', () => {
-  it('should allow valid origins', () => {
-    const mockCallback = jest.fn();
-    const corsOptions = getCorsOptions();
-    corsOptions.origin('https://jollyjet.com', mockCallback);
-    expect(mockCallback).toHaveBeenCalledWith(null, true);
-  });
-
-  it('should reject invalid origins', () => {
-    const mockCallback = jest.fn();
-    const corsOptions = getCorsOptions();
-    corsOptions.origin('https://malicious.com', mockCallback);
-    expect(mockCallback).toHaveBeenCalledWith(expect.any(Error));
-  });
-});
-```
-
-## API Reference
-
-### Configuration Module
-
-#### `getCorsOptions(): CorsOptions`
-
-Returns the configured CORS options based on the current environment.
-
-```typescript
-import { getCorsOptions } from '@/config/cors';
-
-const corsOptions = getCorsOptions();
-app.use(cors(corsOptions));
-```
-
-**Returns:**
-
-- `CorsOptions` object compatible with the `cors` package
-
-**Throws:**
-
-- `ConfigurationError` if required environment variables are missing
-
-### Security Middleware
-
-#### `corsSecurity(req: Request, res: Response, next: NextFunction): void`
-
-Middleware that performs additional CORS security checks beyond the basic `cors` middleware.
-
-```typescript
-import { corsSecurity } from '@/interface/middlewares/corsSecurity';
-
-app.use(corsSecurity);
-```
-
-**Security Checks:**
-
-1. Validates Origin header presence
-2. Validates Origin against whitelist
-3. Sanitizes CORS-related headers
-4. Logs suspicious activities
-
-### Logger Middleware
-
-#### `corsLogger(req: Request, res: Response, next: NextFunction): void`
-
-Middleware that logs all CORS-related activities.
-
-```typescript
-import { corsLogger } from '@/interface/middlewares/corsLogger';
-
-app.use(corsLogger);
-```
-
-**Logged Events:**
-
-- Preflight requests (OPTIONS)
-- CORS violations
-- Unauthorized origin attempts
-- Invalid CORS headers
+---
 
 ## Testing Strategy
 
@@ -600,9 +713,9 @@ CORS_BLOCK_NON_CORS_REQUESTS=false
 
 ## Status
 
-**IMPLEMENTED**
+**PARTIALLY IMPLEMENTED**
 
-The CORS Policy & Security implementation has been completed with the following components:
+The CORS Policy & Security implementation is partially completed. The basic CORS middleware is integrated, but the advanced security features and configuration management are not yet implemented.
 
 ### Completed Components
 
@@ -610,22 +723,39 @@ The CORS Policy & Security implementation has been completed with the following 
 | ---------------------------- | ----------- | ------------------------------------------- |
 | CORS Middleware Installation | ✅ Complete | `package.json`                              |
 | Basic CORS Configuration     | ✅ Complete | `src/app.ts`                                |
-| CORS Security Middleware     | ✅ Complete | `src/interface/middlewares/corsSecurity.ts` |
-| CORS Logger Middleware       | ✅ Complete | `src/interface/middlewares/corsLogger.ts`   |
-| Middleware Exports           | ✅ Complete | `src/interface/middlewares/index.ts`        |
-| CORS Configuration Module    | ✅ Complete | `src/config/cors.ts`                        |
-| Config Exports               | ✅ Complete | `src/config/index.ts`                       |
-| Unit Tests                   | ✅ Complete | `tests/unit/cors/`                          |
-| Integration Tests            | ✅ Complete | `tests/integration/cors.test.ts`            |
+| CORS Security Middleware     | ❌ Pending  | `src/interface/middlewares/corsSecurity.ts` |
+| CORS Logger Middleware       | ❌ Pending  | `src/interface/middlewares/corsLogger.ts`   |
+| Middleware Exports           | ❌ Pending  | `src/interface/middlewares/index.ts`        |
+| CORS Configuration Module    | ❌ Pending  | `src/config/cors.ts`                        |
+| Config Exports               | ❌ Pending  | `src/config/index.ts`                       |
+| Unit Tests                   | ❌ Pending  | `tests/unit/cors/`                          |
+| Integration Tests            | ❌ Pending  | `tests/integration/cors.test.ts`            |
 
 ### Implementation Details
 
-1. **CORS Configuration** (`src/config/cors.ts`): Environment-aware CORS options with validation
-2. **Security Middleware** (`src/interface/middlewares/corsSecurity.ts`): Strict origin validation and header sanitization
-3. **Logging Middleware** (`src/interface/middlewares/corsLogger.ts`): Comprehensive CORS activity logging
-4. **Tests**: Full test coverage for configuration, security, and integration scenarios
+1. **Basic CORS Configuration** (`src/app.ts`): Uses the default `cors()` middleware without environment-specific settings.
+2. **Pending Components**: Advanced security features, logging, and configuration management are not yet implemented.
 
-### Usage Example
+### Current Implementation
+
+```typescript
+// Current CORS implementation in src/app.ts
+import cors from 'cors';
+
+app.use(cors()); // Basic CORS middleware without configuration
+```
+
+### Next Steps
+
+1. **Implement `ICorsConfig`**: Define the `ICorsConfig` interface for structured CORS configuration.
+2. **Create CORS Configuration Module**: Implement `src/config/cors.ts` with environment-specific settings.
+3. **Develop Security Middleware**: Create `src/interface/middlewares/corsSecurity.ts` for strict origin validation.
+4. **Add Logging Middleware**: Implement `src/interface/middlewares/corsLogger.ts` for CORS activity logging.
+5. **Update Middleware Exports**: Export the new middleware in `src/interface/middlewares/index.ts`.
+6. **Integrate Configuration**: Update `src/app.ts` to use the new CORS configuration.
+7. **Write Tests**: Create unit and integration tests for the CORS implementation.
+
+### Usage Example (Planned)
 
 ```typescript
 import { jollyJetApp } from '@/app';
@@ -636,7 +766,3 @@ const app = await jollyJetApp();
 const corsOptions = getCorsOptions();
 app.use(cors(corsOptions));
 ```
-
-### Next Steps
-
-No further action required. The CORS security implementation is complete and ready for production use.
