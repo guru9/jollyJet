@@ -30,5 +30,6 @@ export const config: IAppConfig = {
 
 export default config;
 
+export { getCorsConfig, getCorsOptions, ICorsConfig } from './cors';
 export * from './di-container';
 export { swaggerSpec, swaggerUiOptions } from './swagger';

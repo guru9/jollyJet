@@ -1,3 +1,4 @@
+import { CORS_ERROR_MESSAGES, CORS_LOG_MESSAGES } from '@/shared/constants';
 import { CorsOptions } from 'cors';
 
 /**
@@ -66,6 +67,76 @@ const corsConfig: Record<string, ICorsConfig> = {
 };
 
 /**
+ * Validate origin based on CORS configuration
+ * Handles null origins, URL validation, and whitelist checking
+ *
+ * @param origin - The origin header from the request
+ * @param config - CORS configuration for the current environment
+ * @returns boolean indicating if the origin is allowed
+ */
+const validateOrigin = (origin: string | undefined, config: ICorsConfig): boolean => {
+  // Allow requests with no origin based on blockNonCorsRequests setting
+  if (!origin) {
+    return !config.blockNonCorsRequests;
+  }
+
+  // If origin validation is disabled, allow all origins
+  if (!config.originValidationEnabled) {
+    return true;
+  }
+
+  // Basic origin format validation
+  try {
+    const url = new URL(origin);
+    if (!url.protocol.startsWith('http')) {
+      return false;
+    }
+  } catch {
+    // Invalid URL format
+    return false;
+  }
+
+  // Check if origin is in allowed list
+  return config.allowedOrigins.includes(origin);
+};
+
+/**
+ * Validate CORS configuration for the given environment
+ * Ensures all required fields are present and valid
+ *
+ * @param config - CORS configuration object
+ * @param env - Environment name for error context
+ */
+const validateCorsConfig = (config: ICorsConfig, env: string): void => {
+  // Required fields validation
+  if (!Array.isArray(config.allowedOrigins) || config.allowedOrigins.length === 0) {
+    throw new Error(`CORS configuration error in ${env}: allowedOrigins must be a non-empty array`);
+  }
+
+  // Type validation for all fields
+  if (typeof config.maxAge !== 'number' || config.maxAge < 0) {
+    throw new Error(`CORS configuration error in ${env}: maxAge must be a non-negative number`);
+  }
+
+  // Origin URL validation
+  for (const origin of config.allowedOrigins) {
+    try {
+      new URL(origin);
+    } catch {
+      throw new Error(`CORS configuration error in ${env}: invalid origin URL: ${origin}`);
+    }
+  }
+
+  // HTTP method validation
+  const validMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'];
+  for (const method of config.allowedMethods) {
+    if (!validMethods.includes(method.toUpperCase())) {
+      throw new Error(`CORS configuration error in ${env}: invalid HTTP method: ${method}`);
+    }
+  }
+};
+
+/**
  * Get CORS options based on the current environment
  * Returns configured CORS options compatible with the cors middleware
  *
@@ -76,21 +147,38 @@ export const getCorsOptions = (): CorsOptions => {
   const config = corsConfig[env];
 
   if (!config) {
-    throw new Error(`CORS configuration not found for environment: ${env}`);
+    throw new Error(CORS_ERROR_MESSAGES.CONFIG_NOT_FOUND.replace('{env}', env));
   }
+
+  // Validate configuration before use
+  validateCorsConfig(config, env);
 
   return {
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) {
-        return callback(null, true);
-      }
+      try {
+        const isAllowed = validateOrigin(origin, config);
 
-      // Check if origin is in allowed list
-      if (config.allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
+        if (isAllowed) {
+          callback(null, true);
+        } else {
+          const error = new Error(
+            CORS_ERROR_MESSAGES.ORIGIN_NOT_ALLOWED.replace('{origin}', origin || 'null')
+          );
+
+          // Log violations if enabled
+          if (config.logViolations) {
+            console.warn(
+              CORS_LOG_MESSAGES.VIOLATION_DETECTED.replace('{origin}', origin || 'null').replace(
+                '{env}',
+                env
+              )
+            );
+          }
+
+          callback(error);
+        }
+      } catch (error) {
+        callback(error as Error);
       }
     },
     methods: config.allowedMethods,
@@ -112,7 +200,7 @@ export const getCorsConfig = (): ICorsConfig => {
   const config = corsConfig[env];
 
   if (!config) {
-    throw new Error(`CORS configuration not found for environment: ${env}`);
+    throw new Error(CORS_ERROR_MESSAGES.CONFIG_NOT_FOUND.replace('{env}', env));
   }
 
   return config;

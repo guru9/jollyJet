@@ -70,7 +70,7 @@ export const DI_TOKENS = {
 
 /**
  * ============================================
- * 3) PRODDUCT CONFIGURATION
+ * 3) PRODUCT CONFIGURATION
  * ============================================
  *
 
@@ -163,7 +163,58 @@ export const RATE_LIMIT_MESSAGES = {
 
 /**
  * ============================================
- * 4) REDIS CONFIGURATION
+ * 4) CORS CONFIGURATION
+ * ============================================
+ *
+ * Comprehensive CORS configuration constants for the JollyJet e-commerce platform.
+ * This section defines CORS-related constants including error messages, validation messages,
+ * and logging messages for consistent CORS policy implementation across the application.
+ *
+ * The configuration supports environment-specific CORS policies with proper security controls
+ * and comprehensive logging for monitoring and debugging.
+ */
+
+/**
+ * CORS-specific error messages for consistent error responses.
+ */
+export const CORS_ERROR_MESSAGES = {
+  CONFIG_NOT_FOUND: 'CORS configuration not found for environment: {env}',
+  ORIGIN_NOT_ALLOWED: "Origin '{origin}' not allowed by CORS policy",
+  INVALID_ORIGIN_URL: 'Invalid origin URL: {origin}',
+  INVALID_HTTP_METHOD: 'Invalid HTTP method: {method}',
+  CONFIG_VALIDATION_FAILED: 'CORS configuration validation failed: {error}',
+};
+
+/**
+ * CORS violation and security logging messages with placeholders.
+ * These messages provide structured logging for CORS policy enforcement and monitoring.
+ *
+ * Placeholders:
+ * - {origin}: The request origin that triggered the violation
+ * - {env}: Current environment (development/staging/production)
+ * - {method}: HTTP method used in the request
+ * - {error}: Specific error details
+ */
+export const CORS_LOG_MESSAGES = {
+  // Violation logging
+  VIOLATION_DETECTED: 'CORS violation detected: {origin} not allowed (Environment: {env})',
+  ORIGIN_BLOCKED: 'Origin blocked by CORS policy: {origin}',
+  METHOD_NOT_ALLOWED: 'HTTP method not allowed by CORS: {method}',
+
+  // Configuration and validation
+  CONFIG_VALIDATION_SUCCESS: 'CORS configuration validated successfully for environment: {env}',
+  CONFIG_VALIDATION_ERROR: 'CORS configuration validation error: {error}',
+  ORIGIN_VALIDATION_DISABLED: 'CORS origin validation disabled for development environment',
+
+  // Security monitoring
+  NON_CORS_REQUEST_BLOCKED: 'Non-CORS request blocked in production environment',
+  INVALID_ORIGIN_FORMAT: 'Invalid origin format detected: {origin}',
+  PROTOCOL_VIOLATION: 'Non-HTTP protocol detected in origin: {origin}',
+};
+
+/**
+ * ============================================
+ * 5) REDIS CONFIGURATION
  * ============================================
  *
  * Comprehensive Redis configuration for the JollyJet e-commerce platform.
