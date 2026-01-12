@@ -79,36 +79,166 @@ Currently, the JollyJet API does not have a dedicated CORS configuration. The ap
 
 ### Architecture
 
-The CORS security architecture consists of the following components:
+The CORS security architecture is integrated into the comprehensive JollyJet e-commerce platform architecture, which follows Clean Architecture principles and includes multiple security layers.
 
-1. **CORS Configuration Module**: Defines environment-specific CORS settings using the `ICorsConfig` interface.
-2. **CORS Security Middleware**: Validates origins, sanitizes headers, and enforces security policies.
-3. **CORS Logger Middleware**: Logs CORS-related activities for monitoring and debugging.
-4. **Integration Layer**: Applies CORS middleware to the Express application with environment-specific configurations.
+#### System Architecture Overview
 
+```mermaid
+graph TB
+    subgraph "Client Layer"
+        AI[AI Assistant<br/>Claude, etc.]
+        WEB[Web Browsers<br/>Mobile Apps]
+        MCP[MCP Clients]
+    end
+
+    subgraph "API Gateway & Security"
+        CORS[CORS Security<br/>Origin Validation]
+        AUTH[Authentication<br/>JWT, Sessions]
+        RATE[Rate Limiting<br/>Redis-based]
+        SEC[Security Headers<br/>CSP, HSTS]
+    end
+
+    subgraph "JollyJet Application"
+        subgraph "MCP Server Process"
+            MCPS[MCP Server<br/>src/mcp/index.ts]
+        end
+
+        subgraph "Main Application"
+            API[Express API<br/>src/app.ts]
+            DI[DI Container<br/>src/config/di-container.ts]
+        end
+
+        subgraph "Application Layer"
+            UC[Use Cases<br/>src/usecases/]
+        end
+
+        subgraph "Domain Layer"
+            SVC[Services<br/>src/domain/services/]
+            ENT[Entities<br/>src/domain/entities/]
+        end
+
+        subgraph "Infrastructure Layer"
+            REPO[Repositories<br/>src/infrastructure/repositories/]
+            MONGO[(MongoDB)]
+            REDIS[(Redis Cache)]
+        end
+
+        subgraph "Interface Layer"
+            CTRL[Controllers<br/>src/interface/controllers/]
+            DTO[DTOs<br/>src/interface/dtos/]
+            RT[Routes<br/>src/interface/routes/]
+            MW[Middleware<br/>CORS, Auth, Cache]
+        end
+    end
+
+    AI --> MCP
+    MCP --> MCPS
+    WEB --> CORS
+    CORS --> AUTH
+    AUTH --> RATE
+    RATE --> SEC
+    SEC --> API
+    MCPS --> DI
+    DI --> UC
+    DI --> SVC
+    UC --> SVC
+    SVC --> REPO
+    REPO --> MONGO
+    REPO --> REDIS
+    API --> DI
+    DI --> CTRL
+    CTRL --> RT
+    RT --> MW
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           CORS Security Architecture                         │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  ┌─────────────┐     ┌──────────────────┐     ┌──────────────────────────┐ │
-│  │   Browser   │────▶│  CORS Middleware │────▶│  Express Application     │ │
-│  │  (Client)   │     │  (corsSecurity)  │     │  (Request Handlers)      │ │
-│  └─────────────┘     └──────────────────┘     └──────────────────────────┘ │
-│                              │                                                    │
-│                              ▼                                                    │
-│                       ┌──────────────────┐                                      │
-│                       │  CORS Logger     │                                      │
-│                       │  (corsLogger)    │                                      │
-│                       └──────────────────┘                                      │
-│                              │                                                    │
-│                              ▼                                                    │
-│                       ┌──────────────────┐                                      │
-│                       │   Logger Service │                                      │
-│                       │  ( Pino/Winston) │                                      │
-│                       └──────────────────┘                                      │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
+
+#### CORS Security Components
+
+The CORS security architecture consists of the following specialized components:
+
+1. **CORS Configuration Module**: Defines environment-specific CORS settings using the `ICorsConfig` interface with support for multiple environments (development, staging, production).
+
+2. **CORS Security Middleware**: Validates origins, sanitizes headers, enforces security policies, and integrates with the broader security ecosystem including rate limiting and authentication.
+
+3. **CORS Logger Middleware**: Logs CORS-related activities for monitoring, debugging, and security auditing, integrated with the centralized logging system.
+
+4. **Integration Layer**: Applies CORS middleware to the Express application with environment-specific configurations, working alongside other security middleware.
+
+#### CORS in the Security Stack
+
+```mermaid
+flowchart TD
+    subgraph "Client Layer"
+        Browser[Web Browser<br/>Mobile App]
+    end
+
+    subgraph "Security Middleware Chain"
+        CORS[CORS Security<br/>Origin Validation<br/>Header Sanitization]
+        RateLimit[Rate Limiting<br/>Redis-based<br/>Sliding Window]
+        Auth[Authentication<br/>JWT Validation<br/>Session Check]
+        Security[Security Headers<br/>CSP, HSTS<br/>X-Frame-Options]
+    end
+
+    subgraph "Logging Layer"
+        CORSLog[CORS Logger<br/>Violation Tracking<br/>Origin Logging]
+        RateLog[Rate Limit Logger<br/>Request Tracking<br/>Threshold Alerts]
+        AuthLog[Auth Logger<br/>Login Attempts<br/>Security Events]
+        SecLog[Security Logger<br/>Header Violations<br/>Attack Patterns]
+    end
+
+    subgraph "Centralized Logging"
+        Logger[Centralized Logger<br/>Pino/Winston<br/>Structured Logs<br/>ELK Stack Integration]
+    end
+
+    Browser --> CORS
+    CORS --> RateLimit
+    RateLimit --> Auth
+    Auth --> Security
+
+    CORS -.-> CORSLog
+    RateLimit -.-> RateLog
+    Auth -.-> AuthLog
+    Security -.-> SecLog
+
+    CORSLog --> Logger
+    RateLog --> Logger
+    AuthLog --> Logger
+    SecLog --> Logger
+
+    Logger -.->|Monitoring & Alerting| Logger
+```
+
+#### Data Flow with CORS Security
+
+```mermaid
+sequenceDiagram
+    participant Client as Web Browser/Mobile App
+    participant CORS as CORS Security Middleware
+    participant Auth as Authentication Middleware
+    participant RateLimit as Rate Limiting Service
+    participant API as Express Application
+    participant UC as Use Cases
+    participant Repo as Repository
+    participant DB as MongoDB
+    participant Cache as Redis Cache
+
+    Client->>CORS: Request with Origin header
+    CORS->>CORS: Validate Origin
+    CORS->>Auth: Check Authentication
+    Auth->>RateLimit: Check Rate Limits
+    RateLimit->>API: Allow Request
+    API->>UC: Execute Business Logic
+    UC->>Repo: Access Data
+    alt Cache Hit
+        Repo->>Cache: Get Cached Data
+        Cache-->>Repo: Return Cached Data
+    else Cache Miss
+        Repo->>DB: Query Database
+        DB-->>Repo: Return Data
+        Repo->>Cache: Store in Cache
+    end
+    Repo-->>UC: Return Data
+    UC-->>API: Return Response
+    API-->>Client: Response with CORS Headers
 ```
 
 ### Folder Structure
@@ -715,7 +845,7 @@ CORS_BLOCK_NON_CORS_REQUESTS=false
 
 **PARTIALLY IMPLEMENTED**
 
-The CORS Policy & Security implementation is partially completed. The basic CORS middleware is integrated, but the advanced security features and configuration management are not yet implemented.
+The CORS Policy & Security implementation is partially completed. Step 1 (ICorsConfig Interface) has been completed, and the basic CORS middleware is integrated, but the advanced security features and remaining configuration steps are pending.
 
 ### Completed Components
 
@@ -723,18 +853,19 @@ The CORS Policy & Security implementation is partially completed. The basic CORS
 | ---------------------------- | ----------- | ------------------------------------------- |
 | CORS Middleware Installation | ✅ Complete | `package.json`                              |
 | Basic CORS Configuration     | ✅ Complete | `src/app.ts`                                |
+| CORS Configuration Module    | ✅ Complete | `src/config/cors.ts`                        |
 | CORS Security Middleware     | ❌ Pending  | `src/interface/middlewares/corsSecurity.ts` |
 | CORS Logger Middleware       | ❌ Pending  | `src/interface/middlewares/corsLogger.ts`   |
 | Middleware Exports           | ❌ Pending  | `src/interface/middlewares/index.ts`        |
-| CORS Configuration Module    | ❌ Pending  | `src/config/cors.ts`                        |
 | Config Exports               | ❌ Pending  | `src/config/index.ts`                       |
 | Unit Tests                   | ❌ Pending  | `tests/unit/cors/`                          |
 | Integration Tests            | ❌ Pending  | `tests/integration/cors.test.ts`            |
 
 ### Implementation Details
 
-1. **Basic CORS Configuration** (`src/app.ts`): Uses the default `cors()` middleware without environment-specific settings.
-2. **Pending Components**: Advanced security features, logging, and configuration management are not yet implemented.
+1. **Step 1 Complete** (`src/config/cors.ts`): `ICorsConfig` interface defined with environment-specific configurations and `getCorsOptions()` function implemented.
+2. **Basic CORS Configuration** (`src/app.ts`): Uses the default `cors()` middleware without environment-specific settings.
+3. **Pending Components**: Advanced security features, logging, configuration exports, and testing are not yet implemented.
 
 ### Current Implementation
 
@@ -743,17 +874,21 @@ The CORS Policy & Security implementation is partially completed. The basic CORS
 import cors from 'cors';
 
 app.use(cors()); // Basic CORS middleware without configuration
+
+// Step 1 Complete: CORS Configuration Module available
+import { getCorsOptions } from '@/config/cors';
+const corsOptions = getCorsOptions(); // Ready for integration in Step 6
 ```
 
 ### Next Steps
 
-1. **Implement `ICorsConfig`**: Define the `ICorsConfig` interface for structured CORS configuration.
-2. **Create CORS Configuration Module**: Implement `src/config/cors.ts` with environment-specific settings.
-3. **Develop Security Middleware**: Create `src/interface/middlewares/corsSecurity.ts` for strict origin validation.
-4. **Add Logging Middleware**: Implement `src/interface/middlewares/corsLogger.ts` for CORS activity logging.
-5. **Update Middleware Exports**: Export the new middleware in `src/interface/middlewares/index.ts`.
-6. **Integrate Configuration**: Update `src/app.ts` to use the new CORS configuration.
-7. **Write Tests**: Create unit and integration tests for the CORS implementation.
+1. **✅ COMPLETED: Implement `ICorsConfig`**: Define the `ICorsConfig` interface for structured CORS configuration.
+2. **Update CORS Configuration**: Export CORS configuration in `src/config/index.ts` (Step 2).
+3. **Develop Security Middleware**: Create `src/interface/middlewares/corsSecurity.ts` for strict origin validation (Step 3).
+4. **Add Logging Middleware**: Implement `src/interface/middlewares/corsLogger.ts` for CORS activity logging (Step 4).
+5. **Update Middleware Exports**: Export the new middleware in `src/interface/middlewares/index.ts` (Step 5).
+6. **Integrate Configuration**: Update `src/app.ts` to use the new CORS configuration (Step 6).
+7. **Write Tests**: Create unit and integration tests for the CORS implementation (Step 7).
 
 ### Usage Example (Planned)
 

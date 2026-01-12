@@ -876,6 +876,178 @@ graph TB
     REPO --> CACHE
 ```
 
+### MCP Integration Flowcharts
+
+#### MCP Server with Redis & MongoDB Data Flow
+
+```mermaid
+flowchart TD
+    AI[AI Assistant] --> MCP[MCP Client]
+    MCP --> MCPS[MCP Server Tool]
+
+    MCPS --> UC[Product Use Case<br/>GetProductUseCase]
+    UC --> SVC[Product Service<br/>ProductService]
+    SVC --> REPO[Product Repository<br/>ProductRepository]
+
+    REPO --> DB[(MongoDB<br/>Product Collection)]
+    DB --> REPO
+
+    REPO --> SVC
+    SVC --> UC
+    UC --> ENT[Domain Entity]
+    ENT --> DTO[Product Response DTO<br/>src/interface/dtos/]
+    DTO --> MCPS
+
+    MCPS --> MCP
+    MCP --> AI
+
+    subgraph "Redis Cache Layer"
+        CACHE[(Redis Cache)]
+        REPO -.-> CACHE
+        CACHE -.-> REPO
+    end
+
+    subgraph "Cache Consistency"
+        CONSISTENCY[Cache Consistency Service<br/>Background Refresh]
+        CACHE -.-> CONSISTENCY
+        CONSISTENCY -.-> CACHE
+    end
+```
+
+#### Complete MCP + Redis + MongoDB Architecture
+
+```mermaid
+graph TB
+    subgraph "AI Assistant (Claude, etc.)"
+        AI[AI Assistant]
+    end
+
+    subgraph "MCP Client"
+        MCP[MCP Client]
+    end
+
+    subgraph "JollyJet Application"
+        subgraph "MCP Server Process"
+            MCPS[MCP Server<br/>src/mcp/index.ts]
+        end
+
+        subgraph "Main Application"
+            API[Express API<br/>src/app.ts]
+            DI[DI Container<br/>src/config/di-container.ts]
+        end
+
+        subgraph "Application Layer"
+            UC[Use Cases<br/>src/usecases/]
+        end
+
+        subgraph "Domain Layer"
+            SVC[Services<br/>src/domain/services/]
+            ENT[Entities<br/>src/domain/entities/]
+        end
+
+        subgraph "Infrastructure Layer"
+            REPO[Repositories<br/>src/infrastructure/repositories/]
+            MONGO[(MongoDB)]
+            REDIS[(Redis)]
+        end
+
+        subgraph "Interface Layer"
+            CTRL[Controllers<br/>src/interface/controllers/]
+            DTO[DTOs<br/>src/interface/dtos/]
+            RT[Routes<br/>src/interface/routes/]
+        end
+    end
+
+    AI --> MCP
+    MCP --> MCPS
+    MCPS --> DI
+    DI --> UC
+    DI --> SVC
+    UC --> SVC
+    SVC --> REPO
+    REPO --> MONGO
+    REPO --> REDIS
+
+    MONGO --> REPO
+    REDIS --> REPO
+    REPO --> SVC
+    SVC --> UC
+    UC --> ENT
+    ENT --> DTO
+    DTO --> MCPS
+    MCPS --> MCP
+    MCP --> AI
+
+    API --> DI
+    DI --> CTRL
+    CTRL --> RT
+```
+
+#### MCP Tool Execution Flow with Caching
+
+```mermaid
+sequenceDiagram
+    participant AI as AI Assistant
+    participant MCP as MCP Client
+    participant MCPS as MCP Server
+    participant UC as Use Case
+    participant SVC as Service
+    participant REPO as Repository
+    participant REDIS as Redis Cache
+    participant MONGO as MongoDB
+
+    AI->>MCP: Call get_product tool
+    MCP->>MCPS: JSON-RPC get_product(id)
+    MCPS->>UC: execute({id})
+    UC->>SVC: getProduct(id)
+    SVC->>REPO: findById(id)
+
+    alt Cache Hit
+        REPO->>REDIS: GET product:id
+        REDIS-->>REPO: Cached data
+        REPO-->>SVC: Return cached product
+    else Cache Miss
+        REPO->>MONGO: findOne({_id: id})
+        MONGO-->>REPO: Product document
+        REPO->>REDIS: SET product:id (TTL)
+        REPO-->>SVC: Return product
+    end
+
+    SVC-->>UC: Product entity
+    UC-->>MCPS: Domain entity
+    MCPS-->>MCP: JSON response
+    MCP-->>AI: Formatted result
+```
+
+#### MCP Resource Access Flow
+
+```mermaid
+sequenceDiagram
+    participant AI as AI Assistant
+    participant MCP as MCP Client
+    participant MCPS as MCP Server
+    participant REPO as Repository
+    participant REDIS as Redis Cache
+    participant MONGO as MongoDB
+
+    AI->>MCP: Access products://catalog resource
+    MCP->>MCPS: Read resource products://catalog
+    MCPS->>REPO: findAll({}, 0, 100)
+
+    alt Cache Hit
+        REPO->>REDIS: GET products:list:*
+        REDIS-->>REPO: Cached catalog
+    else Cache Miss
+        REPO->>MONGO: find({}).limit(100)
+        MONGO-->>REPO: Product documents
+        REPO->>REDIS: SET products:list:* (TTL)
+    end
+
+    REPO-->>MCPS: Product catalog
+    MCPS-->>MCP: Resource content
+    MCP-->>AI: Catalog data
+```
+
 ## Success Criteria
 
 - [ ] MCP SDK installed and verified
