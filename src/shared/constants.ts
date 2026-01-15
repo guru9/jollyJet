@@ -64,6 +64,8 @@ export const DI_TOKENS = {
   REDIS_SERVICE: 'RedisService', // Injection token for Redis client
   SESSION_SERVICE: 'SessionService', // Injection token for session service
   RATE_LIMIT_SERVICE: 'RateLimitingService', // Injection token for rate limiting service
+  CORS_SECURITY_SERVICE: 'CorsSecurityService', // Injection token for CORS security service
+  HEALTH_CONTROLLER: 'HealthController', // Injection token for health controller
 
   // Future tokens can be added here for other modules
 } as const;
@@ -163,50 +165,60 @@ export const RATE_LIMIT_MESSAGES = {
 
 /**
  * ============================================
- * 4) CORS CONFIGURATION
+ * 4) CORS SECURITY CONFIGURATION
  * ============================================
  *
- * Comprehensive CORS configuration constants for the JollyJet e-commerce platform.
- * This section defines CORS-related constants including error messages, validation messages,
- * and logging messages for consistent CORS policy implementation across the application.
+ * Essential security configuration constants for JollyJet API.
+ * This section defines security-related constants for essential CORS protection,
+ * IP validation, geographic blocking, and security event logging.
  *
- * The configuration supports environment-specific CORS policies with proper security controls
- * and comprehensive logging for monitoring and debugging.
+ * The configuration follows essential security scope (not enterprise-grade)
+ * and integrates seamlessly with existing CORS configuration and logging infrastructure.
+ *
+ * Key Features:
+ * - Essential security headers for common attack prevention
+ * - IP-based validation with whitelist/blacklist support
+ * - Geographic blocking capabilities for country-based access control
+ * - Security event logging for monitoring and debugging
+ * - Clean integration with existing project patterns
  */
 
 /**
- * CORS-specific error messages for consistent error responses.
+ * Essential security headers for CORS protection
+ * These headers prevent common web vulnerabilities and attacks
  */
-export const CORS_ERROR_MESSAGES = {
-  CONFIG_NOT_FOUND: 'CORS configuration not found for environment: {env}',
-  ORIGIN_NOT_ALLOWED: "Origin '{origin}' not allowed by CORS policy",
-  INVALID_ORIGIN_URL: 'Invalid origin URL: {origin}',
-  INVALID_HTTP_METHOD: 'Invalid HTTP method: {method}',
-  CONFIG_VALIDATION_FAILED: 'CORS configuration validation failed: {error}',
+export const CORS_SECURITY = {
+  HEADERS: {
+    X_FRAME_OPTIONS: 'DENY',
+    X_CONTENT_TYPE_OPTIONS: 'nosniff',
+    X_XSS_PROTECTION: '1; mode=block',
+    REFERRER_POLICY: 'strict-origin-when-cross-origin',
+  },
+  MESSAGES: {
+    IP_BLOCKED: 'Access from your IP address is restricted',
+    GEO_BLOCKED: 'Access from your country is not permitted',
+    SECURITY_VALIDATION_FAILED: 'Security validation failed',
+  },
+  GEO_CONFIG: {
+    DATABASE_PATH: './data/GeoLite2-Country.mmdb',
+    ALLOWED_COUNTRIES: [],
+    BLOCKED_COUNTRIES: [],
+    DEFAULT_ACTION: 'allow' as const,
+  },
 };
 
 /**
- * CORS violation and security logging messages with placeholders.
- * These messages provide structured logging for CORS policy enforcement and monitoring.
+ * CORS logging messages with placeholders for structured logging.
  *
- * Placeholders:
- * - {origin}: The request origin that triggered the violation
- * - {env}: Current environment (development/staging/production)
- * - {method}: HTTP method used in the request
- * - {error}: Specific error details
+ * Placeholders: {origin}, {env}, {method}, {error}
  */
 export const CORS_LOG_MESSAGES = {
-  // Violation logging
   VIOLATION_DETECTED: 'CORS violation detected: {origin} not allowed (Environment: {env})',
   ORIGIN_BLOCKED: 'Origin blocked by CORS policy: {origin}',
   METHOD_NOT_ALLOWED: 'HTTP method not allowed by CORS: {method}',
-
-  // Configuration and validation
   CONFIG_VALIDATION_SUCCESS: 'CORS configuration validated successfully for environment: {env}',
   CONFIG_VALIDATION_ERROR: 'CORS configuration validation error: {error}',
   ORIGIN_VALIDATION_DISABLED: 'CORS origin validation disabled for development environment',
-
-  // Security monitoring
   NON_CORS_REQUEST_BLOCKED: 'Non-CORS request blocked in production environment',
   INVALID_ORIGIN_FORMAT: 'Invalid origin format detected: {origin}',
   PROTOCOL_VIOLATION: 'Non-HTTP protocol detected in origin: {origin}',
