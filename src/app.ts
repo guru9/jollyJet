@@ -22,11 +22,14 @@ import 'reflect-metadata'; // Required for tsyringe to work with decorators and 
 
 import { initializeDIContainer, swaggerSpec } from '@/config';
 
-import { errorHandler, requestLogger } from '@/interface/middlewares';
+import { IRedisService } from '@/domain/interfaces/redis/IRedisService';
+import { corsSecurityHandler, errorHandler, requestLogger } from '@/interface/middlewares';
 import { registerRoutes } from '@/interface/routes';
-import cors from 'cors';
+import { DI_TOKENS } from '@/shared/constants';
 import express from 'express';
+import mongoose from 'mongoose';
 import swaggerUi from 'swagger-ui-express';
+import { container } from 'tsyringe';
 
 /**
  * Application Factory Function
@@ -58,7 +61,14 @@ export const jollyJetApp = async (): Promise<express.Application> => {
   // Configure the request processing pipeline in the correct order
 
   // CORS middleware - Enable cross-origin resource sharing for web clients
-  app.use(cors());
+  // Essential security middleware includes basic CORS functionality
+  app.use(
+    corsSecurityHandler({
+      geographicBlocking: false, // Can be enabled via environment variable
+      allowedCountries: [],
+      blockedCountries: ['CN', 'RU', 'KP', 'IR'],
+    })
+  );
 
   // Body parsing middleware - Parse JSON and URL-encoded request bodies
   app.use(express.json()); // Parse application/json
@@ -85,11 +95,13 @@ export const jollyJetApp = async (): Promise<express.Application> => {
   // ============================================================================
   // Application health check endpoint for load balancers and monitoring systems
   // Returns server status and timestamp for uptime verification
+
   /**
    * @openapi
    * /health:
    *   get:
-   *     summary: Health check endpoint
+   *     summary: Enhanced health check endpoint
+   *     description: Returns the health status of the application including database and cache connectivity.
    *     tags: [Health]
    *     responses:
    *       200:
@@ -104,10 +116,43 @@ export const jollyJetApp = async (): Promise<express.Application> => {
    *                   example: ok
    *                 timestamp:
    *                   type: string
-   *                   format: date-time
+   *                 uptime:
+   *                   type: number
+   *                 services:
+   *                   type: object
+   *                   properties:
+   *                     database:
+   *                       type: string
+   *                       example: connected
+   *                     cache:
+   *                       type: string
+   *                       example: connected
    */
-  app.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  app.get('/health', async (req, res) => {
+    // Check MongoDB status
+    const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+
+    // Check Redis status
+    let redisStatus = 'disconnected';
+    try {
+      const redisService = container.resolve<IRedisService>(DI_TOKENS.REDIS_SERVICE);
+      redisStatus = redisService.isConnected() ? 'connected' : 'disconnected';
+    } catch {
+      redisStatus = 'error';
+    }
+
+    const isHealthy = dbStatus === 'connected' && redisStatus === 'connected';
+
+    res.status(isHealthy ? 200 : 503).json({
+      status: isHealthy ? 'ok' : 'degraded',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      services: {
+        database: dbStatus,
+        cache: redisStatus,
+        server: 'online',
+      },
+    });
   });
 
   // ============================================================================
