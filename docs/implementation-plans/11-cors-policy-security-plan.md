@@ -152,53 +152,22 @@ sequenceDiagram
 │   ├── 🛡️ corsSecurityHandler.ts ✅ PRIMARY - Security (Step 2.1)
 │   │   └── 🔹 Essential security headers & IP validation
 │   ├── 📊 corsLoggerHandler.ts ✅ PRIMARY - Logging (Step 2.2)
-│   │   └── 🔹 CORS request/response monitoring
-│   └── 📄 index.ts ✅ IMPLEMENTED (Step 2.1)
+│   │   └── 🔹 CORS request/response monitoring with environment-specific logging
+│   └── 📄 index.ts ✅ IMPLEMENTED (Step 2.3)
 │       └── 🔹 Updated exports for CORS middlewares
 │
 ├── 🔧 shared/ (Common Utilities)
 │   ├── 📄 constants.ts ✅ IMPLEMENTED (Step 1.1)
-│   │   └── 🔹 CORS_SECURITY section added
+│   │   └── 🔹 CORS_SECURITY & CORS_LOGGER sections added
 │   └── 📄 index.ts ✅ IMPLEMENTED (Step 1.1)
 │       └── 🔹 Logger export updated
 │
 ├── 🚀 app.ts ✅ IMPLEMENTED (Step 2.3)
-│   └── 🔹 CORS middleware pipeline integration
+│   └── 🔹 CORS middleware pipeline integration (Security + Logger)
 │
 └── ⚙️ config/
     └── 📄 di-container.ts ✅ IMPLEMENTED (Step 2.2)
         └── 🔹 Security service registration
-
-🧪 tests/ (Test Suite)
-├── 📋 unit/ (Unit Tests)
-│   ├── 📄 corsSecurity.test.ts ✅ IMPLEMENTED (Step 3.1)
-│   │   └── 🔹 Security tests (14 tests, 71% passing)
-│   └── 📄 corsLogger.test.ts ✅ IMPLEMENTED (Step 3.1)
-│       └── 🔹 Logger tests (7 tests, 100% passing)
-│
-└── 🔗 integration/ (Integration Tests)
-    └── 📄 corsSecurity.integration.test.ts ✅ IMPLEMENTED (Step 3.2)
-        └── 🔹 End-to-end tests (12 tests, 92% passing)
-
-📚 docs/ (Documentation)
-├── 📋 implementation-plans/
-│   └── 📄 11-cors-policy-security-plan.md ✅ CURRENT (Updated)
-│       └── 🔹 Complete implementation plan & status
-│
-├── 🧪 tests/
-│   ├── 📂 cors/
-│   │   └── 📄 cors-test-analysis.md ✅ COMPLETE (Step 3.2)
-│   │       └── 🔹 Comprehensive test analysis
-│   └── 📄 test-coverage-walkthrough.md ✅ UPDATED (Step 3.2)
-│       └── 🔹 Test coverage details
-│
-└── 🔬 analysis/
-    └── 📂 cors/ ✅ UPDATED (Step 3.2)
-        └── 🔹 Security analysis documentation
-
-💾 data/ (Data Files - Optional)
-└── 🗃️ GeoLite2-Country.mmdb ⚠️ OPTIONAL (Step 8)
-    └── 🔹 MaxMind database for geographic blocking
 ```
 
 **📊 Implementation Status Summary:**
@@ -218,13 +187,15 @@ corsSecurityHandler.ts  →  ICorsSecurityService.ts
 corsSecurityHandler.ts  →  CorsSecurityService.ts
 corsSecurityHandler.ts  →  constants.ts (CORS_SECURITY)
 
-corsLoggerHandler.ts    →  Logger (shared)
-corsLoggerHandler.ts    →  constants.ts (CORS_LOGGING)
+corsLoggerHandler.ts    →  Logger (shared via DI_TOKENS.LOGGER)
+corsLoggerHandler.ts    →  constants.ts (CORS_LOGGER)
+corsLoggerHandler.ts    →  container (tsyringe)
 
 app.ts                  →  corsSecurityHandler.ts
 app.ts                  →  corsLoggerHandler.ts
 
 di-container.ts         →  CorsSecurityService.ts
+constants.ts            →  CORS_LOGGER configuration
 ```
 
 ---
@@ -233,7 +204,7 @@ di-container.ts         →  CorsSecurityService.ts
 
 ### Phase 1: Foundation (Days 1-2)
 
-#### 1.1 Security Constants (no dependencies)
+#### 1.1 Security & Logger Constants (no dependencies)
 
 **File**: `src/shared/constants.ts` (additions)
 
@@ -261,6 +232,51 @@ export const CORS_SECURITY = {
     ALLOWED_COUNTRIES: [],
     BLOCKED_COUNTRIES: [],
     DEFAULT_ACTION: 'allow',
+  },
+};
+
+// 7) CORS LOGGER CONFIGURATION
+export const CORS_LOGGER = {
+  LOG_LEVELS: {
+    ERROR: 'error',
+    WARN: 'warn',
+    INFO: 'info',
+    DEBUG: 'debug',
+  },
+  DEFAULT_LOG_LEVEL: 'warn',
+  LOG_PREFIXES: {
+    CORS: '[CORS]',
+    SECURITY: '[SECURITY]',
+    VIOLATION: '[VIOLATION]',
+  },
+  MESSAGE_TEMPLATES: {
+    REQUEST_BLOCKED: 'Request blocked - Origin: {origin}, Method: {method}, IP: {ip}',
+    ORIGIN_ALLOWED: 'Request allowed - Origin: {origin}, Method: {method}',
+    SECURITY_VIOLATION: 'Security violation detected - Origin: {origin}, Reason: {reason}',
+    RATE_LIMIT_EXCEEDED: 'Rate limit exceeded - Origin: {origin}, IP: {ip}',
+    INVALID_ORIGIN: 'Invalid origin format - Origin: {origin}',
+    MISSING_HEADERS: 'Missing required headers - Headers: {headers}',
+  },
+  LOG_RETENTION: {
+    MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
+    MAX_FILES: 5,
+    RETENTION_DAYS: 30,
+  },
+  PERFORMANCE: {
+    SLOW_REQUEST_THRESHOLD: 1000, // milliseconds
+    ENABLE_PERFORMANCE_LOGGING: true,
+    SAMPLE_RATE: 0.1, // 10% sampling for performance logs
+  },
+  SECURITY_THRESHOLDS: {
+    VIOLATIONS_PER_MINUTE: 10,
+    BLOCKED_REQUESTS_PER_HOUR: 100,
+    SUSPICIOUS_ORIGINS_THRESHOLD: 5,
+  },
+  LOG_FORMATTING: {
+    INCLUDE_TIMESTAMP: true,
+    INCLUDE_USER_AGENT: true,
+    INCLUDE_REQUEST_ID: true,
+    JSON_FORMAT: true,
   },
 };
 ```
@@ -444,7 +460,7 @@ export class CorsSecurityService implements ICorsSecurityService {
 
 #### 2.1 Main Security Middleware
 
-**File**: `src/interface/middlewares/corsSecurity.ts` (PRIMARY FILE)
+**File**: `src/interface/middlewares/corsSecurityHandler.ts` (PRIMARY FILE)
 
 ```typescript
 import { injectable, inject } from 'tsyringe';
@@ -528,7 +544,132 @@ export const corsSecurityHandler = (options?: CorsSecurityOptions) => {
 };
 ```
 
-#### 2.2 Dependency Injection Setup (dependencies: step 1.3)
+#### 2.2 CORS Logger Handler Implementation
+
+**File**: `src/interface/middlewares/corsLoggerHandler.ts` (PRIMARY FILE)
+
+```typescript
+import { DI_TOKENS } from '@/shared/constants';
+import { Logger } from '@/shared/logger';
+import { NextFunction, Request, Response } from 'express';
+import { container } from 'tsyringe';
+import { CORS_LOGGER } from '@/shared/constants';
+
+/**
+ * CORS Logger Options
+ */
+export interface CorsLoggerOptions {
+  logSuccess?: boolean;
+  logViolations?: boolean;
+  logPreflight?: boolean;
+  detailed?: boolean;
+  logLevels?: {
+    success?: string;
+    violation?: string;
+    preflight?: string;
+  };
+}
+
+/**
+ * Helper to create a CORS logging middleware for a specific environment/config
+ */
+const createCorsLoggerMiddleware = (
+  env: 'development' | 'production' | 'test',
+  options: CorsLoggerOptions = {}
+) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const logger = container.resolve<Logger>(DI_TOKENS.LOGGER);
+    const origin = req.headers.origin;
+    const clientIP = req.ip || req.socket.remoteAddress || 'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+
+    // Only log if it's a cross-origin request
+    if (origin) {
+      const logData = {
+        type: 'CORS_REQUEST',
+        origin,
+        method: req.method,
+        path: req.path,
+        ip: clientIP,
+        userAgent,
+        timestamp: new Date().toISOString(),
+        env,
+      };
+
+      if (env === 'development') {
+        logger.debug(
+          `${CORS_LOGGER.LOG_PREFIXES.CORS} Request from Origin: ${origin} | Method: ${req.method} | Path: ${req.path} | IP: ${clientIP}`
+        );
+      } else {
+        // Essential logging for production/test
+        logger.info(logData, 'Inbound cross-origin request detected');
+      }
+
+      // Enhanced logging for violations if enabled
+      if (options.logViolations && origin) {
+        // Log suspicious patterns
+        if (origin.includes('localhost') && env === 'production') {
+          logger.warn(
+            {
+              ...logData,
+              type: 'CORS_VIOLATION',
+              reason: 'Localhost origin in production',
+            },
+            'CORS Security Violation Detected'
+          );
+        }
+      }
+
+      // Performance logging
+      if (CORS_LOGGER.PERFORMANCE.ENABLE_PERFORMANCE_LOGGING) {
+        const startTime = Date.now();
+        res.on('finish', () => {
+          const duration = Date.now() - startTime;
+          if (duration > CORS_LOGGER.PERFORMANCE.SLOW_REQUEST_THRESHOLD) {
+            logger.warn(
+              {
+                ...logData,
+                duration,
+                statusCode: res.statusCode,
+              },
+              'Slow CORS request detected'
+            );
+          }
+        });
+      }
+    }
+
+    next();
+  };
+};
+
+/**
+ * CORS Logging Middleware Factory
+ *
+ * Provides specialized logging for CORS requests and potential security violations.
+ */
+export const corsLogger = (options: CorsLoggerOptions = {}) => {
+  // Use environment to determine default behavior
+  const env = (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'development';
+  return createCorsLoggerMiddleware(env, options);
+};
+
+/**
+ * Specific factory for development logging
+ */
+export const corsLoggerDev = (options: CorsLoggerOptions = {}) => {
+  return createCorsLoggerMiddleware('development', { ...options, detailed: true });
+};
+
+/**
+ * Specific factory for production logging
+ */
+export const corsLoggerProd = (options: CorsLoggerOptions = {}) => {
+  return createCorsLoggerMiddleware('production', { ...options, detailed: false });
+};
+```
+
+#### 2.3 Dependency Injection Setup (dependencies: step 1.3, 2.1, 2.2)
 
 **File**: `src/config/di-container.ts` (updates)
 
@@ -546,6 +687,45 @@ container.register<ICorsSecurityService>(DI_TOKENS.CORS_SECURITY_SERVICE, {
     return dependencyContainer.resolve(CorsSecurityService);
   },
 });
+
+// Note: CORS Logger uses existing Logger DI token (DI_TOKENS.LOGGER)
+// No additional DI registration needed for CORS logger
+```
+
+#### 2.4 App Integration (dependencies: step 2.1, 2.2, 2.3)
+
+**File**: `src/app.ts` (updates)
+
+```typescript
+import { corsSecurityHandler } from '@/interface/middlewares/corsSecurityHandler';
+import { corsLoggerProd, corsLoggerDev } from '@/interface/middlewares/corsLoggerHandler';
+
+// Add CORS logger first (to capture all requests)
+if (process.env.NODE_ENV === 'development') {
+  app.use(
+    corsLoggerDev({
+      logSuccess: true,
+      logViolations: true,
+      detailed: true,
+    })
+  );
+} else {
+  app.use(
+    corsLoggerProd({
+      logSuccess: false,
+      logViolations: true,
+      detailed: false,
+    })
+  );
+}
+
+// Add security middleware after logger
+app.use(
+  corsSecurityHandler({
+    geographicBlocking: process.env.GEO_BLOCKING_ENABLED === 'true',
+    blockedCountries: process.env.GEO_BLOCKED_COUNTRIES?.split(',') || ['CN', 'RU', 'KP'],
+  })
+);
 ```
 
 #### 2.3 App Integration (dependencies: step 2.1, 2.2)
@@ -726,10 +906,11 @@ describe('CORS Security Integration', () => {
 
 ### Phase 2: Core Middleware Implementation (Days 3-4) ✅
 
-- ✅ **Security Middleware**: Created `corsSecurityHandler` in `src/interface/middlewares/corsSecurity.ts`
-- ✅ **CORS Logger**: Created `corsLogger` in `src/interface/middlewares/corsLogger.ts`
-- ✅ **DI Integration**: Registered services in dependency injection container
-- ✅ **App Pipeline**: Integrated both middlewares into Express application
+- ✅ **Security Middleware**: Created `corsSecurityHandler` in `src/interface/middlewares/corsSecurityHandler.ts`
+- ✅ **CORS Logger Handler**: Created comprehensive `corsLoggerHandler` in `src/interface/middlewares/corsLoggerHandler.ts` with environment-specific logging
+- ✅ **CORS Logger Configuration**: Added `CORS_LOGGER` constants to `src/shared/constants.ts` with comprehensive logging configuration
+- ✅ **DI Integration**: Registered security service in dependency injection container (logger uses existing DI token)
+- ✅ **App Pipeline**: Integrated both security and logger middlewares into Express application with proper ordering
 
 ### Phase 3: Testing & Validation (Days 5-6) ✅
 
