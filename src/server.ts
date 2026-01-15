@@ -14,6 +14,7 @@
  * - Dependency injection initialization via reflect-metadata
  */
 
+import 'module-alias/register';
 import 'reflect-metadata'; // Required for tsyringe to work with decorators and reflection metadata
 
 import { jollyJetApp } from '@/app';

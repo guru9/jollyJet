@@ -44,6 +44,16 @@ export interface RouteModule {
  */
 export const routeModuleFactories: RouteModule[] = [
   {
+    name: 'Health Check Routes',
+    path: '/api/health',
+    routerFactory: async () => {
+      const { default: createHealthRoutes } = await import('./health/healthRoutes');
+      return createHealthRoutes();
+    },
+
+    middleware: [], // Health endpoints should be publicly accessible
+  },
+  {
     name: 'Product Routes',
     path: '/api/products',
     routerFactory: async () => {

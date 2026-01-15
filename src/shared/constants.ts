@@ -225,6 +225,87 @@ export const CORS_LOG_MESSAGES = {
 };
 
 /**
+ * CORS Logger configuration constants for consistent logging across the application.
+ * These constants define log levels, message formats, and operational parameters
+ * for the CORS logging system to track security events and violations.
+ */
+export const CORS_LOGGER = {
+  /**
+   * Log levels for CORS logging system
+   */
+  LOG_LEVELS: {
+    ERROR: 'error',
+    WARN: 'warn',
+    INFO: 'info',
+    DEBUG: 'debug',
+  },
+
+  /**
+   * Default log level for CORS logger
+   */
+  DEFAULT_LOG_LEVEL: 'warn',
+
+  /**
+   * Log prefixes for different types of CORS events
+   */
+  LOG_PREFIXES: {
+    CORS: '[CORS]',
+    SECURITY: '[SECURITY]',
+    VIOLATION: '[VIOLATION]',
+  },
+
+  /**
+   * Message templates for structured CORS logging
+   * Placeholders: {origin}, {method}, {env}, {timestamp}, {ip}, {userAgent}
+   */
+  MESSAGE_TEMPLATES: {
+    REQUEST_BLOCKED: 'Request blocked - Origin: {origin}, Method: {method}, IP: {ip}',
+    ORIGIN_ALLOWED: 'Request allowed - Origin: {origin}, Method: {method}',
+    SECURITY_VIOLATION: 'Security violation detected - Origin: {origin}, Reason: {reason}',
+    RATE_LIMIT_EXCEEDED: 'Rate limit exceeded - Origin: {origin}, IP: {ip}',
+    INVALID_ORIGIN: 'Invalid origin format - Origin: {origin}',
+    MISSING_HEADERS: 'Missing required headers - Headers: {headers}',
+  },
+
+  /**
+   * Log retention and rotation settings
+   */
+  LOG_RETENTION: {
+    MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
+    MAX_FILES: 5,
+    RETENTION_DAYS: 30,
+  },
+
+  /**
+   * Performance monitoring settings
+   */
+  PERFORMANCE: {
+    SLOW_REQUEST_THRESHOLD: 1000, // milliseconds
+    ENABLE_PERFORMANCE_LOGGING: true,
+    SAMPLE_RATE: 0.1, // 10% sampling for performance logs
+  },
+
+  /**
+   * Security event thresholds for alerting
+   */
+  SECURITY_THRESHOLDS: {
+    VIOLATIONS_PER_MINUTE: 10,
+    BLOCKED_REQUESTS_PER_HOUR: 100,
+    SUSPICIOUS_ORIGINS_THRESHOLD: 5,
+  },
+
+  /**
+   * Log formatting options
+   */
+  LOG_FORMATTING: {
+    INCLUDE_TIMESTAMP: true,
+    INCLUDE_USER_AGENT: true,
+    INCLUDE_REQUEST_ID: true,
+    JSON_FORMAT: true,
+  },
+};
+
+/**
  * ============================================
  * 5) REDIS CONFIGURATION
  * ============================================

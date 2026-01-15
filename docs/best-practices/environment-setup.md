@@ -9,7 +9,7 @@
 
 ### **Step 1: Understand Project Structure**
 
-#### **Core Directory Layout:**
+#### **1. Core Directory Layout:**
 
 ```
 jollyJet/
@@ -73,7 +73,7 @@ jollyJet/
 └── 📄 README.md           # Project documentation
 ```
 
-#### **Architecture Layers:**
+#### **2. Architecture Layers:**
 
 ```
 ┌─────────────────────────────────────────┐
@@ -89,7 +89,7 @@ jollyJet/
 
 ### **Step 2: Key Configuration Files**
 
-#### **Essential Files:**
+#### **3. Essential Files:**
 
 - `src/app.ts` - Express application setup
 - `src/config/di-container.ts` - Dependency injection
@@ -97,7 +97,7 @@ jollyJet/
 - `src/shared/logger.ts` - Logging configuration
 - `tests/setup.ts` - Test environment setup
 
-#### **Configuration Files:**
+#### **4. Configuration Files:**
 
 - `package.json` - Dependencies and npm scripts
 - `tsconfig.json` - TypeScript compiler options
@@ -106,7 +106,7 @@ jollyJet/
 
 ### **Step 3: Development Entry Points**
 
-#### **Start Development:**
+#### **5. Start Development:**
 
 ```bash
 # 1. Navigate to project root
@@ -123,7 +123,7 @@ cp .env.example .env
 npm run dev
 ```
 
-#### **Run Tests:**
+#### **6. Run Tests:**
 
 ```bash
 # All tests
@@ -138,14 +138,14 @@ npm run test:watch
 
 ### **Step 4: Understanding the Codebase**
 
-#### **Clean Architecture Pattern:**
+#### **7. Clean Architecture Pattern:**
 
 - **Domain Layer**: Core business logic (entities, interfaces)
 - **Use Cases Layer**: Application-specific business rules
 - **Interface Layer**: External interfaces (controllers, routes)
 - **Infrastructure Layer**: External concerns (database, APIs)
 
-#### **Key Concepts:**
+#### **8. Key Concepts:**
 
 - **Dependency Injection**: Uses `tsyringe` for DI
 - **TypeScript**: Strict typing throughout
@@ -449,6 +449,8 @@ curl http://localhost:3000/api/products
     "ms-vscode.vscode-typescript-next",
     "esbenp.prettier-vscode",
     "ms-vscode.vscode-eslint",
+    "ms-vscode.js-debug",
+    "ms-vscode.js-debug-terminal",
     "bradlc.vscode-tailwindcss",
     "ms-vscode.vscode-json",
     "mongodb.mongodb-vscode",
@@ -651,8 +653,12 @@ volumes:
     "dev": "nodemon src/app.ts",
     "build": "tsc",
     "start": "node dist/app.js",
+    "debug": "node --inspect-brk src/app.ts",
+    "debug:dev": "nodemon --inspect-brk src/app.ts",
+    "debug:legacy": "node --debug src/app.ts",
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
     "test:coverage": "jest --coverage",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
@@ -663,6 +669,338 @@ volumes:
     "db:reset": "ts-node scripts/reset.ts"
   }
 }
+```
+
+---
+
+## 🐛 Debugging Setup - ✅ IMPLEMENTED
+
+### **Step 1: Node.js Debugging**
+
+#### **Debugging with npm scripts:**
+
+```bash
+# Start debugging with Node Inspector
+npm run debug
+
+# Debug with auto-reload (development mode)
+npm run debug:dev
+
+# Debug tests
+npm run test:debug
+```
+
+#### **Manual Node Inspector:**
+
+```bash
+# Start with Node Inspector
+node --inspect-brk src/app.ts
+
+# Start with specific port
+node --inspect=0.0.0.0:9229 src/app.ts
+
+# Debug with legacy protocol
+node --debug src/app.ts
+```
+
+#### **What happens when you run debug:**
+
+```bash
+# npm run debug executes:
+node --inspect-brk src/app.ts
+
+# Output:
+# Debugger listening on ws://127.0.0.1:9229/....
+# For help, see: https://nodejs.org/en/docs/inspector
+# (Process will pause at the first line)
+```
+
+### **Step 2: VS Code Debugging Setup**
+
+#### **Launch Configuration (.vscode/launch.json):**
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "🚀 Debug App (Start)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/app.ts",
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "🔄 Debug App (Attach)",
+      "type": "node",
+      "request": "attach",
+      "port": 9229,
+      "localRoot": "${workspaceFolder}",
+      "remoteRoot": "${workspaceFolder}",
+      "restart": true,
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "🧪 Debug Tests",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/.bin/jest",
+      "args": ["--runInBand", "--no-cache"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "env": {
+        "NODE_ENV": "test"
+      },
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "🔍 Debug Current Test File",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/.bin/jest",
+      "args": ["--runInBand", "--no-cache", "${fileBasenameNoExtension}"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "env": {
+        "NODE_ENV": "test"
+      },
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}
+```
+
+#### **Tasks Configuration (.vscode/tasks.json):**
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "typescript",
+      "tsconfig": "tsconfig.json",
+      "option": "watch",
+      "problemMatcher": ["$tsc-watch"],
+      "group": "build",
+      "label": "tsc: watch - tsconfig.json"
+    },
+    {
+      "type": "typescript",
+      "tsconfig": "tsconfig.json",
+      "problemMatcher": ["$tsc"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "label": "tsc: build - tsconfig.json"
+    }
+  ]
+}
+```
+
+### **Step 3: VS Code Extensions for Debugging**
+
+#### **Required Extensions:**
+
+```json
+{
+  "recommendations": [
+    "ms-vscode.vscode-typescript-next",
+    "esbenp.prettier-vscode",
+    "ms-vscode.vscode-eslint",
+    "ms-vscode.js-debug",
+    "ms-vscode.js-debug-terminal",
+    "ms-vscode.vscode-json",
+    "humao.rest-client"
+  ]
+}
+```
+
+#### **VS Code Settings for Debugging:**
+
+```json
+{
+  "debug.allowBreakpointsEverywhere": true,
+  "debug.inlineBreakpointSidebar": true,
+  "debug.console.closeOnEnd": false,
+  "debug.internalConsoleOptions": "openOnSessionStart",
+  "debug.node.autoAttach": "on",
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always"
+}
+```
+
+### **Step 4: Debugging Workflow**
+
+#### **Method 1: Launch Debug (Direct Start):**
+
+1. Open VS Code
+2. Go to Debug panel (Ctrl+Shift+D)
+3. Select "🚀 Debug App (Start)" from dropdown
+4. Click green play button or press F5
+5. Application starts in debug mode
+
+#### **Method 2: Attach Debug (Already Running):**
+
+1. Start application in debug mode:
+   ```bash
+   npm run debug
+   ```
+2. In VS Code, select "🔄 Debug App (Attach)"
+3. Click play button to attach to running process
+
+#### **Method 3: Debug Tests:**
+
+1. Open a test file
+2. Set breakpoints in test code
+3. Select "🧪 Debug Tests" or "🔍 Debug Current Test File"
+4. Press F5 to start debugging tests
+
+### **Step 5: Debugging Techniques**
+
+#### **Setting Breakpoints:**
+
+```typescript
+// Click in the gutter or press F9
+async function getProduct(id: string) {
+  const cacheKey = `product:${id}`; // Breakpoint here
+
+  // Check cache first
+  const cached = await this.cacheService.get(cacheKey);
+  if (cached) {
+    return JSON.parse(cached); // Another breakpoint
+  }
+
+  // Load from database
+  const product = await Product.findById(id); // Breakpoint here
+  return product;
+}
+```
+
+#### **Conditional Breakpoints:**
+
+```typescript
+// Right-click breakpoint → Edit Breakpoint → Add condition
+if (id === 'special-id') {
+  // Break only for this specific ID
+}
+```
+
+#### **Watch Expressions:**
+
+```typescript
+// Add to watch panel in VS Code
+product._id;
+cacheKey;
+process.env.NODE_ENV;
+typeof product;
+```
+
+#### **Debug Console Usage:**
+
+```typescript
+// In debug console, you can execute:
+product.toJSON();
+await this.cacheService.get(cacheKey);
+process.memoryUsage();
+console.log(product);
+```
+
+### **Step 6: Debugging Different Scenarios**
+
+#### **Debugging API Requests:**
+
+```typescript
+// In controller method
+async getProduct(req: Request, res: Response) {
+  try {
+    const { id } = req.params; // Set breakpoint here
+    console.log('Request params:', req.params);
+
+    const product = await this.productService.getProduct(id); // Set breakpoint here
+    console.log('Product found:', product);
+
+    res.json(product);
+  } catch (error) {
+    console.error('Error:', error); // Set breakpoint here
+    res.status(500).json({ error: error.message });
+  }
+}
+```
+
+#### **Debugging Database Issues:**
+
+```typescript
+// Enable mongoose debugging in development
+if (process.env.NODE_ENV === 'development') {
+  mongoose.set('debug', true);
+}
+
+// In service method
+async createProduct(data: ProductData) {
+  // Set breakpoint to check data structure
+  console.log('Creating product with data:', data);
+
+  const product = new Product(data); // Breakpoint here
+  console.log('Product instance:', product);
+
+  const saved = await product.save(); // Breakpoint here
+  console.log('Saved product:', saved);
+
+  return saved;
+}
+```
+
+---
+
+## 🐛 Troubleshooting Debug Issues
+
+### **Common Debugging Problems:**
+
+#### **Breakpoints Not Hitting:**
+
+```bash
+# Check if TypeScript source maps are enabled
+# In tsconfig.json:
+{
+  "compilerOptions": {
+    "sourceMap": true,
+    "inlineSourceMap": false
+  }
+}
+
+# Restart VS Code
+# Clean build folder
+rm -rf dist/
+npm run build
+```
+
+#### **Debug Console Not Working:**
+
+```json
+// In .vscode/launch.json, ensure:
+{
+  "console": "integratedTerminal",
+  "internalConsoleOptions": "neverOpen"
+}
+```
+
+#### **TypeScript Not Found in Debug:**
+
+```bash
+# Install ts-node locally
+npm install --save-dev ts-node
+
+# Ensure runtimeArgs include ts-node
+"runtimeArgs": ["-r", "ts-node/register"]
 ```
 
 ---
@@ -690,6 +1028,8 @@ volumes:
 - [ ] Linting and formatting working
 - [ ] Tests running successfully
 - [ ] Build process working
+- [ ] Debugging configuration set up
+- [ ] Breakpoints can be set and hit
 
 ### **Final Verification:**
 

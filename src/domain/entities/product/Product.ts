@@ -60,18 +60,21 @@ export class Product {
   }
 }
 
-/*
-*Example usage:
-
-const productProps = {
-  name: 'Sample Product',
-  description: 'This is a sample product.',
-  price: 29.99,
-  stock: 50,
-  category: 'Electronics',
-  isWishlistStatus: false,
-};
-
-const product = Product.createProduct(productProps);
-console.log(product.isWishlistStatus); // false
-*/
+/**
+ * Example usage:
+ *
+ * @example
+ * ```typescript
+ * const productProps = {
+ *   name: 'Sample Product',
+ *   description: 'This is a sample product.',
+ *   price: 29.99,
+ *   stock: 50,
+ *   category: 'Electronics',
+ *   isWishlistStatus: false,
+ * };
+ *
+ * const product = Product.createProduct(productProps);
+ * // product.toProps().isWishlistStatus === false
+ * ```
+ */

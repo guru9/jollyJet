@@ -2,7 +2,8 @@ import dotenv from 'dotenv';
 import { IEnvConfig, validateEnv } from './env.validation';
 
 // Load environment variables
-dotenv.config({ path: '.env' });
+// Use quiet: true in non-development to avoid cluttering logs
+dotenv.config({ path: '.env', quiet: process.env.NODE_ENV !== 'development' });
 
 // Define config
 const env = validateEnv();
@@ -30,6 +31,6 @@ export const config: IAppConfig = {
 
 export default config;
 
-export { getCorsConfig, getCorsOptions, ICorsConfig } from './cors';
+// CORS functionality now integrated into security middleware
 export * from './di-container';
 export { swaggerSpec, swaggerUiOptions } from './swagger';
