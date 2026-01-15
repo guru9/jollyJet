@@ -5,11 +5,12 @@
  * MongoDB and Redis connectivity status.
  */
 
-import { DI_TOKENS, RESPONSE_STATUS } from '@/shared/constants';
+import { DI_TOKENS, RESPONSE_STATUS, REDIS_CONFIG, MONGODB_CONFIG } from '@/shared/constants';
 import { Logger } from '@/shared/logger';
 import MongoDBConnection from '@/infrastructure/database/mongodb';
 import RedisConnection from '@/infrastructure/database/redis';
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { inject, injectable } from 'tsyringe';
 
 @injectable()
@@ -99,7 +100,7 @@ export class HealthController {
    *               $ref: '#/components/schemas/ErrorResponse'
    */
   public async getHealth(req: Request, res: Response): Promise<void> {
-    const startTime = Date.now();
+    const _startTime = Date.now();
 
     try {
       // Check MongoDB connection
@@ -237,12 +238,21 @@ export class HealthController {
    * Check MongoDB connection health
    */
   private async checkMongoDB(): Promise<{
-    status: 'connected' | 'disconnected' | 'error';
+    status: 'connected' | 'disconnected' | 'error' | 'disabled';
     responseTime?: number;
     lastChecked: string;
     error?: string;
   }> {
     const startTime = Date.now();
+
+    // Check if MongoDB is disabled
+    if (MONGODB_CONFIG.DISABLED) {
+      return {
+        status: 'disabled',
+        responseTime: Date.now() - startTime,
+        lastChecked: new Date().toISOString(),
+      };
+    }
 
     try {
       // Check if MongoDB is connected
@@ -254,8 +264,9 @@ export class HealthController {
       }
 
       // Perform a simple operation to verify connection
-      const mongoose = require('mongoose');
-      await mongoose.connection.db.admin().ping();
+      if (mongoose.connection.db) {
+        await mongoose.connection.db.admin().ping();
+      }
 
       return {
         status: 'connected',
@@ -276,12 +287,21 @@ export class HealthController {
    * Check Redis connection health
    */
   private async checkRedis(): Promise<{
-    status: 'connected' | 'disconnected' | 'error';
+    status: 'connected' | 'disconnected' | 'error' | 'disabled';
     responseTime?: number;
     lastChecked: string;
     error?: string;
   }> {
     const startTime = Date.now();
+
+    // Check if Redis is disabled
+    if (REDIS_CONFIG.DISABLED) {
+      return {
+        status: 'disabled',
+        responseTime: Date.now() - startTime,
+        lastChecked: new Date().toISOString(),
+      };
+    }
 
     try {
       // Check if Redis is connected

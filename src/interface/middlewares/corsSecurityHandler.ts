@@ -45,30 +45,33 @@ export const corsSecurityHandler = (options: CorsSecurityOptions = {}) => {
       // 1. Apply essential security headers
       corsSecurityService.applySecurityHeaders(res);
 
-      // Handle cases where IP could not be determined
-      if (ip === 'unknown') {
-        corsSecurityService.logSecurityEvent({
-          type: 'IP_BLOCKED',
-          timestamp: new Date().toISOString(),
-          ip: 'unknown',
-          details: {
-            reason: 'ip_determination_failed',
-            method: req.method,
-            path: req.path,
-          },
-        });
-        return next(); // Fail-safe: allow request if IP is unknown
-      }
-
       // 2. Validate IP address
       const isIPAllowed = await corsSecurityService.validateIPAddress(ip);
       if (!isIPAllowed) {
+        // Fail-safe: allow request if IP is unknown, regardless of validation result
+        if (ip === 'unknown') {
+          corsSecurityService.logSecurityEvent({
+            type: 'IP_BLOCKED',
+            timestamp: new Date().toISOString(),
+            ip: 'unknown',
+            details: {
+              reason: 'ip_determination_failed',
+              method: req.method,
+              path: req.path,
+              middleware: 'cors_security_handler',
+            },
+          });
+          return next(); // Fail-safe: allow request if IP is unknown
+        }
+
         corsSecurityService.logSecurityEvent({
           type: 'IP_BLOCKED',
           timestamp: new Date().toISOString(),
           ip,
           details: {
             reason: 'ip_validation_failed',
+            method: req.method,
+            path: req.path,
             middleware: 'cors_security_handler',
           },
         });

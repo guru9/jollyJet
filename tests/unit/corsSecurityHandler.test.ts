@@ -12,6 +12,10 @@ import express from 'express';
 import request from 'supertest';
 import { container } from 'tsyringe';
 
+interface ExtendedRequest extends Express.Request {
+  middlewareTest?: string;
+}
+
 describe('CORS Handler Middleware', () => {
   let mockSecurityService: jest.Mocked<ICorsSecurityService>;
   let mockApp: express.Application;
@@ -90,7 +94,10 @@ describe('CORS Handler Middleware', () => {
     });
 
     it('should handle missing IP addresses gracefully', async () => {
-      const response = await request(mockApp).get('/test').set('Origin', 'https://jollyjet.com');
+      const response = await request(mockApp)
+        .get('/test')
+        .set('Origin', 'https://jollyjet.com')
+        .set('X-Forwarded-For', ''); // Empty string should trigger 'unknown' IP
 
       // Should fail-safe and allow request
       expect(response.status).toBe(200);
@@ -147,7 +154,12 @@ describe('CORS Handler Middleware', () => {
       const testApp = express();
       testApp.use((req, res, next) => {
         // Simulate socket.remoteAddress
-        (req as any).ip = '10.0.0.1';
+        if (req.socket) {
+          Object.defineProperty(req.socket, 'remoteAddress', {
+            value: '10.0.0.1',
+            writable: true,
+          });
+        }
         next();
       });
       testApp.use(corsSecurityHandler());
@@ -162,11 +174,10 @@ describe('CORS Handler Middleware', () => {
   describe('Geographic Blocking Integration', () => {
     beforeEach(() => {
       mockSecurityService.validateIPAddress.mockResolvedValue(true);
-      mockApp = express();
-      mockApp.get('/test', (req, res) => res.status(200).json({ success: true }));
     });
 
     it('should check geographic restrictions when enabled', async () => {
+      mockApp = express();
       mockApp.use(corsSecurityHandler({ geographicBlocking: true }));
       mockApp.get('/test', (req, res) => res.status(200).json({ success: true }));
 
@@ -179,6 +190,7 @@ describe('CORS Handler Middleware', () => {
     });
 
     it('should skip geographic checks when disabled', async () => {
+      mockApp = express();
       mockApp.use(corsSecurityHandler({ geographicBlocking: false }));
       mockApp.get('/test', (req, res) => res.status(200).json({ success: true }));
 
@@ -192,6 +204,7 @@ describe('CORS Handler Middleware', () => {
 
     it('should block requests when geographic validation fails', async () => {
       mockSecurityService.checkGeographicRestrictions.mockResolvedValue(false);
+      mockApp = express();
       mockApp.use(corsSecurityHandler({ geographicBlocking: true }));
       mockApp.get('/test', (req, res) => res.status(200).json({ success: true }));
 
@@ -338,21 +351,22 @@ describe('CORS Handler Middleware', () => {
 
       // Add some other middlewares before and after
       testApp.use((req, res, next) => {
-        (req as any).middlewareTest = 'before';
+        (req as ExtendedRequest).middlewareTest = 'before';
         next();
       });
 
       testApp.use(corsSecurityHandler());
 
       testApp.use((req, res, next) => {
-        (req as any).middlewareTest = 'after';
+        (req as ExtendedRequest).middlewareTest = 'after';
         next();
       });
 
       testApp.get('/test', (req, res) => {
+        const extendedReq = req as ExtendedRequest;
         res.status(200).json({
           success: true,
-          middlewareTest: (req as any).middlewareTest,
+          middlewareTest: extendedReq.middlewareTest,
         });
       });
 

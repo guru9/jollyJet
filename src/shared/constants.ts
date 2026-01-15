@@ -378,9 +378,42 @@ export const REDIS_CONFIG = {
   PORT: process.env.REDIS_PORT || 6379,
   PASSWORD: process.env.REDIS_PASSWORD || '',
   DB: process.env.REDIS_DB || 0,
+  DISABLED: process.env.REDIS_DISABLED === 'true',
   EXPIRE_TIME: process.env.REDIS_EXPIRE_TIME || 60 * 60 * 24,
   MAX_RETRIES: process.env.REDIS_MAX_RETRIES || 5,
   RETRY_DELAY: process.env.REDIS_RETRY_DELAY || 1000,
+  TTL: {
+    DEFAULT: process.env.REDIS_TTL_DEFAULT || 60 * 60 * 24,
+    SHORT: process.env.REDIS_TTL_SHORT || 60 * 60,
+    LONG: process.env.REDIS_TTL_LONG || 60 * 60 * 24 * 7,
+    NEVER: process.env.REDIS_TTL_NEVER || 0,
+    SESSION: process.env.REDIS_TTL_SESSION || 60 * 60 * 24,
+    TEMPORARY: process.env.REDIS_TTL_TEMPORARY || 60 * 60 * 24,
+    PERMANENT: process.env.REDIS_TTL_PERMANENT || 60 * 60 * 24 * 365,
+    MAX: process.env.REDIS_TTL_MAX || 60 * 60 * 24 * 365,
+    MIN: process.env.REDIS_TTL_MIN || 60 * 60 * 24,
+    RATE_LIMIT: process.env.REDIS_TTL_RATE_LIMIT || 60 * 60 * 24,
+    PRODUCT: process.env.REDIS_TTL_PRODUCT || 60 * 60 * 24,
+    USER: process.env.REDIS_TTL_USER || 60 * 60 * 24,
+  },
+  CONSISTENCY: {
+    BATCH_SIZE: process.env.REDIS_CONSISTENCY_BATCH_SIZE || 100,
+    DELAY_MS: process.env.REDIS_CONSISTENCY_DELAY_MS || 100,
+    MAX_RETRIES: process.env.REDIS_CONSISTENCY_MAX_RETRIES || 3,
+    CHECK_INTERVAL: process.env.REDIS_CONSISTENCY_CHECK_INTERVAL || 60 * 60 * 24,
+    SAMPLE_SIZE: process.env.REDIS_CONSISTENCY_SAMPLE_SIZE || 10,
+    STALE_THRESHOLD: process.env.REDIS_CONSISTENCY_STALE_THRESHOLD || 60 * 60 * 24,
+  },
+  RATE_LIMIT: {
+    WINDOW_MS: process.env.REDIS_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000, // 15 minutes
+    MAX_REQUESTS: process.env.REDIS_RATE_LIMIT_MAX_REQUESTS || 100,
+    WINDOW: process.env.REDIS_RATE_LIMIT_WINDOW || 60 * 60 * 24,
+    LIMIT: process.env.REDIS_RATE_LIMIT_LIMIT || 100,
+  },
+};
+
+export const MONGODB_CONFIG = {
+  DISABLED: process.env.MONGODB_DISABLED === 'true',
   TTL: {
     DEFAULT: process.env.REDIS_TTL_DEFAULT || 60 * 60 * 24,
     SHORT: process.env.REDIS_TTL_SHORT || 60 * 60,
