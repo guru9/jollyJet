@@ -62,6 +62,7 @@ export const DI_TOKENS = {
   PRODUCT_REPOSITORY: 'ProductRepository', // Injection token for product repository
   LOGGER: 'Logger', // Injection token for logger service
   REDIS_SERVICE: 'RedisService', // Injection token for Redis client
+  CACHE_SERVICE: 'CacheService', // Injection token for cache service
   SESSION_SERVICE: 'SessionService', // Injection token for session service
   RATE_LIMIT_SERVICE: 'RateLimitingService', // Injection token for rate limiting service
   CORS_SECURITY_SERVICE: 'CorsSecurityService', // Injection token for CORS security service
@@ -306,114 +307,31 @@ export const CORS_LOGGER = {
 };
 
 /**
- * ============================================
- * 5) REDIS CONFIGURATION
- * ============================================
- *
- * Comprehensive Redis configuration for the JollyJet e-commerce platform.
- * This section defines all Redis-related constants including connection settings,
- * cache behavior parameters, TTL presets, rate limiting, cache consistency,
- * logging levels, and operational constants for efficient cache management.
- *
- * The configuration supports environment variable overrides for production flexibility
- * while providing sensible defaults for development environments.
- *
- * Key Features:
- * - Environment-aware configuration with fallback defaults
- * - Comprehensive TTL presets for various caching scenarios
- * - Rate limiting configuration for API protection
- * - Cache consistency mechanisms for data integrity
- * - Structured logging for cache operations
- * - RedisController-specific constants for API responses
+ * Cache service specific messages
+ * Additional error handling messages for cache operations
  */
+export const CACHE_LOG_MESSAGES_ADDITIONAL = {
+  CACHE_GET_FAILED: 'Cache get failed for key: {key}, error: {error}',
+  CACHE_SET_FAILED: 'Cache set failed for key: {key}, error: {error}',
+  CACHE_DELETE_FAILED: 'Cache delete failed for key: {key}, error: {error}',
+  KEY_DELETE_FAILED: 'Cache delete failed for key: {key}, error: {error}',
+  CACHE_PATTERN_DELETE_FAILED: 'Cache pattern delete failed for pattern: {pattern}, error: {error}',
+  FETCH_FUNCTION_FAILED: 'Fetch function failed for key: {key}, error: {error}',
+};
 
 /**
- * Redis configuration constants for connection settings, timeouts, and operational parameters.
- * These constants define how the application connects to Redis and manages cache operations.
- *
- * Connection Settings:
- * - HOST: Redis server hostname or IP address
- * - PORT: Redis server port number
- * - PASSWORD: Authentication password for Redis
- * - DB: Redis database index (0-15)
- *
- * Cache Behavior:
- * - EXPIRE_TIME: Default expiration time for cache entries in seconds
- * - MAX_RETRIES: Maximum number of retry attempts for failed operations
- * - RETRY_DELAY: Delay between retry attempts in milliseconds
- *
- * TTL (Time-To-Live) Presets:
- * - DEFAULT: Standard cache duration
- * - SHORT: Short-lived cache entries
- * - LONG: Extended cache duration
- * - NEVER: Cache entries that never expire
- * - SESSION: Session-based cache duration
- * - TEMPORARY: Temporary cache entries
- * - PERMANENT: Permanent cache entries
- * - MAX: Maximum allowed cache duration
- * - MIN: Minimum allowed cache duration
- * - RATE_LIMIT: Cache duration for rate limiting
- * - PRODUCT: Product-specific cache duration
- * - USER: User-specific cache duration
- *
- * Rate Limiting:
- * - WINDOW: Time window for rate limiting
- * - LIMIT: Maximum requests allowed in the window
- * - MAX_REQUESTS: Maximum concurrent requests
- * - MAX_RETRIES: Maximum retry attempts for rate-limited operations
- *
- * Cache Consistency:
- * - CHECK_INTERVAL: Interval for cache consistency checks
- * - SAMPLE_SIZE: Number of keys to sample for consistency checks
- * - STALE_THRESHOLD: Threshold for detecting stale cache entries
- *
- * Logging Levels:
- * - DEBUG: Detailed debugging information
- * - INFO: General operational information
- * - WARN: Warning messages
- * - ERROR: Error messages
+ * ============================================
+ * CACHE LOG MESSAGES
+ * ============================================
  */
 export const REDIS_CONFIG = {
   HOST: process.env.REDIS_HOST || 'localhost',
   PORT: process.env.REDIS_PORT || 6379,
   PASSWORD: process.env.REDIS_PASSWORD || '',
   DB: process.env.REDIS_DB || 0,
-  DISABLED: process.env.REDIS_DISABLED === 'true',
   EXPIRE_TIME: process.env.REDIS_EXPIRE_TIME || 60 * 60 * 24,
   MAX_RETRIES: process.env.REDIS_MAX_RETRIES || 5,
   RETRY_DELAY: process.env.REDIS_RETRY_DELAY || 1000,
-  TTL: {
-    DEFAULT: process.env.REDIS_TTL_DEFAULT || 60 * 60 * 24,
-    SHORT: process.env.REDIS_TTL_SHORT || 60 * 60,
-    LONG: process.env.REDIS_TTL_LONG || 60 * 60 * 24 * 7,
-    NEVER: process.env.REDIS_TTL_NEVER || 0,
-    SESSION: process.env.REDIS_TTL_SESSION || 60 * 60 * 24,
-    TEMPORARY: process.env.REDIS_TTL_TEMPORARY || 60 * 60 * 24,
-    PERMANENT: process.env.REDIS_TTL_PERMANENT || 60 * 60 * 24 * 365,
-    MAX: process.env.REDIS_TTL_MAX || 60 * 60 * 24 * 365,
-    MIN: process.env.REDIS_TTL_MIN || 60 * 60 * 24,
-    RATE_LIMIT: process.env.REDIS_TTL_RATE_LIMIT || 60 * 60 * 24,
-    PRODUCT: process.env.REDIS_TTL_PRODUCT || 60 * 60 * 24,
-    USER: process.env.REDIS_TTL_USER || 60 * 60 * 24,
-  },
-  CONSISTENCY: {
-    BATCH_SIZE: process.env.REDIS_CONSISTENCY_BATCH_SIZE || 100,
-    DELAY_MS: process.env.REDIS_CONSISTENCY_DELAY_MS || 100,
-    MAX_RETRIES: process.env.REDIS_CONSISTENCY_MAX_RETRIES || 3,
-    CHECK_INTERVAL: process.env.REDIS_CONSISTENCY_CHECK_INTERVAL || 60 * 60 * 24,
-    SAMPLE_SIZE: process.env.REDIS_CONSISTENCY_SAMPLE_SIZE || 10,
-    STALE_THRESHOLD: process.env.REDIS_CONSISTENCY_STALE_THRESHOLD || 60 * 60 * 24,
-  },
-  RATE_LIMIT: {
-    WINDOW_MS: process.env.REDIS_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000, // 15 minutes
-    MAX_REQUESTS: process.env.REDIS_RATE_LIMIT_MAX_REQUESTS || 100,
-    WINDOW: process.env.REDIS_RATE_LIMIT_WINDOW || 60 * 60 * 24,
-    LIMIT: process.env.REDIS_RATE_LIMIT_LIMIT || 100,
-  },
-};
-
-export const MONGODB_CONFIG = {
-  DISABLED: process.env.MONGODB_DISABLED === 'true',
   TTL: {
     DEFAULT: process.env.REDIS_TTL_DEFAULT || 60 * 60 * 24,
     SHORT: process.env.REDIS_TTL_SHORT || 60 * 60,
@@ -447,65 +365,6 @@ export const MONGODB_CONFIG = {
   },
 };
 
-/**
- * Cache operations constants defining all possible Redis operations for consistent logging and error handling.
- * These constants are used throughout the application to track and log cache operations.
- */
-export const CACHE_OPERATIONS = {
-  GET: 'GET',
-  SET: 'SET',
-  DEL: 'DEL',
-  EXPIRE: 'EXPIRE',
-  FLUSH: 'FLUSH',
-  INCREMENT: 'INCREMENT',
-  DECREMENT: 'DECREMENT',
-  AQUIRE_LOCK: 'AQUIRE_LOCK',
-  RELEASE_LOCK: 'RELEASE_LOCK',
-  EXPIRE_LOCK: 'EXPIRE_LOCK',
-  KEYS: 'KEYS',
-  SCAN: 'SCAN',
-  CACHE_MIDDLEWARE: 'CACHE_MIDDLEWARE',
-  RATE_LIMIT_MIDDLEWARE: 'RATE_LIMIT_MIDDLEWARE',
-};
-
-/**
- * Cache key patterns constants for consistent Redis key naming across the application.
- * These patterns ensure predictable key structures and enable efficient key management.
- * All key patterns use template functions that accept identifiers to generate complete keys.
- */
-export const CACHE_KEYS_PATTERNS = {
-  PRODUCT: (id: string) => `product:${id}`,
-  PRODUCT_LIST: (filter: string) => `product:list:${filter}`,
-  SESSION: (id: string) => `session:${id}`,
-  RATE_LIMIT: (id: string) => `rate_limit:${id}`,
-  CONSISTENCY_LOCK: (id: string) => `consistency:lock:${id}`,
-  CONSISTENCY_CHECK: (id: string) => `consistency:check:${id}`,
-  CONSISTENCY_SAMPLE: (id: string) => `consistency:sample:${id}`,
-  CONSISTENCY_STALE: (id: string) => `consistency:stale:${id}`,
-  CONSISTENCY_STALE_THRESHOLD: (id: string) => `consistency:stale_threshold:${id}`,
-  WISHLIST: (id: string) => `wishlist:${id}`,
-  WISHLIST_COUNT: (id: string) => `wishlist:count:${id}`,
-  WISHLIST_ITEMS: (id: string) => `wishlist:items:${id}`,
-  WISHLIST_ITEMS_COUNT: (id: string) => `wishlist:items_count:${id}`,
-};
-
-/**
- * Cache operation log messages with placeholders for structured logging.
- * These messages provide consistent logging format across all cache operations,
- * with placeholders that get replaced with actual values during logging.
- *
- * Placeholders:
- * - {error}: Error details or messages
- * - {operation}: Type of cache operation being performed
- * - {key}: Redis key being operated on
- * - {source}: Data source (e.g., database, API)
- * - {ttl}: Time-to-live value in seconds
- * - {count}: Numeric count of items
- * - {pattern}: Redis key pattern used in operations
- * - {hitRate}: Cache hit rate percentage
- * - {total}: Total number of cache operations
- * - {memory}: Memory usage in bytes
- */
 export const CACHE_LOG_MESSAGES = {
   // Connection management messages
   CONNECTION_SUCCESS: 'Successfully established connection to Redis server',
@@ -523,6 +382,7 @@ export const CACHE_LOG_MESSAGES = {
   CACHE_DELETE: 'Cache deleted for key: {key}',
   CACHE_FLUSH: 'Cache flushed successfully',
   CACHE_KEYS: 'Found {count} keys matching pattern: {pattern}',
+  DATA_CACHED_SUCCESSFULLY: 'Data cached successfully for key: {key}, ttl: {ttl}',
 
   // Cache consistency and refresh messages
   STALE_CACHE_DETECTED: 'Stale cache detected for key: {key}, TTL: {ttl}',
