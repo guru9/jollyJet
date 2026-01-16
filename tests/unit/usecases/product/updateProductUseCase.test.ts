@@ -1,6 +1,7 @@
 import { Product } from '@/domain/entities';
 import { IProductRepository } from '@/domain/interfaces';
 import { ProductService } from '@/domain/services';
+import { CacheService } from '@/domain/services/cache/CacheService';
 import { UpdateProductDTO } from '@/interface/dtos';
 import { Logger } from '@/shared';
 import { UpdateProductUseCase } from '@/usecases';
@@ -10,6 +11,7 @@ describe('UpdateProductUseCase', () => {
   let mockRepository: jest.Mocked<IProductRepository>;
   let mockService: jest.Mocked<ProductService>;
   let mockLogger: jest.Mocked<Logger>;
+  let mockCacheService: jest.Mocked<CacheService>;
   let existingProduct: Product;
 
   beforeEach(() => {
@@ -55,7 +57,15 @@ describe('UpdateProductUseCase', () => {
       useOnlyCustomLevels: false,
     } as unknown as jest.Mocked<Logger>;
 
-    useCase = new UpdateProductUseCase(mockRepository, mockService, mockLogger);
+    mockCacheService = {
+      get: jest.fn().mockResolvedValue(null),
+      set: jest.fn(),
+      delete: jest.fn(),
+      deleteByPattern: jest.fn(),
+      getOrSet: jest.fn(),
+    } as unknown as jest.Mocked<CacheService>;
+
+    useCase = new UpdateProductUseCase(mockRepository, mockService, mockLogger, mockCacheService);
   });
 
   describe('execute method', () => {

@@ -1,5 +1,6 @@
 import { IRedisService } from '@/domain/interfaces/redis/IRedisService';
 import { Logger } from '@/shared/logger';
+import Redis from 'ioredis';
 
 /**
  * Mock RedisService for unit testing
@@ -220,8 +221,7 @@ export class MockRedisService implements IRedisService {
    * Gets the underlying mock client (for testing purposes)
    * @returns Mock client object
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getClient(): any {
+  getClient(): Redis {
     return {
       isMock: true,
       store: this.store,
@@ -287,7 +287,7 @@ export class MockRedisService implements IRedisService {
         }
         return '';
       },
-    };
+    } as unknown as Redis;
   }
 
   /**

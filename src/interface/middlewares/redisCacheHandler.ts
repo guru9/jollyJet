@@ -56,14 +56,17 @@ export const redisCacheHandler = (
       const cachedResponse = await redisService.get(cacheKey);
       if (cachedResponse) {
         // Cache hit - log and track metrics
-        logger.info({ key: cacheKey }, CACHE_LOG_MESSAGES.CACHE_HIT);
+        logger.info({ key: cacheKey }, CACHE_LOG_MESSAGES.CACHE_HIT(cacheKey));
         cacheConsistencyService.trackCacheHit();
 
         // Optional consistency check for stale data detection
         if (options?.consistencyCheck) {
           const isStale = await cacheConsistencyService.checkStaleData(cacheKey);
           if (isStale) {
-            logger.warn({ key: cacheKey, ttl: 'unknown' }, CACHE_LOG_MESSAGES.STALE_CACHE_DETECTED);
+            logger.warn(
+              { key: cacheKey, ttl: 'unknown' },
+              CACHE_LOG_MESSAGES.STALE_CACHE_DETECTED(cacheKey, 0)
+            );
             cacheConsistencyService.trackStaleRead();
 
             // Trigger background refresh if enabled to update stale cache
@@ -89,7 +92,10 @@ export const redisCacheHandler = (
 
       // Cache miss - track metrics and prepare for caching
       cacheConsistencyService.trackCacheMiss();
-      logger.info({ key: cacheKey, source: 'database' }, CACHE_LOG_MESSAGES.CACHE_MISS);
+      logger.info(
+        { key: cacheKey, source: 'database' },
+        CACHE_LOG_MESSAGES.CACHE_MISS(cacheKey, 'database')
+      );
 
       // Override res.json to cache the response
       const originalJson = res.json;
@@ -109,7 +115,11 @@ export const redisCacheHandler = (
           key: cacheKey,
           error: error instanceof Error ? error.message : String(error),
         },
-        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED
+        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED(
+          CACHE_OPERATIONS.CACHE_MIDDLEWARE,
+          cacheKey,
+          error instanceof Error ? error.message : String(error)
+        )
       );
       next();
     }

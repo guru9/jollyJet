@@ -1,6 +1,7 @@
 import { Product } from '@/domain/entities';
 import { IProductRepository } from '@/domain/interfaces';
 import { ProductService } from '@/domain/services';
+import { CacheService } from '@/domain/services/cache/CacheService';
 import { UpdateProductDTO } from '@/interface/dtos';
 import {
   BadRequestError,
@@ -8,16 +9,17 @@ import {
   Logger,
   NotFoundError,
   PRODUCT_ERROR_MESSAGES,
+  CACHE_KEYS_PATTERNS,
 } from '@/shared';
 
 import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
 
 /**
- * Usecase for updating existing products
- * Depends on: DI_TOKENS.PRODUCT_REPOSITORY
+ * Usecase for updating existing products with cache invalidation
+ * Depends on: DI_TOKENS.PRODUCT_REPOSITORY, CacheService
  *             UpdateProductDTO
- * Implements: Business logic orchestration between layers
+ * Implements: Business logic orchestration between layers with cache management
  */
 @injectable()
 export class UpdateProductUseCase {
@@ -26,7 +28,8 @@ export class UpdateProductUseCase {
     // 💡 Dependency Injection: Repository is injected via DI_TOKENS
     // 💡 This enables loose coupling and easy testing
     private productService: ProductService,
-    @inject(DI_TOKENS.LOGGER) private logger: Logger
+    @inject(DI_TOKENS.LOGGER) private logger: Logger,
+    @inject(DI_TOKENS.CACHE_SERVICE) private cacheService: CacheService
   ) {}
 
   /**
@@ -56,7 +59,12 @@ export class UpdateProductUseCase {
     // Persist the updated product using the repository
     // 💡 Dependency Inversion: Use Cases depend on abstractions (interfaces)
     // 💡 This enables switching database implementations without changing business logic
-    return await this.productRepository.update(existingProduct);
+    const updatedProduct = await this.productRepository.update(existingProduct);
+
+    // Invalidate product-related cache entries
+    await this.invalidateProductCache(productId);
+
+    return updatedProduct;
   }
 
   /**
@@ -115,5 +123,22 @@ export class UpdateProductUseCase {
     }
 
     return product;
+  }
+
+  /**
+   * Invalidate product-specific and product list cache entries after update
+   */
+  private async invalidateProductCache(productId: string): Promise<void> {
+    try {
+      // Invalidate specific product cache and all product lists/count caches
+      await Promise.all([
+        this.cacheService.delete(CACHE_KEYS_PATTERNS.PRODUCT_SINGLE(productId)),
+        this.cacheService.deleteByPattern('products:*'),
+        this.cacheService.deleteByPattern('product:count:*'),
+      ]);
+      this.logger.info({ productId }, 'Product cache invalidated after update');
+    } catch (error) {
+      this.logger.warn({ error, productId }, 'Failed to invalidate product cache after update');
+    }
   }
 }

@@ -1,7 +1,8 @@
 import { Product } from '@/domain/entities';
 import { IProductRepository, ProductFilter } from '@/domain/interfaces';
 import { ProductService } from '@/domain/services';
-import { DI_TOKENS, Logger } from '@/shared';
+import { CacheService } from '@/domain/services/cache/CacheService';
+import { DI_TOKENS, Logger, CACHE_KEYS_PATTERNS } from '@/shared';
 
 import { PaginationParams } from '@/types';
 import 'reflect-metadata';
@@ -23,19 +24,20 @@ export interface ListProductsQuery {
 }
 
 /**
- * Use case for listing products with pagination and filtering
- * 🔧 Depends on: DI_TOKENS.PRODUCT_REPOSITORY (Step 4.1)
- * 📋 Handles: Complex query processing and pagination
- * 🏗️ Implements: Efficient data retrieval with parallel queries
+ * Use case for listing products with pagination and filtering using Redis-first caching
+ * 🔧 Depends on: DI_TOKENS.PRODUCT_REPOSITORY, CacheService
+ * 📋 Handles: Complex query processing and pagination with caching
+ * 🏗️ Implements: Efficient data retrieval with parallel queries and cache-aside pattern
  */
 @injectable()
 export class ListProductsUseCase {
   constructor(
     @inject(DI_TOKENS.PRODUCT_REPOSITORY) private productRepository: IProductRepository,
     private productService: ProductService,
-    @inject(DI_TOKENS.LOGGER) private logger: Logger
-    // 💡 Dependency Injection: Repository is injected via DI_TOKENS
-    // 💡 This enables loose coupling and easy testing
+    @inject(DI_TOKENS.LOGGER) private logger: Logger,
+    @inject(DI_TOKENS.CACHE_SERVICE) private cacheService: CacheService
+    // 💡 Dependency Injection: Repository and CacheService are injected via DI_TOKENS
+    // 💡 This enables loose coupling and easy testing with caching
   ) {}
 
   public async execute(query: ListProductsQuery): Promise<{
@@ -64,6 +66,29 @@ export class ListProductsUseCase {
     if (this.productService.isValidPriceRange(query.priceRange))
       filter.priceRange = query.priceRange; //Get the products by price range filter. Must be non-negative.
 
+    // Create cache key based on query parameters
+    const cacheKey = CACHE_KEYS_PATTERNS.PRODUCT_LIST(JSON.stringify({ filter, page, limit }));
+
+    // Redis-first: Try to get from cache first
+    const cachedResult = await this.cacheService.get<{
+      products: Product[];
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    }>(cacheKey);
+
+    if (cachedResult !== null) {
+      this.logger.debug({ query, cacheKey }, 'Product list retrieved from cache');
+      return cachedResult;
+    }
+
+    // Cache miss: Fetch from database
+    this.logger.debug(
+      { query, cacheKey },
+      'Product list not found in cache, fetching from database'
+    );
+
     // Create pagination parameters object
     const pagination: PaginationParams = { page, limit, skip };
 
@@ -76,6 +101,11 @@ export class ListProductsUseCase {
     ]);
 
     const totalPages = Math.ceil(total / limit);
-    return { products, total, page, limit, totalPages };
+    const result = { products, total, page, limit, totalPages };
+
+    // Cache the result for 30 minutes
+    await this.cacheService.set(cacheKey, result, 1800);
+
+    return result;
   }
 }

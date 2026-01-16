@@ -1,3 +1,4 @@
+import type { CacheConsistencyService as ICacheConsistencyService } from '@/domain/services/cache/CacheConsistencyService';
 import { DI_TOKENS } from '@/shared/constants';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
@@ -66,7 +67,7 @@ beforeAll(async () => {
     }),
     resetMetrics: jest.fn(),
     cleanup: jest.fn(),
-  } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  } as unknown as ICacheConsistencyService;
 
   container.registerInstance(CacheConsistencyService, cacheConsistencyMock);
 

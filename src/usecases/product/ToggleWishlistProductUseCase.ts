@@ -1,5 +1,6 @@
 import { Product } from '@/domain/entities';
 import { IProductRepository } from '@/domain/interfaces';
+import { CacheService } from '@/domain/services/cache/CacheService';
 import { ToggleWishlistDTO } from '@/interface/dtos';
 import {
   BadRequestError,
@@ -7,15 +8,16 @@ import {
   Logger,
   NotFoundError,
   PRODUCT_ERROR_MESSAGES,
+  CACHE_KEYS_PATTERNS,
 } from '@/shared';
 
 import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
 
 /**
- * Use case for toggling a product's wishlist status
- * Depends on: DI_TOKENS.PRODUCT_REPOSITORY
- * Implements: Business logic orchestration between layers
+ * Use case for toggling a product's wishlist status with cache invalidation
+ * Depends on: DI_TOKENS.PRODUCT_REPOSITORY, CacheService
+ * Implements: Business logic orchestration between layers with cache management
  */
 @injectable()
 export class ToggleWishlistProductUseCase {
@@ -23,7 +25,8 @@ export class ToggleWishlistProductUseCase {
     @inject(DI_TOKENS.PRODUCT_REPOSITORY) private productRepository: IProductRepository,
     // 💡 Dependency Injection: Repository is injected via DI_TOKENS
     // 💡 This enables loose coupling and easy testing
-    @inject(DI_TOKENS.LOGGER) private logger: Logger
+    @inject(DI_TOKENS.LOGGER) private logger: Logger,
+    @inject(DI_TOKENS.CACHE_SERVICE) private cacheService: CacheService
   ) {}
 
   /**
@@ -49,9 +52,34 @@ export class ToggleWishlistProductUseCase {
     // Toggle the wishlist status using the repository
     // 💡 Repository handles the actual database update
     // 💡 Returns the updated product with new wishlist status
-    return await this.productRepository.toggleWishlistStatus(
+    const updatedProduct = await this.productRepository.toggleWishlistStatus(
       productId,
       wishlistData.isWishlistStatus
     );
+
+    // Invalidate product-related cache entries after successful update
+    await this.invalidateProductCache(productId);
+
+    return updatedProduct;
+  }
+
+  /**
+   * Invalidate product-specific and product list cache entries after wishlist toggle
+   */
+  private async invalidateProductCache(productId: string): Promise<void> {
+    try {
+      // Invalidate specific product cache and all product lists/count caches
+      await Promise.all([
+        this.cacheService.delete(CACHE_KEYS_PATTERNS.PRODUCT_SINGLE(productId)),
+        this.cacheService.deleteByPattern('products:*'),
+        this.cacheService.deleteByPattern('product:count:*'),
+      ]);
+      this.logger.info({ productId }, 'Product cache invalidated after wishlist toggle');
+    } catch (error) {
+      this.logger.warn(
+        { error, productId },
+        'Failed to invalidate product cache after wishlist toggle'
+      );
+    }
   }
 }

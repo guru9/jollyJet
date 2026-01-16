@@ -1,11 +1,25 @@
-# 🚀 jollyJet
+# JollyJet E-commerce API
 
-> **A High-Performance Shopping Application** - _Because Speed and Happiness Matter :)_
+A high-performance Node.js e-commerce API built with TypeScript, Express.js, and Clean Architecture principles.
 
-![Project Status](https://img.shields.io/badge/status-foundation%20complete-success.svg)
+![Project Status](https://img.shields.io/badge/status-production-ready-green)
 ![Test Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
 ![Architecture](https://img.shields.io/badge/architecture-clean-blueviolet)
 ![Language](https://img.shields.io/badge/typescript-v5.0+-blue)
+![Caching](https://img.shields.io/badge/caching-redis%20first-orange)
+
+## 🚀 Features
+
+- **Redis-First Caching**: Implements cache-aside pattern with Redis as primary cache and MongoDB as fallback
+- **Required Database Connections**: Server starts only after successful MongoDB and Redis connections
+- **Clean Architecture**: Separation of concerns with Domain, Application, Infrastructure, and Interface layers
+- **TypeScript**: Full type safety throughout the application
+- **Dependency Injection**: Using tsyringe for loose coupling and testability
+- **Comprehensive Error Handling**: Structured error responses with proper logging
+- **API Documentation**: Interactive Swagger UI for API exploration
+- **Rate Limiting**: Configurable rate limiting with Redis backend
+- **Session Management**: Secure session handling with Redis storage
+- **CORS Security**: Advanced CORS protection with geographic blocking capabilities
 
 ---
 
@@ -46,40 +60,109 @@
 
 ## ⚡ Quick Start
 
-### 1️⃣ Installation
+## 📋 Prerequisites
+
+Before running the application, ensure you have the following installed:
+
+- **Node.js** (v18 or higher)
+- **MongoDB** (v5.0 or higher)
+- **Redis** (v6.0 or higher)
+- **npm** or **yarn** package manager
+
+## 🛠️ Setup Steps
+
+### 1. Clone the Repository
 
 ```bash
-# Clone and install dependencies
-git clone <repo-url>
+git clone https://github.com/guru9/jollyJet.git
 cd jollyJet
-npm install
 ```
 
-### 2️⃣ Environment Setup
+### 2. Install Dependencies
+
+```bash
+npm install
+# or
+yarn install
+```
+
+### 3. Environment Configuration
 
 Create a `.env` file in the root directory:
 
 ```env
+# Server Configuration
 PORT=3000
+NODE_ENV=development
+
+# MongoDB Configuration
 MONGODB_URI=mongodb://localhost:27017/jollyjet
-LOG_LEVEL=info
+MONGODB_DB_NAME=jollyjet
+MONGODB_MAX_POOL_SIZE=10
+MONGODB_MIN_POOL_SIZE=2
+MONGODB_CONNECTION_TIMEOUT=10000
+MONGODB_SOCKET_TIMEOUT=45000
+MONGODB_SERVER_SELECTION_TIMEOUT=5000
+MONGODB_RETRY_ATTEMPTS=3
+MONGODB_RETRY_DELAY=1000
+
+# Redis Configuration
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_DB=0
+REDIS_EXPIRE_TIME=86400
+REDIS_MAX_RETRIES=5
+REDIS_RETRY_DELAY=1000
+
+# Redis TTL Configuration (seconds)
+REDIS_TTL_DEFAULT=86400
+REDIS_TTL_SHORT=3600
+REDIS_TTL_LONG=604800
+REDIS_TTL_SESSION=86400
+REDIS_TTL_PRODUCT=86400
+REDIS_TTL_USER=86400
+
+# Rate Limiting
+REDIS_RATE_LIMIT_WINDOW=3600
+REDIS_RATE_LIMIT_LIMIT=100
 ```
 
-### 3️⃣ Run Application
+### 4. Database Setup
+
+#### MongoDB
 
 ```bash
-# Development Mode (with hot-reload and Swagger UI auto-launch)
+# Start MongoDB service
+mongod --dbpath /path/to/your/db
+
+# Or use Docker
+docker run -d -p 27017:27017 --name mongodb mongo:latest
+```
+
+#### Redis
+
+```bash
+# Start Redis service
+redis-server
+
+# Or use Docker
+docker run -d -p 6379:6379 --name redis redis:latest
+```
+
+### 5. Run the Application
+
+#### Development Mode
+
+```bash
 npm run dev
+```
 
-# Debug Mode (with Node inspector, Chrome DevTools, and Swagger UI auto-launch)
-npm run debug
+#### Production Mode
 
-# Production Build
+```bash
 npm run build
 npm start
-
-#To resolve the "Access to the registry key is denied" error when setting the execution policy in PowerShell
-Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigneds
 ```
 
 ### 4️⃣ Access API Documentation
@@ -106,26 +189,142 @@ Once the server is running, access the interactive API documentation:
 
 ---
 
-## 🏛️ Clean Architecture - Monolithic (NodeJS-Express)
+## 📁 Project Structure
 
-The project follows strict Clean Architecture principles to separate concerns and ensure scalability.
+```
+jollyJet/
+├── src/                          # Source code
+│   ├── app.ts                    # Express application factory
+│   ├── server.ts                  # Server entry point
+│   ├── config/                    # Configuration files
+│   │   ├── di-container.ts         # Dependency injection container
+│   │   ├── env.validation.ts       # Environment variable validation
+│   │   ├── index.ts               # Configuration exports
+│   │   └── swagger.ts             # Swagger documentation setup
+│   ├── domain/                    # Business logic layer
+│   │   ├── entities/               # Domain entities
+│   │   │   ├── product/           # Product entity
+│   │   │   └── index.ts
+│   │   ├── interfaces/             # Domain interfaces
+│   │   │   ├── index.ts
+│   │   │   ├── product/          # Product-related interfaces
+│   │   │   ├── redis/             # Redis service interface
+│   │   │   ├── session/           # Session service interface
+│   │   │   └── security/          # Security service interface
+│   │   └── services/              # Domain services
+│   │       ├── cache/             # Cache management services
+│   │       ├── product/           # Product business logic
+│   │       ├── redis/             # Redis service implementation
+│   │       ├── security/          # Security service implementation
+│   │       └── index.ts
+│   ├── infrastructure/            # External concerns layer
+│   │   ├── database/            # Database connections
+│   │   │   ├── mongodb.ts         # MongoDB connection manager
+│   │   │   └── redis.ts           # Redis connection manager
+│   │   ├── models/              # Database models
+│   │   │   ├── product/           # Product model
+│   │   │   └── index.ts
+│   │   ├── repositories/        # Data access layer
+│   │   │   ├── BaseRepository.ts   # Base repository with caching
+│   │   │   ├── product/           # Product repository
+│   │   │   └── index.ts
+│   │   └── services/           # Infrastructure services
+│   │       ├── session/           # Session service implementation
+│   │       ├── ratelimit/        # Rate limiting service
+│   │       └── index.ts
+│   ├── interface/                 # API/Interface layer
+│   │   ├── controllers/           # HTTP request handlers
+│   │   │   ├── health/            # Health check controller
+│   │   │   ├── product/           # Product controllers
+│   │   │   ├── redis/             # Redis management controller
+│   │   │   └── index.ts
+│   │   ├── dtos/                # Data transfer objects
+│   │   │   ├── product/           # Product DTOs
+│   │   │   └── index.ts
+│   │   ├── middlewares/          # Express middleware
+│   │   │   ├── corsSecurityHandler.ts    # CORS security middleware
+│   │   │   ├── errorHandler.ts           # Global error handler
+│   │   │   ├── rateLimitHandler.ts        # Rate limiting middleware
+│   │   │   ├── redisCacheHandler.ts        # Redis cache middleware
+│   │   │   ├── requestLogger.ts           # Request logging middleware
+│   │   │   └── index.ts
+│   │   ├── routes/              # API route definitions
+│   │   │   ├── health/            # Health check routes
+│   │   │   ├── product/           # Product management routes
+│   │   │   ├── redis/             # Redis management routes
+│   │   │   └── index.ts
+│   │   ├── validators/          # Input validation schemas
+│   │   │   ├── product/           # Product validation schemas
+│   │   │   └── index.ts
+│   │   └── index.ts
+│   ├── shared/                    # Shared utilities and types
+│   │   ├── constants.ts          # Application constants
+│   │   ├── errors.ts             # Custom error classes
+│   │   ├── index.ts
+│   │   ├── logger.ts             # Pino logger configuration
+│   │   └── utils.ts              # Utility functions
+│   ├── types/                     # TypeScript type definitions
+│   │   └── index.d.ts
+│   └── usecases/                  # Application layer (use cases)
+│       ├── index.ts
+│       └── product/               # Product use cases
+│           ├── CreateProductUseCase.ts
+│           ├── DeleteProductUseCase.ts
+│           ├── GetProductUseCase.ts
+│           ├── ListProductsUseCase.ts
+│           ├── UpdateProductUseCase.ts
+│           ├── CountProductsUseCase.ts
+│           └── ToggleWishlistProductUseCase.ts
+├── tests/                         # Test files
+│   ├── integration/                # Integration tests
+│   ├── mocks/                    # Test mocks
+│   ├── setup.ts                  # Test setup configuration
+│   └── unit/                     # Unit tests
+│       ├── domain/               # Domain layer tests
+│       ├── infrastructure/        # Infrastructure layer tests
+│       ├── interface/            # Interface layer tests
+│       └── usecases/            # Use case tests
+├── package.json                    # Project dependencies and scripts
+├── tsconfig.json                  # TypeScript configuration
+├── jest.config.ts                 # Jest test configuration
+└── README.md                      # This file
+```
 
-### Layers Overview
+## 🏗️ Architecture Overview
 
-- **🏛️ Domain Layer** (`src/domain`)
-  - **Pure** business logic (Entities, Repository Interfaces).
-  - _No external dependencies._
-- **🌐 Infrastructure Layer** (`src/infrastructure`)
-  - External implementations (Database, External APIs).
-  - Implements repository interfaces.
-- **🎯 Use Cases Layer** (`src/usecases`)
-  - Application specific business rules.
-  - Orchestrates domain entities and interfaces.
-- **🖥️ Interface Layer** (`src/interface`)
-  - Controllers, Routes, DTOs (Zod schemas), Middlewares.
-  - Entry point for HTTP requests.
+### 1. Server Startup Sequence
 
-  ***
+1. **Required Connections**: Server starts only after successful MongoDB and Redis connections
+2. **Graceful Shutdown**: Handles SIGTERM and SIGINT signals
+3. **Error Handling**: Catches uncaught exceptions and unhandled rejections
+
+### 2. Caching Strategy (Redis-First)
+
+- **Cache-Aside Pattern**: Application manages cache consistency
+- **Read Path**: Check Redis first → MongoDB fallback → Cache result
+- **Write Path**: Update MongoDB → Invalidate related cache entries
+- **Cache Keys**: Structured key patterns for easy management
+- **TTL Management**: Configurable TTL for different data types
+
+### 3. Layer Dependencies
+
+```
+┌─────────────────────────────────────────┐
+│             Interface Layer              │
+│  (Controllers, Middleware, Routes)   │
+├─────────────────────────────────────────┤
+│           Application Layer             │
+│         (Use Cases)                │
+├─────────────────────────────────────────┤
+│            Domain Layer                │
+│     (Entities, Services)            │
+├─────────────────────────────────────────┤
+│        Infrastructure Layer           │
+│   (Database, Repositories)         │
+└─────────────────────────────────────────┘
+```
+
+---
 
 ## 🛠️ Technology Stack Analysis
 

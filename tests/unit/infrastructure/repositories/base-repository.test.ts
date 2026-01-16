@@ -1,22 +1,40 @@
-import 'reflect-metadata';
-import { BaseRepository } from '@/infrastructure/repositories/BaseRepository';
 import { CacheService } from '@/domain/services/cache/CacheService';
+import { BaseRepository } from '@/infrastructure/repositories';
+import { CACHE_LOG_MESSAGES } from '@/shared/constants';
 import { Logger } from '@/shared/logger';
-import { DI_TOKENS, CACHE_LOG_MESSAGES } from '@/shared/constants';
+import 'reflect-metadata';
+
+// Test repository class that extends BaseRepository to access protected methods
+class TestRepository extends BaseRepository {
+  constructor(logger: Logger, cacheService: CacheService) {
+    super(logger, cacheService);
+  }
+
+  // Expose protected methods for testing
+  public testGenerateCacheKey(namespace: string, params: Record<string, unknown>): string {
+    return this.generateCacheKey(namespace, params);
+  }
+
+  public testInvalidateCache(pattern: string): Promise<void> {
+    return this.invalidateCache(pattern);
+  }
+
+  public testGetCachedData<T>(key: string, fetchFn: () => Promise<T>, ttl?: number): Promise<T> {
+    return this.getCachedData(key, fetchFn, ttl);
+  }
+
+  // Mock implementation for testing
+  public async findAll(): Promise<unknown[]> {
+    return this.getCachedData('test:all', () => Promise.resolve([]));
+  }
+}
 
 describe('BaseRepository', () => {
   let mockLogger: jest.Mocked<Logger>;
   let mockCacheService: jest.Mocked<CacheService>;
-
-  // Create a concrete implementation of BaseRepository for testing
-  class TestRepository extends BaseRepository {
-    constructor(logger: Logger, cacheService: CacheService) {
-      super(logger, cacheService);
-    }
-  }
+  let testRepo: TestRepository;
 
   beforeEach(() => {
-    // Mock logger
     mockLogger = {
       info: jest.fn(),
       error: jest.fn(),
@@ -24,15 +42,27 @@ describe('BaseRepository', () => {
       debug: jest.fn(),
     } as unknown as jest.Mocked<Logger>;
 
-    // Mock cache service
     mockCacheService = {
-      get: jest.fn(),
-      set: jest.fn().mockResolvedValue(undefined),
-      delete: jest.fn().mockResolvedValue(undefined),
-      deleteByPattern: jest.fn().mockResolvedValue(undefined),
-      getOrSet: jest.fn(),
+      get: jest.fn().mockResolvedValue(null),
+      set: jest.fn(),
+      delete: jest.fn(),
+      deleteByPattern: jest.fn(),
+      getOrSet: jest.fn().mockImplementation(async (key, fetchFn) => {
+        try {
+          return await fetchFn();
+        } catch (error) {
+          const errMsg = error instanceof Error ? error.message : String(error);
+          mockLogger.error(
+            { key, error: errMsg },
+            CACHE_LOG_MESSAGES.FETCH_FUNCTION_FAILED(key, errMsg)
+          );
+          throw error;
+        }
+      }),
       isConnected: jest.fn().mockReturnValue(true),
     } as unknown as jest.Mocked<CacheService>;
+
+    testRepo = new TestRepository(mockLogger, mockCacheService);
   });
 
   afterEach(() => {
@@ -50,10 +80,10 @@ describe('BaseRepository', () => {
 
   describe('generateCacheKey', () => {
     it('should generate cache key with namespace and parameters', () => {
-      const repo = new TestRepository(mockLogger, mockCacheService);
+      const repo = testRepo;
 
-      // Use private method access for testing
-      const cacheKey = (repo as any).generateCacheKey('test', {
+      // Use public test method to access protected method
+      const cacheKey = repo.testGenerateCacheKey('test', {
         id: '123',
         category: 'electronics',
       });
@@ -63,17 +93,13 @@ describe('BaseRepository', () => {
     });
 
     it('should handle empty parameters', () => {
-      const repo = new TestRepository(mockLogger, mockCacheService);
-
-      const cacheKey = (repo as any).generateCacheKey('test', {});
+      const cacheKey = testRepo.testGenerateCacheKey('test', {});
 
       expect(cacheKey).toBe('test:');
     });
 
     it('should handle undefined values in parameters', () => {
-      const repo = new TestRepository(mockLogger, mockCacheService);
-
-      const cacheKey = (repo as any).generateCacheKey('test', { id: '123', category: undefined });
+      const cacheKey = testRepo.testGenerateCacheKey('test', { id: '123', category: undefined });
 
       expect(cacheKey).toBe('test:category:undefined|id:"123"');
     });
@@ -81,67 +107,59 @@ describe('BaseRepository', () => {
 
   describe('invalidateCache', () => {
     it('should call cacheService.deleteByPattern with pattern', async () => {
-      const repo = new TestRepository(mockLogger, mockCacheService);
       const pattern = 'test:*';
+      mockCacheService.deleteByPattern.mockResolvedValue(undefined);
 
-      await (repo as any).invalidateCache(pattern);
+      await testRepo.testInvalidateCache(pattern);
 
       expect(mockCacheService.deleteByPattern).toHaveBeenCalledWith(pattern);
     });
 
     it('should handle cache service errors gracefully', async () => {
-      const repo = new TestRepository(mockLogger, mockCacheService);
       const pattern = 'test:*';
       const error = new Error('Cache service error');
       mockCacheService.deleteByPattern.mockRejectedValue(error);
 
-      await expect((repo as any).invalidateCache(pattern)).rejects.toThrow(error);
+      await expect(testRepo.testInvalidateCache(pattern)).rejects.toThrow(error);
     });
   });
 
   describe('getCachedData', () => {
     it('should call cacheService.getOrSet with correct parameters', async () => {
-      const repo = new TestRepository(mockLogger, mockCacheService);
       const cacheKey = 'test:123';
       const fetchFn = jest.fn().mockResolvedValue('test-data');
       const ttl = 3600;
 
-      await (repo as any).getCachedData(cacheKey, fetchFn, ttl);
+      await testRepo.testGetCachedData(cacheKey, fetchFn, ttl);
 
       expect(mockCacheService.getOrSet).toHaveBeenCalledWith(cacheKey, fetchFn, ttl);
     });
 
     it('should use default TTL when not provided', async () => {
-      const repo = new TestRepository(mockLogger, mockCacheService);
       const cacheKey = 'test:123';
       const fetchFn = jest.fn().mockResolvedValue('test-data');
 
-      await (repo as any).getCachedData(cacheKey, fetchFn);
+      await testRepo.testGetCachedData(cacheKey, fetchFn);
 
       expect(mockCacheService.getOrSet).toHaveBeenCalledWith(cacheKey, fetchFn, undefined);
     });
 
     it('should handle fetch function errors', async () => {
-      const repo = new TestRepository(mockLogger, mockCacheService);
       const cacheKey = 'test:123';
       const error = new Error('Fetch error');
       const fetchFn = jest.fn().mockRejectedValue(error);
 
-      await expect((repo as any).getCachedData(cacheKey, fetchFn)).rejects.toThrow(error);
+      await expect(testRepo.testGetCachedData(cacheKey, fetchFn)).rejects.toThrow(error);
     });
   });
 
   describe('caching behavior integration', () => {
     it('should demonstrate complete cache-aside pattern', async () => {
-      const repo = new TestRepository(mockLogger, mockCacheService);
       const cacheKey = 'product:123';
       const fetchFn = jest.fn().mockResolvedValue('product-data');
       const ttl = 3600;
 
-      // Mock cache miss first time
-      mockCacheService.getOrSet.mockResolvedValueOnce('product-data');
-
-      const result1 = await (repo as any).getCachedData(cacheKey, fetchFn, ttl);
+      const result1 = await testRepo.testGetCachedData(cacheKey, fetchFn, ttl);
 
       expect(result1).toBe('product-data');
       expect(fetchFn).toHaveBeenCalledTimes(1);
@@ -150,15 +168,14 @@ describe('BaseRepository', () => {
 
   describe('error handling and logging', () => {
     it('should provide structured error logging', async () => {
-      const repo = new TestRepository(mockLogger, mockCacheService);
       const cacheKey = 'test:error';
       const error = new Error('Test error with context');
 
-      mockCacheService.getOrSet.mockRejectedValue(error);
+      const fetchFn = jest.fn().mockRejectedValue(error);
 
       try {
-        await (repo as any).getCachedData(cacheKey, () => Promise.resolve('data'));
-      } catch (err) {
+        await testRepo.testGetCachedData(cacheKey, fetchFn);
+      } catch {
         // Expected to throw
       }
 
@@ -167,7 +184,7 @@ describe('BaseRepository', () => {
           key: cacheKey,
           error: error.message,
         },
-        CACHE_LOG_MESSAGES.FETCH_FUNCTION_FAILED
+        CACHE_LOG_MESSAGES.FETCH_FUNCTION_FAILED(cacheKey, error.message)
       );
     });
   });

@@ -48,23 +48,23 @@ export class RedisService implements IRedisService {
    */
   public async get(key: string): Promise<string | null> {
     if (!this.isConnected()) {
-      this.logger.warn(
-        CACHE_LOG_MESSAGES.CONNECTION_WARNING.replace('{operation}', CACHE_OPERATIONS.GET)
-      );
+      this.logger.warn(CACHE_LOG_MESSAGES.CONNECTION_WARNING(CACHE_OPERATIONS.GET));
       return null;
     }
 
     try {
       const result = await this.getClient().get(key);
       if (result) {
-        this.logger.debug(CACHE_LOG_MESSAGES.CACHE_HIT.replace('{key}', key));
+        this.logger.debug(CACHE_LOG_MESSAGES.CACHE_HIT(key));
       }
       return result;
     } catch (error) {
       this.logger.error(
-        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED.replace('{operation}', CACHE_OPERATIONS.GET)
-          .replace('{key}', key)
-          .replace('{error}', error instanceof Error ? error.message : String(error))
+        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED(
+          CACHE_OPERATIONS.GET,
+          key,
+          error instanceof Error ? error.message : String(error)
+        )
       );
       throw error;
     }
@@ -84,29 +84,27 @@ export class RedisService implements IRedisService {
    */
   public async set(key: string, value: string, ttl?: number): Promise<void> {
     if (!this.isConnected()) {
-      this.logger.warn(
-        CACHE_LOG_MESSAGES.CONNECTION_WARNING.replace('{operation}', CACHE_OPERATIONS.SET)
-      );
+      this.logger.warn(CACHE_LOG_MESSAGES.CONNECTION_WARNING(CACHE_OPERATIONS.SET));
       return;
     }
 
     try {
       if (ttl) {
         await this.getClient().set(key, value, 'EX', ttl);
-        this.logger.debug(
-          CACHE_LOG_MESSAGES.CACHE_SET.replace('{key}', key).replace('{ttl}', ttl.toString())
-        );
+        this.logger.debug(CACHE_LOG_MESSAGES.CACHE_SET(key, ttl));
       } else {
         await this.getClient().set(key, value);
         this.logger.debug(
-          CACHE_LOG_MESSAGES.CACHE_SET.replace('{key}', key).replace('{ttl}', 'no TTL')
+          CACHE_LOG_MESSAGES.CACHE_SET(key, 0) // Passing 0 or handle no TTL case if function accepts it
         );
       }
     } catch (error) {
       this.logger.error(
-        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED.replace('{operation}', CACHE_OPERATIONS.SET)
-          .replace('{key}', key)
-          .replace('{error}', error instanceof Error ? error.message : String(error))
+        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED(
+          CACHE_OPERATIONS.SET,
+          key,
+          error instanceof Error ? error.message : String(error)
+        )
       );
       throw error;
     }
@@ -124,20 +122,20 @@ export class RedisService implements IRedisService {
    */
   public async delete(key: string): Promise<void> {
     if (!this.isConnected()) {
-      this.logger.warn(
-        CACHE_LOG_MESSAGES.CONNECTION_WARNING.replace('{operation}', CACHE_OPERATIONS.DEL)
-      );
+      this.logger.warn(CACHE_LOG_MESSAGES.CONNECTION_WARNING(CACHE_OPERATIONS.DEL));
       return;
     }
 
     try {
       await this.getClient().del(key);
-      this.logger.debug(CACHE_LOG_MESSAGES.CACHE_DELETE.replace('{key}', key));
+      this.logger.debug(CACHE_LOG_MESSAGES.CACHE_DELETE(key));
     } catch (error) {
       this.logger.error(
-        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED.replace('{operation}', CACHE_OPERATIONS.DEL)
-          .replace('{key}', key)
-          .replace('{error}', error instanceof Error ? error.message : String(error))
+        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED(
+          CACHE_OPERATIONS.DEL,
+          key,
+          error instanceof Error ? error.message : String(error)
+        )
       );
       throw error;
     }
@@ -159,18 +157,15 @@ export class RedisService implements IRedisService {
     }
     try {
       const result = await this.getClient().keys(pattern);
-      this.logger.debug(
-        CACHE_LOG_MESSAGES.CACHE_KEYS.replace('{pattern}', pattern).replace(
-          '{count}',
-          result.length.toString()
-        )
-      );
+      this.logger.debug(CACHE_LOG_MESSAGES.CACHE_KEYS(pattern, result.length));
       return result;
     } catch (error) {
       this.logger.error(
-        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED.replace('{operation}', CACHE_OPERATIONS.KEYS)
-          .replace('{key}', pattern)
-          .replace('{error}', error instanceof Error ? error.message : String(error))
+        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED(
+          CACHE_OPERATIONS.KEYS,
+          pattern,
+          error instanceof Error ? error.message : String(error)
+        )
       );
       throw error;
     }
@@ -205,9 +200,11 @@ export class RedisService implements IRedisService {
       return await this.getClient().incr(key);
     } catch (error) {
       this.logger.error(
-        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED.replace('{operation}', CACHE_OPERATIONS.INCREMENT)
-          .replace('{key}', key)
-          .replace('{error}', error instanceof Error ? error.message : String(error))
+        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED(
+          CACHE_OPERATIONS.INCREMENT,
+          key,
+          error instanceof Error ? error.message : String(error)
+        )
       );
       throw error;
     }
@@ -228,9 +225,11 @@ export class RedisService implements IRedisService {
       await this.getClient().set(key, '1', 'EX', ttl, 'NX');
     } catch (error) {
       this.logger.error(
-        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED.replace('{operation}', CACHE_OPERATIONS.SET)
-          .replace('{key}', key)
-          .replace('{error}', error instanceof Error ? error.message : String(error))
+        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED(
+          CACHE_OPERATIONS.SET,
+          key,
+          error instanceof Error ? error.message : String(error)
+        )
       );
       throw error;
     }
@@ -250,17 +249,16 @@ export class RedisService implements IRedisService {
   public async acquireLock(key: string, ttl: number): Promise<boolean> {
     if (!this.isConnected()) return false;
     try {
-      const lockKey = CACHE_KEYS_PATTERNS.CONSISTENCY_LOCK(key);
+      const lockKey = CACHE_KEYS_PATTERNS.CONSISTENCY_LOCK;
       const result = await this.getClient().set(lockKey, '1', 'EX', ttl, 'NX');
       return result === 'OK';
     } catch (error) {
       this.logger.error(
-        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED.replace(
-          '{operation}',
-          CACHE_OPERATIONS.AQUIRE_LOCK
+        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED(
+          CACHE_OPERATIONS.ACQUIRE_LOCK,
+          key,
+          error instanceof Error ? error.message : String(error)
         )
-          .replace('{key}', key)
-          .replace('{error}', error instanceof Error ? error.message : String(error))
       );
       throw error;
     }
@@ -277,16 +275,15 @@ export class RedisService implements IRedisService {
   public async releaseLock(key: string): Promise<void> {
     if (!this.isConnected()) return;
     try {
-      const lockKey = CACHE_KEYS_PATTERNS.CONSISTENCY_LOCK(key);
+      const lockKey = CACHE_KEYS_PATTERNS.CONSISTENCY_LOCK;
       await this.getClient().del(lockKey);
     } catch (error) {
       this.logger.error(
-        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED.replace(
-          '{operation}',
-          CACHE_OPERATIONS.RELEASE_LOCK
+        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED(
+          CACHE_OPERATIONS.RELEASE_LOCK,
+          key,
+          error instanceof Error ? error.message : String(error)
         )
-          .replace('{key}', key)
-          .replace('{error}', error instanceof Error ? error.message : String(error))
       );
       throw error;
     }

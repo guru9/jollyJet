@@ -1,5 +1,5 @@
 import config from '@/config';
-import { logger, MONGODB_CONFIG } from '@/shared';
+import { logger, MONGODB_CONFIG, MONGODB_LOG_MESSAGES } from '@/shared';
 import mongoose from 'mongoose';
 
 class MongoDBConnection {
@@ -20,11 +20,11 @@ class MongoDBConnection {
   public async connect(): Promise<void> {
     // Guard clause: If MongoDB is disabled, don't attempt connection
     if (MONGODB_CONFIG.DISABLED) {
-      logger.warn('MongoDB is disabled in configuration. Skipping connection.');
+      logger.warn(MONGODB_LOG_MESSAGES.CONNECTION_DISABLED);
       return;
     }
 
-    //Guard clause:If already connected, don't connect again
+    //Guard clause: If already connected, don't connect again
     if (this.isConnected) {
       return; //Exit early
     }
@@ -50,7 +50,12 @@ class MongoDBConnection {
        * - Authentication failures
        */
       mongoose.connection.on('error', (error) => {
-        logger.error({ err: error }, 'MongoDB connection error.');
+        logger.error(
+          { err: error },
+          MONGODB_LOG_MESSAGES.CONNECTION_ERROR(
+            error instanceof Error ? error.message : String(error)
+          )
+        );
         this.isConnected = false; //update status
       });
 
@@ -76,7 +81,12 @@ class MongoDBConnection {
         this.isConnected = true; // Update status
       });
     } catch (error) {
-      logger.error({ err: error }, 'MongoDB connection error');
+      logger.error(
+        { err: error },
+        MONGODB_LOG_MESSAGES.CONNECTION_ERROR(
+          error instanceof Error ? error.message : String(error)
+        )
+      );
       throw error;
     }
   }
@@ -85,7 +95,7 @@ class MongoDBConnection {
   public async disconnect(): Promise<void> {
     // Guard clause: If MongoDB is disabled, nothing to disconnect
     if (MONGODB_CONFIG.DISABLED) {
-      logger.warn('MongoDB is disabled. Skipping disconnection.');
+      logger.warn(MONGODB_LOG_MESSAGES.CONNECTION_DISABLED);
       return;
     }
 
@@ -99,7 +109,12 @@ class MongoDBConnection {
       await mongoose.connection.close();
       this.isConnected = false; // Update our status
     } catch (error) {
-      logger.info({ err: error }, 'Error closing MongoDB connection');
+      logger.info(
+        { err: error },
+        MONGODB_LOG_MESSAGES.DISCONNECT_ERROR(
+          error instanceof Error ? error.message : String(error)
+        )
+      );
       throw error;
     }
   }

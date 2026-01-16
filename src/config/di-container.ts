@@ -30,7 +30,7 @@ import { CorsSecurityService } from '@/domain/services/security/CorsSecurityServ
 import { ProductRepository } from '@/infrastructure/repositories';
 import { RateLimitingService, SessionService } from '@/infrastructure/services';
 import { HealthController, ProductController } from '@/interface/controllers';
-import { REDIS_CONFIG, DI_TOKENS, logger } from '@/shared';
+import { DI_TOKENS, logger, SERVER_LOG_MESSAGES } from '@/shared';
 
 import {
   CountProductsUseCase,
@@ -155,7 +155,7 @@ export const initializeDIContainer = (): void => {
     });
   }
 
-  logger.info('DI container initialized successfully');
+  logger.info(SERVER_LOG_MESSAGES.DI_INITIALIZED);
 };
 
 // Export the container instance for direct access if needed

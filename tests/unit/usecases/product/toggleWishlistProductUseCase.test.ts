@@ -1,5 +1,6 @@
 import { Product } from '@/domain/entities';
 import { IProductRepository } from '@/domain/interfaces';
+import { CacheService } from '@/domain/services/cache/CacheService';
 import { ToggleWishlistDTO } from '@/interface/dtos';
 import { Logger } from '@/shared';
 import { ToggleWishlistProductUseCase } from '@/usecases';
@@ -8,6 +9,7 @@ describe('ToggleWishlistProductUseCase', () => {
   let useCase: ToggleWishlistProductUseCase;
   let mockRepository: jest.Mocked<IProductRepository>;
   let mockLogger: jest.Mocked<Logger>;
+  let mockCacheService: jest.Mocked<CacheService>;
 
   beforeEach(() => {
     mockRepository = {
@@ -35,7 +37,15 @@ describe('ToggleWishlistProductUseCase', () => {
       useOnlyCustomLevels: false,
     } as unknown as jest.Mocked<Logger>;
 
-    useCase = new ToggleWishlistProductUseCase(mockRepository, mockLogger);
+    mockCacheService = {
+      get: jest.fn().mockResolvedValue(null),
+      set: jest.fn(),
+      delete: jest.fn(),
+      deleteByPattern: jest.fn(),
+      getOrSet: jest.fn(),
+    } as unknown as jest.Mocked<CacheService>;
+
+    useCase = new ToggleWishlistProductUseCase(mockRepository, mockLogger, mockCacheService);
   });
 
   describe('execute method', () => {

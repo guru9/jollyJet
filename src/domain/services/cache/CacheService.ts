@@ -1,12 +1,6 @@
-import { inject, injectable } from 'tsyringe';
 import { IRedisService } from '@/domain/interfaces/redis/IRedisService';
-import {
-  DI_TOKENS,
-  Logger,
-  REDIS_CONFIG,
-  CACHE_LOG_MESSAGES,
-  CACHE_LOG_MESSAGES_ADDITIONAL,
-} from '@/shared';
+import { CACHE_LOG_MESSAGES, DI_TOKENS, Logger, REDIS_CONFIG } from '@/shared';
+import { inject, injectable } from 'tsyringe';
 
 /**
  * Cache Service - High-Level Caching Abstraction
@@ -43,16 +37,14 @@ export class CacheService {
     try {
       const cached = await this.redisService.get(key);
       if (cached) {
-        this.logger.debug({ key }, CACHE_LOG_MESSAGES.CACHE_HIT);
+        this.logger.debug({ key }, CACHE_LOG_MESSAGES.CACHE_HIT(key));
         return JSON.parse(cached) as T;
       }
-      this.logger.debug({ key }, CACHE_LOG_MESSAGES.CACHE_MISS);
+      this.logger.debug({ key }, CACHE_LOG_MESSAGES.CACHE_MISS(key, 'upstream'));
       return null;
     } catch (error) {
-      this.logger.warn(
-        { key, error: error instanceof Error ? error.message : String(error) },
-        CACHE_LOG_MESSAGES.CACHE_GET_FAILED
-      );
+      const errMsg = error instanceof Error ? error.message : String(error);
+      this.logger.warn({ key, error: errMsg }, CACHE_LOG_MESSAGES.CACHE_GET_FAILED(key, errMsg));
       return null;
     }
   }
@@ -69,13 +61,11 @@ export class CacheService {
       );
       this.logger.debug(
         { key, ttl: ttl ?? Number(REDIS_CONFIG.TTL.DEFAULT) },
-        CACHE_LOG_MESSAGES.DATA_CACHED_SUCCESSFULLY
+        CACHE_LOG_MESSAGES.DATA_CACHED_SUCCESSFULLY(key, ttl ?? Number(REDIS_CONFIG.TTL.DEFAULT))
       );
     } catch (error) {
-      this.logger.warn(
-        { key, error: error instanceof Error ? error.message : String(error) },
-        CACHE_LOG_MESSAGES.CACHE_SET_FAILED
-      );
+      const errMsg = error instanceof Error ? error.message : String(error);
+      this.logger.warn({ key, error: errMsg }, CACHE_LOG_MESSAGES.CACHE_SET_FAILED(key, errMsg));
     }
   }
 
@@ -85,12 +75,10 @@ export class CacheService {
   async delete(key: string): Promise<void> {
     try {
       await this.redisService.delete(key);
-      this.logger.debug({ key }, CACHE_LOG_MESSAGES.CACHE_DELETE);
+      this.logger.debug({ key }, CACHE_LOG_MESSAGES.CACHE_DELETE(key));
     } catch (error) {
-      this.logger.warn(
-        { key, error: error instanceof Error ? error.message : String(error) },
-        CACHE_LOG_MESSAGES.CACHE_DELETE_FAILED
-      );
+      const errMsg = error instanceof Error ? error.message : String(error);
+      this.logger.warn({ key, error: errMsg }, CACHE_LOG_MESSAGES.CACHE_DELETE_FAILED(key, errMsg));
     }
   }
 
@@ -102,12 +90,16 @@ export class CacheService {
       const keys = await this.redisService.keys(pattern);
       if (keys.length > 0) {
         await Promise.all(keys.map((key) => this.redisService.delete(key)));
-        this.logger.debug({ pattern, count: keys.length }, CACHE_LOG_MESSAGES.CACHE_KEYS);
+        this.logger.debug(
+          { pattern, count: keys.length },
+          CACHE_LOG_MESSAGES.CACHE_KEYS(pattern, keys.length)
+        );
       }
     } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       this.logger.warn(
-        { pattern, error: error instanceof Error ? error.message : String(error) },
-        CACHE_LOG_MESSAGES.CACHE_PATTERN_DELETE_FAILED
+        { pattern, error: errMsg },
+        CACHE_LOG_MESSAGES.CACHE_PATTERN_DELETE_FAILED(pattern, errMsg)
       );
     }
   }
@@ -126,9 +118,10 @@ export class CacheService {
       await this.set(key, data, ttl);
       return data;
     } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       this.logger.error(
-        { key, error: error instanceof Error ? error.message : String(error) },
-        CACHE_LOG_MESSAGES.FETCH_FUNCTION_FAILED
+        { key, error: errMsg },
+        CACHE_LOG_MESSAGES.FETCH_FUNCTION_FAILED(key, errMsg)
       );
       throw error;
     }

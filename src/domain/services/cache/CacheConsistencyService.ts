@@ -101,7 +101,7 @@ export class CacheConsistencyService {
     this.consistencyCheckInterval = setInterval(() => {
       this.performConsistencyCheck().catch((error) => {
         this.logger.error(
-          CACHE_LOG_MESSAGES.CONSISTENCY_CHECK_FAILED.replace('{key}', 'batch_check') +
+          CACHE_LOG_MESSAGES.CONSISTENCY_CHECK_FAILED('batch_check') +
             `, error: ${error instanceof Error ? error.message : String(error)}`
         );
         this.trackConsistencyError();
@@ -109,9 +109,11 @@ export class CacheConsistencyService {
     }, checkInterval);
 
     this.logger.info(
-      CACHE_LOG_MESSAGES.CONSISTENCY_MONITORING_INIT.replace('{interval}', checkInterval.toString())
-        .replace('{sampleSize}', REDIS_CONFIG.CONSISTENCY.SAMPLE_SIZE.toString())
-        .replace('{staleThreshold}', REDIS_CONFIG.CONSISTENCY.STALE_THRESHOLD.toString())
+      CACHE_LOG_MESSAGES.CONSISTENCY_MONITORING_INIT(
+        checkInterval.toString(),
+        REDIS_CONFIG.CONSISTENCY.SAMPLE_SIZE.toString(),
+        REDIS_CONFIG.CONSISTENCY.STALE_THRESHOLD.toString()
+      )
     );
   }
 
@@ -220,8 +222,8 @@ export class CacheConsistencyService {
             if (staleCheck.isStale) {
               staleCount++;
               this.logger.warn(
-                CACHE_LOG_MESSAGES.STALE_CACHE_DETECTED.replace('{key}', key) +
-                  `, TTL: ${staleCheck.ttl}, age: ${staleCheck.age}`
+                CACHE_LOG_MESSAGES.STALE_CACHE_DETECTED(key, staleCheck.ttl) +
+                  `, age: ${staleCheck.age}`
               );
             }
           }
@@ -253,10 +255,7 @@ export class CacheConsistencyService {
       // Log low hit rate warning if applicable
       if (this.metrics.hitRate < 50 && this.metrics.totalOperations > 100) {
         this.logger.warn(
-          CACHE_LOG_MESSAGES.LOW_HIT_RATE_WARNING.replace(
-            '{hitRate}',
-            this.metrics.hitRate.toFixed(2)
-          ) +
+          CACHE_LOG_MESSAGES.LOW_HIT_RATE_WARNING(this.metrics.hitRate.toFixed(2)) +
             ', total operations: ' +
             this.metrics.totalOperations
         );
@@ -370,7 +369,7 @@ export class CacheConsistencyService {
         }
 
         // Data is stale or approaching expiration, refresh in background
-        this.logger.debug(CACHE_LOG_MESSAGES.BACKGROUND_REFRESH_STARTED.replace('{key}', key));
+        this.logger.debug(CACHE_LOG_MESSAGES.BACKGROUND_REFRESH_STARTED(key));
         this.refreshCacheInBackground(key, operation, ttl);
 
         // Return stale data for now to maintain performance
@@ -380,9 +379,7 @@ export class CacheConsistencyService {
 
       // Cache miss, fetch and cache
       this.trackCacheMiss();
-      this.logger.debug(
-        CACHE_LOG_MESSAGES.CACHE_MISS.replace('{key}', key) + ', fetching from database'
-      );
+      this.logger.debug(CACHE_LOG_MESSAGES.CACHE_MISS(key, 'database'));
 
       const result = await operation();
       await this.redisService.set(key, JSON.stringify(result), ttl);
@@ -416,12 +413,14 @@ export class CacheConsistencyService {
       const result = await operation();
       await this.redisService.set(key, JSON.stringify(result), ttl);
 
-      this.logger.debug(CACHE_LOG_MESSAGES.BACKGROUND_REFRESH_COMPLETED.replace('{key}', key));
+      this.logger.debug(CACHE_LOG_MESSAGES.BACKGROUND_REFRESH_COMPLETED(key));
     } catch (error) {
       this.logger.error(
-        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED.replace('{operation}', 'BACKGROUND_REFRESH')
-          .replace('{key}', key)
-          .replace('{error}', error instanceof Error ? error.message : String(error))
+        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED(
+          'BACKGROUND_REFRESH',
+          key,
+          error instanceof Error ? error.message : String(error)
+        )
       );
     }
   }
@@ -440,7 +439,7 @@ export class CacheConsistencyService {
       const result = await operation();
       await this.redisService.set(key, JSON.stringify(result), ttl);
 
-      this.logger.info(CACHE_LOG_MESSAGES.CACHE_REFRESHED.replace('{key}', key));
+      this.logger.info(CACHE_LOG_MESSAGES.CACHE_REFRESHED(key));
       return result;
     } catch (error) {
       this.logger.error(

@@ -29,7 +29,6 @@ export const validateEnv = (): IEnvConfig => {
   const result = envSchema.safeParse(process.env);
   if (!result.success) {
     // Log full validation details to help debugging which variables are missing/invalid
-    console.error('Invalid environment variables:', JSON.stringify(result.error.format(), null, 2));
 
     // Throw a clearer error including a summary of the issues
     throw new Error(

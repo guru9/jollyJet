@@ -69,7 +69,7 @@ export const rateLimitHandler = (options?: RateLimitOptions) => {
             limit: options?.limit,
             ip: clientIdentifier,
           },
-          CACHE_LOG_MESSAGES.RATE_LIMIT_EXCEEDED.replace('{key}', key)
+          CACHE_LOG_MESSAGES.RATE_LIMIT_EXCEEDED(key)
         );
 
         return res.status(HTTP_STATUS.TOO_MANY_REQUESTS).json({
@@ -89,8 +89,8 @@ export const rateLimitHandler = (options?: RateLimitOptions) => {
           key,
           error: error instanceof Error ? error.message : String(error),
         },
-        CACHE_LOG_MESSAGES.RATE_LIMIT_CHECK_FAILED.replace('{key}', key).replace(
-          '{error}',
+        CACHE_LOG_MESSAGES.RATE_LIMIT_CHECK_FAILED(
+          key,
           error instanceof Error ? error.message : String(error)
         )
       );

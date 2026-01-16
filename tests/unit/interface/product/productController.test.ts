@@ -48,38 +48,31 @@ describe('ProductController', () => {
 
     mockCountProductsUseCase = {
       execute: jest.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    } as unknown as jest.Mocked<CountProductsUseCase>;
 
     mockCreateProductUseCase = {
       execute: jest.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    } as unknown as jest.Mocked<CreateProductUseCase>;
 
     mockGetProductUseCase = {
       execute: jest.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    } as unknown as jest.Mocked<GetProductUseCase>;
 
     mockListProductsUseCase = {
       execute: jest.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    } as unknown as jest.Mocked<ListProductsUseCase>;
 
     mockUpdateProductUseCase = {
       execute: jest.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    } as unknown as jest.Mocked<UpdateProductUseCase>;
 
     mockDeleteProductUseCase = {
       execute: jest.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    } as unknown as jest.Mocked<DeleteProductUseCase>;
 
     mockToggleWishlistUseCase = {
       execute: jest.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    } as unknown as jest.Mocked<ToggleWishlistProductUseCase>;
 
     mockLogger = {
       info: jest.fn(),
@@ -496,8 +489,7 @@ describe('ProductController', () => {
 
       mockRequest.params = { id: productId };
       mockRequest.body = updateData;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockUpdateProductUseCase.execute.mockResolvedValue(null as any);
+      mockUpdateProductUseCase.execute.mockResolvedValue(null as unknown as Product);
 
       // Act
       await productController.updateProduct(
