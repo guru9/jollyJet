@@ -19,10 +19,12 @@ import {
   IRedisService,
   ISessionService,
 } from '@/domain/interfaces';
+import { ICorsSecurityService } from '@/domain/interfaces/security/ICorsSecurityService';
 import { CacheConsistencyService, ProductService, RedisService } from '@/domain/services';
+import { CorsSecurityService } from '@/domain/services/security/CorsSecurityService';
 import { ProductRepository } from '@/infrastructure/repositories';
 import { RateLimitingService, SessionService } from '@/infrastructure/services';
-import { ProductController } from '@/interface/controllers';
+import { HealthController, ProductController } from '@/interface/controllers';
 import { DI_TOKENS, logger } from '@/shared';
 
 import {
@@ -54,9 +56,11 @@ export const initializeDIContainer = (): void => {
   // Register Infrastructure Layer - Data Access
   // Maps the IProductRepository interface to the concrete ProductRepository implementation
   // This allows controllers and services to depend on the interface rather than the concrete class
-  container.register<IProductRepository>(DI_TOKENS.PRODUCT_REPOSITORY, {
-    useClass: ProductRepository,
-  });
+  if (!container.isRegistered(DI_TOKENS.PRODUCT_REPOSITORY)) {
+    container.register<IProductRepository>(DI_TOKENS.PRODUCT_REPOSITORY, {
+      useClass: ProductRepository,
+    });
+  }
 
   // Register Domain Services - Business Logic
   // ProductService contains reusable business logic methods
@@ -90,34 +94,53 @@ export const initializeDIContainer = (): void => {
 
   // Register Controllers - Interface Layer
   // Controllers handle HTTP requests and orchestrate use case execution
+  container.register<HealthController>(DI_TOKENS.HEALTH_CONTROLLER, {
+    useClass: HealthController,
+  });
+
   container.register<ProductController>(ProductController, {
     useClass: ProductController,
   });
 
   // Register Global Services
   // Registering the logger allows other services to inject it rather than importing it directly
-  container.register(DI_TOKENS.LOGGER, {
-    useValue: logger,
-  });
+  if (!container.isRegistered(DI_TOKENS.LOGGER)) {
+    container.register(DI_TOKENS.LOGGER, {
+      useValue: logger,
+    });
+  }
 
   // Register Redis Service
-  container.register<IRedisService>(DI_TOKENS.REDIS_SERVICE, {
-    useClass: RedisService,
-  });
+  if (!container.isRegistered(DI_TOKENS.REDIS_SERVICE)) {
+    container.register<IRedisService>(DI_TOKENS.REDIS_SERVICE, {
+      useClass: RedisService,
+    });
+  }
 
   // Register Cache Consistency Service - Performs background consistency checks and metrics collection
   container.registerSingleton<CacheConsistencyService>(CacheConsistencyService);
 
   // Register Session Service - Maps ISessionService interface to SessionService implementation
   // SessionService provides Redis-based session management for user authentication
-  container.register<ISessionService>(DI_TOKENS.SESSION_SERVICE, {
-    useClass: SessionService,
-  });
+  if (!container.isRegistered(DI_TOKENS.SESSION_SERVICE)) {
+    container.register<ISessionService>(DI_TOKENS.SESSION_SERVICE, {
+      useClass: SessionService,
+    });
+  }
 
   // Register Rate Limiting Service - Maps IRateLimitingService interface to RateLimitingService implementation
-  container.register<IRateLimitingService>(DI_TOKENS.RATE_LIMIT_SERVICE, {
-    useClass: RateLimitingService,
-  });
+  if (!container.isRegistered(DI_TOKENS.RATE_LIMIT_SERVICE)) {
+    container.register<IRateLimitingService>(DI_TOKENS.RATE_LIMIT_SERVICE, {
+      useClass: RateLimitingService,
+    });
+  }
+
+  // Register CORS Security Service - Maps ICorsSecurityService interface to CorsSecurityService implementation
+  if (!container.isRegistered(DI_TOKENS.CORS_SECURITY_SERVICE)) {
+    container.register<ICorsSecurityService>(DI_TOKENS.CORS_SECURITY_SERVICE, {
+      useClass: CorsSecurityService,
+    });
+  }
 
   logger.info('DI container initialized successfully');
 };

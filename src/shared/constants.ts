@@ -64,13 +64,15 @@ export const DI_TOKENS = {
   REDIS_SERVICE: 'RedisService', // Injection token for Redis client
   SESSION_SERVICE: 'SessionService', // Injection token for session service
   RATE_LIMIT_SERVICE: 'RateLimitingService', // Injection token for rate limiting service
+  CORS_SECURITY_SERVICE: 'CorsSecurityService', // Injection token for CORS security service
+  HEALTH_CONTROLLER: 'HealthController', // Injection token for health controller
 
   // Future tokens can be added here for other modules
 } as const;
 
 /**
  * ============================================
- * 3) PRODDUCT CONFIGURATION
+ * 3) PRODUCT CONFIGURATION
  * ============================================
  *
 
@@ -163,7 +165,149 @@ export const RATE_LIMIT_MESSAGES = {
 
 /**
  * ============================================
- * 4) REDIS CONFIGURATION
+ * 4) CORS SECURITY CONFIGURATION
+ * ============================================
+ *
+ * Essential security configuration constants for JollyJet API.
+ * This section defines security-related constants for essential CORS protection,
+ * IP validation, geographic blocking, and security event logging.
+ *
+ * The configuration follows essential security scope (not enterprise-grade)
+ * and integrates seamlessly with existing CORS configuration and logging infrastructure.
+ *
+ * Key Features:
+ * - Essential security headers for common attack prevention
+ * - IP-based validation with whitelist/blacklist support
+ * - Geographic blocking capabilities for country-based access control
+ * - Security event logging for monitoring and debugging
+ * - Clean integration with existing project patterns
+ */
+
+/**
+ * Essential security headers for CORS protection
+ * These headers prevent common web vulnerabilities and attacks
+ */
+export const CORS_SECURITY = {
+  HEADERS: {
+    X_FRAME_OPTIONS: 'DENY',
+    X_CONTENT_TYPE_OPTIONS: 'nosniff',
+    X_XSS_PROTECTION: '1; mode=block',
+    REFERRER_POLICY: 'strict-origin-when-cross-origin',
+  },
+  MESSAGES: {
+    IP_BLOCKED: 'Access from your IP address is restricted',
+    GEO_BLOCKED: 'Access from your country is not permitted',
+    SECURITY_VALIDATION_FAILED: 'Security validation failed',
+  },
+  GEO_CONFIG: {
+    DATABASE_PATH: './data/GeoLite2-Country.mmdb',
+    ALLOWED_COUNTRIES: [],
+    BLOCKED_COUNTRIES: [],
+    DEFAULT_ACTION: 'allow' as const,
+  },
+};
+
+/**
+ * CORS logging messages with placeholders for structured logging.
+ *
+ * Placeholders: {origin}, {env}, {method}, {error}
+ */
+export const CORS_LOG_MESSAGES = {
+  VIOLATION_DETECTED: 'CORS violation detected: {origin} not allowed (Environment: {env})',
+  ORIGIN_BLOCKED: 'Origin blocked by CORS policy: {origin}',
+  METHOD_NOT_ALLOWED: 'HTTP method not allowed by CORS: {method}',
+  CONFIG_VALIDATION_SUCCESS: 'CORS configuration validated successfully for environment: {env}',
+  CONFIG_VALIDATION_ERROR: 'CORS configuration validation error: {error}',
+  ORIGIN_VALIDATION_DISABLED: 'CORS origin validation disabled for development environment',
+  NON_CORS_REQUEST_BLOCKED: 'Non-CORS request blocked in production environment',
+  INVALID_ORIGIN_FORMAT: 'Invalid origin format detected: {origin}',
+  PROTOCOL_VIOLATION: 'Non-HTTP protocol detected in origin: {origin}',
+};
+
+/**
+ * CORS Logger configuration constants for consistent logging across the application.
+ * These constants define log levels, message formats, and operational parameters
+ * for the CORS logging system to track security events and violations.
+ */
+export const CORS_LOGGER = {
+  /**
+   * Log levels for CORS logging system
+   */
+  LOG_LEVELS: {
+    ERROR: 'error',
+    WARN: 'warn',
+    INFO: 'info',
+    DEBUG: 'debug',
+  },
+
+  /**
+   * Default log level for CORS logger
+   */
+  DEFAULT_LOG_LEVEL: 'warn',
+
+  /**
+   * Log prefixes for different types of CORS events
+   */
+  LOG_PREFIXES: {
+    CORS: '[CORS]',
+    SECURITY: '[SECURITY]',
+    VIOLATION: '[VIOLATION]',
+  },
+
+  /**
+   * Message templates for structured CORS logging
+   * Placeholders: {origin}, {method}, {env}, {timestamp}, {ip}, {userAgent}
+   */
+  MESSAGE_TEMPLATES: {
+    REQUEST_BLOCKED: 'Request blocked - Origin: {origin}, Method: {method}, IP: {ip}',
+    ORIGIN_ALLOWED: 'Request allowed - Origin: {origin}, Method: {method}',
+    SECURITY_VIOLATION: 'Security violation detected - Origin: {origin}, Reason: {reason}',
+    RATE_LIMIT_EXCEEDED: 'Rate limit exceeded - Origin: {origin}, IP: {ip}',
+    INVALID_ORIGIN: 'Invalid origin format - Origin: {origin}',
+    MISSING_HEADERS: 'Missing required headers - Headers: {headers}',
+  },
+
+  /**
+   * Log retention and rotation settings
+   */
+  LOG_RETENTION: {
+    MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
+    MAX_FILES: 5,
+    RETENTION_DAYS: 30,
+  },
+
+  /**
+   * Performance monitoring settings
+   */
+  PERFORMANCE: {
+    SLOW_REQUEST_THRESHOLD: 1000, // milliseconds
+    ENABLE_PERFORMANCE_LOGGING: true,
+    SAMPLE_RATE: 0.1, // 10% sampling for performance logs
+  },
+
+  /**
+   * Security event thresholds for alerting
+   */
+  SECURITY_THRESHOLDS: {
+    VIOLATIONS_PER_MINUTE: 10,
+    BLOCKED_REQUESTS_PER_HOUR: 100,
+    SUSPICIOUS_ORIGINS_THRESHOLD: 5,
+  },
+
+  /**
+   * Log formatting options
+   */
+  LOG_FORMATTING: {
+    INCLUDE_TIMESTAMP: true,
+    INCLUDE_USER_AGENT: true,
+    INCLUDE_REQUEST_ID: true,
+    JSON_FORMAT: true,
+  },
+};
+
+/**
+ * ============================================
+ * 5) REDIS CONFIGURATION
  * ============================================
  *
  * Comprehensive Redis configuration for the JollyJet e-commerce platform.
@@ -234,9 +378,42 @@ export const REDIS_CONFIG = {
   PORT: process.env.REDIS_PORT || 6379,
   PASSWORD: process.env.REDIS_PASSWORD || '',
   DB: process.env.REDIS_DB || 0,
+  DISABLED: process.env.REDIS_DISABLED === 'true',
   EXPIRE_TIME: process.env.REDIS_EXPIRE_TIME || 60 * 60 * 24,
   MAX_RETRIES: process.env.REDIS_MAX_RETRIES || 5,
   RETRY_DELAY: process.env.REDIS_RETRY_DELAY || 1000,
+  TTL: {
+    DEFAULT: process.env.REDIS_TTL_DEFAULT || 60 * 60 * 24,
+    SHORT: process.env.REDIS_TTL_SHORT || 60 * 60,
+    LONG: process.env.REDIS_TTL_LONG || 60 * 60 * 24 * 7,
+    NEVER: process.env.REDIS_TTL_NEVER || 0,
+    SESSION: process.env.REDIS_TTL_SESSION || 60 * 60 * 24,
+    TEMPORARY: process.env.REDIS_TTL_TEMPORARY || 60 * 60 * 24,
+    PERMANENT: process.env.REDIS_TTL_PERMANENT || 60 * 60 * 24 * 365,
+    MAX: process.env.REDIS_TTL_MAX || 60 * 60 * 24 * 365,
+    MIN: process.env.REDIS_TTL_MIN || 60 * 60 * 24,
+    RATE_LIMIT: process.env.REDIS_TTL_RATE_LIMIT || 60 * 60 * 24,
+    PRODUCT: process.env.REDIS_TTL_PRODUCT || 60 * 60 * 24,
+    USER: process.env.REDIS_TTL_USER || 60 * 60 * 24,
+  },
+  CONSISTENCY: {
+    BATCH_SIZE: process.env.REDIS_CONSISTENCY_BATCH_SIZE || 100,
+    DELAY_MS: process.env.REDIS_CONSISTENCY_DELAY_MS || 100,
+    MAX_RETRIES: process.env.REDIS_CONSISTENCY_MAX_RETRIES || 3,
+    CHECK_INTERVAL: process.env.REDIS_CONSISTENCY_CHECK_INTERVAL || 60 * 60 * 24,
+    SAMPLE_SIZE: process.env.REDIS_CONSISTENCY_SAMPLE_SIZE || 10,
+    STALE_THRESHOLD: process.env.REDIS_CONSISTENCY_STALE_THRESHOLD || 60 * 60 * 24,
+  },
+  RATE_LIMIT: {
+    WINDOW_MS: process.env.REDIS_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000, // 15 minutes
+    MAX_REQUESTS: process.env.REDIS_RATE_LIMIT_MAX_REQUESTS || 100,
+    WINDOW: process.env.REDIS_RATE_LIMIT_WINDOW || 60 * 60 * 24,
+    LIMIT: process.env.REDIS_RATE_LIMIT_LIMIT || 100,
+  },
+};
+
+export const MONGODB_CONFIG = {
+  DISABLED: process.env.MONGODB_DISABLED === 'true',
   TTL: {
     DEFAULT: process.env.REDIS_TTL_DEFAULT || 60 * 60 * 24,
     SHORT: process.env.REDIS_TTL_SHORT || 60 * 60,

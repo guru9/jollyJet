@@ -51,7 +51,7 @@ export interface StaleDataCheckResult {
  * ```typescript
  * // Basic usage
  * const metrics = await cacheConsistencyService.getMetrics();
- * console.log(`Cache hit rate: ${metrics.hitRate}%`);
+ * logger.info(`Cache hit rate: ${metrics.hitRate}%`);
  *
  * // Check if data is stale
  * const isStale = await cacheConsistencyService.checkStaleData('product:123');

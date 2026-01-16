@@ -55,6 +55,12 @@ class RedisConnection {
 
   // Connect to Redis
   public async connect(): Promise<void> {
+    // Guard clause: If Redis is disabled, don't attempt connection
+    if (REDIS_CONFIG.DISABLED) {
+      logger.warn('Redis is disabled in configuration. Skipping connection.');
+      return;
+    }
+
     // Guard clause: If already connected, don't connect again
     if (this.isConnected) {
       return; // Exit early
@@ -74,6 +80,12 @@ class RedisConnection {
 
   // Disconnect from Redis
   public async disconnect(): Promise<void> {
+    // Guard clause: If Redis is disabled, nothing to disconnect
+    if (REDIS_CONFIG.DISABLED) {
+      logger.warn('Redis is disabled. Skipping disconnection.');
+      return;
+    }
+
     // Guard clause: If not connected, nothing to disconnect
     if (!this.isConnected) {
       return; // Exit early

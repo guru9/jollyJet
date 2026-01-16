@@ -81,8 +81,40 @@
         "scope": "comment",
         "settings": {
           "foreground": "#75715E"
-        }
-      }
+  },
+  
+  // Database connections for VS Code extensions
+  "mongodb.connections": [
+    {
+      "name": "JollyJet Local",
+      "connectionString": "mongodb://jollyjet_user:jollyjet_password@localhost:27017/jollyjet?authSource=jollyjet",
+      "defaultDatabase": "jollyjet"
+    },
+    {
+      "name": "JollyJet Admin", 
+      "connectionString": "mongodb://admin:admin123@localhost:27017/jollyjet?authSource=admin",
+      "defaultDatabase": "jollyjet"
+    }
+  ],
+  "redis.connections": [
+    {
+      "name": "JollyJet Redis",
+      "host": "localhost",
+      "port": 6379,
+      "password": "redis123",
+      "database": 0
+    }
+  ],
+  
+  // File exclusions
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/coverage": true
+  },
+  
+  "editor.rulers": [80, 120]
+}
     ]
   }
 }

@@ -1,5 +1,5 @@
 import config from '@/config';
-import { logger } from '@/shared';
+import { logger, MONGODB_CONFIG } from '@/shared';
 import mongoose from 'mongoose';
 
 class MongoDBConnection {
@@ -18,6 +18,12 @@ class MongoDBConnection {
 
   //Connect to MongoDB
   public async connect(): Promise<void> {
+    // Guard clause: If MongoDB is disabled, don't attempt connection
+    if (MONGODB_CONFIG.DISABLED) {
+      logger.warn('MongoDB is disabled in configuration. Skipping connection.');
+      return;
+    }
+
     //Guard clause:If already connected, don't connect again
     if (this.isConnected) {
       return; //Exit early
@@ -77,13 +83,19 @@ class MongoDBConnection {
 
   //Disconnect from MongoDB
   public async disconnect(): Promise<void> {
+    // Guard clause: If MongoDB is disabled, nothing to disconnect
+    if (MONGODB_CONFIG.DISABLED) {
+      logger.warn('MongoDB is disabled. Skipping disconnection.');
+      return;
+    }
+
     // Guard clause: If not connected, nothing to disconnect
     if (!this.isConnected) {
       return; // Exit early
     }
 
     try {
-      // Close the mongoose connection
+      // Close mongoose connection
       await mongoose.connection.close();
       this.isConnected = false; // Update our status
     } catch (error) {
