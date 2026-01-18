@@ -195,6 +195,24 @@ export const CACHE_LOG_MESSAGES = {
     `Fetch function failed for key: ${key}, error: ${error}`,
   METRICS_RESET: 'Metrics reset successfully',
   SERVICE_CLEANUP_COMPLETED: 'Service cleanup completed',
+  PRODUCT_UPDATE_INITIATED: (productId: string, fields: string) =>
+    `Product update initiated for ${productId}, fields: ${fields}`,
+  PRODUCT_UPDATE_SUCCESS: (productId: string, fields: string) =>
+    `Product updated successfully for ${productId}, fields: ${fields}`,
+  PRODUCT_UPDATE_FAILED: (productId: string, error: string) =>
+    `Product update failed for ${productId}: ${error}`,
+  PRODUCT_NOT_FOUND_UPDATE: (productId: string) => `Product not found for update: ${productId}`,
+  PRODUCT_DELETION_INITIATED: (productId: string) => `Product deletion initiated for ${productId}`,
+  PRODUCT_DELETION_SUCCESS: (productId: string) => `Product deleted successfully for ${productId}`,
+  PRODUCT_DELETION_FAILED: (productId: string, error: string) =>
+    `Product deletion failed for ${productId}: ${error}`,
+  PRODUCT_DELETION_NOT_FOUND: (productId: string) =>
+    `Product deletion failed - product not found: ${productId}`,
+  PRODUCT_CACHE_INVALIDATED: (productId: string) =>
+    `Product cache invalidated after operation for ${productId}`,
+  PRODUCT_CACHE_INVALIDATION_FAILED: (productId: string, error: string) =>
+    `Failed to invalidate product cache for ${productId}: ${error}`,
+  LIST_PRODUCTS_QUERY: 'ListProductsUseCase query executed',
 } as const;
 
 /**
@@ -285,6 +303,7 @@ export const PRODUCT_ERROR_MESSAGES = {
   PRODUCT_ID_REQ_DELETE: 'Product ID is required for deletion.',
   PRODUCT_ID_REQ_WISHLIST: 'Product ID is required for wishlist toggle.',
   PRODUCT_ID_INVALID: 'Invalid product ID format.',
+  PRODUCT_NOT_FOUND_BY_ID: 'Product with specified ID does not exist.',
 } as const;
 
 /**
@@ -308,6 +327,12 @@ export const PRODUCT_VALIDATION_MESSAGES = {
   PRODUCT_STOCK_INVALID: 'Product stock must be a non-negative number.',
   PRODUCT_CATEGORY_REQUIRED: 'Product category is required.',
   WISHLIST_COUNT_INVALID: 'wishlistCount must be a non-negative number if provided.',
+  INSUFFICIENT_STOCK: 'Insufficient stock.',
+  PRICE_NEGATIVE: 'Price cannot be negative.',
+  INVALID_STOCK_UPDATE: 'Invalid product data for stock update',
+  INVALID_PRICE_UPDATE: 'Invalid product data for price update',
+  INVALID_DETAILS_UPDATE: 'Invalid product data for details update',
+  INVALID_WISHLIST_UPDATE: 'Invalid product data for wishlist update',
 } as const;
 
 /**

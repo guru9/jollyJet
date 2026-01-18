@@ -1,13 +1,14 @@
 import { Product } from '@/domain/entities';
 import { IProductRepository } from '@/domain/interfaces';
+import { CacheService } from '@/domain/services/cache/CacheService';
 import {
-  BadRequestError,
+  CACHE_KEYS_PATTERNS,
+  CACHE_LOG_MESSAGES,
   DI_TOKENS,
   Logger,
   PRODUCT_ERROR_MESSAGES,
-  CACHE_KEYS_PATTERNS,
 } from '@/shared';
-import { CacheService } from '@/domain/services/cache/CacheService';
+import { validateProductId } from '@/shared/utils';
 
 import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
@@ -38,25 +39,20 @@ export class GetProductUseCase {
    * 📋 Business Rules: Enforced by domain entity validation
    */
   public async execute(productId: string): Promise<Product | null> {
-    // Validate input
-    if (!productId?.trim()) {
-      throw new BadRequestError(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_REQ_RETRIEVE);
-    }
+    // Validate product ID
+    validateProductId(productId, PRODUCT_ERROR_MESSAGES.PRODUCT_ID_REQ_RETRIEVE);
 
     const cacheKey = CACHE_KEYS_PATTERNS.PRODUCT_SINGLE(productId);
 
     // Redis-first: Try to get from cache first
     const cachedProduct = await this.cacheService.get<Product>(cacheKey);
     if (cachedProduct !== null) {
-      this.logger.debug({ productId, cacheKey }, 'Product retrieved from cache');
+      this.logger.debug({ productId, cacheKey }, CACHE_LOG_MESSAGES.CACHE_HIT(cacheKey));
       return cachedProduct;
     }
 
     // Cache miss: Fetch from MongoDB
-    this.logger.debug(
-      { productId, cacheKey },
-      'Product not found in cache, fetching from database'
-    );
+    this.logger.debug({ productId, cacheKey }, CACHE_LOG_MESSAGES.CACHE_MISS(cacheKey, 'database'));
     const product = await this.productRepository.findById(productId);
 
     // Cache the result (even if null to prevent repeated database queries)

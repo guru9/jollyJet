@@ -71,7 +71,7 @@ const startServer = async () => {
   try {
     // Connect to Redis - required for server startup
     await redisConnection.connect();
-    logger.info(CACHE_LOG_MESSAGES.CONNECTION_SUCCESS);
+    // Note: Connection success is already logged by the Redis connection event handler
   } catch (error) {
     logger.error(
       { err: error },

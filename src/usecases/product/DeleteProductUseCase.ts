@@ -1,12 +1,7 @@
 import { IProductRepository } from '@/domain/interfaces';
 import { CacheService } from '@/domain/services/cache/CacheService';
-import {
-  BadRequestError,
-  DI_TOKENS,
-  Logger,
-  PRODUCT_ERROR_MESSAGES,
-  CACHE_KEYS_PATTERNS,
-} from '@/shared';
+import { CACHE_KEYS_PATTERNS, DI_TOKENS, Logger, PRODUCT_ERROR_MESSAGES } from '@/shared';
+import { validateProductId } from '@/shared/utils';
 
 import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
@@ -34,14 +29,15 @@ export class DeleteProductUseCase {
    * 📋 Business Rules: Validates product exists before deletion
    */
   public async execute(productId: string): Promise<boolean> {
-    // Validate input
-    if (!productId?.trim()) {
-      throw new BadRequestError(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_REQ_DELETE);
-    }
+    // Validate product ID
+    validateProductId(productId, PRODUCT_ERROR_MESSAGES.PRODUCT_ID_REQ_DELETE);
+
+    this.logger.info({ productId }, 'Product deletion initiated');
 
     // Check if product exists before attempting deletion
     const existingProduct = await this.productRepository.findById(productId);
     if (!existingProduct) {
+      this.logger.warn({ productId }, 'Product deletion failed - product not found');
       return false; // Product not found
     }
 
@@ -52,6 +48,7 @@ export class DeleteProductUseCase {
 
     // Invalidate product-related cache entries after successful deletion
     if (deleted) {
+      this.logger.info({ productId }, 'Product deleted successfully');
       await this.invalidateProductCache(productId);
     }
 

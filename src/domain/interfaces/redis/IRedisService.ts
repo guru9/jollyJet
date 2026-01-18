@@ -85,6 +85,13 @@ export interface IRedisService {
   getClient(): Redis;
 
   /**
+   * Gets the TTL (time-to-live) of a key in seconds
+   * @param key - The cache key
+   * @returns TTL in seconds, or -2 if key doesn't exist, -1 if no TTL
+   */
+  getTTL(key: string): Promise<number>;
+
+  /**
    * Checks if Redis connection is active
    * @returns true if connected, false otherwise
    */

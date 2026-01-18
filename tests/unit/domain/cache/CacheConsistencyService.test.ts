@@ -16,6 +16,7 @@ const mockRedisService = {
   acquireLock: jest.fn(),
   releaseLock: jest.fn(),
   isConnected: jest.fn(),
+  getTTL: jest.fn(),
 } as jest.Mocked<IRedisService>;
 
 // Simple mock logger

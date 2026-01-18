@@ -2,7 +2,8 @@ import { randomBytes } from 'crypto';
 import { NextFunction, Request, Response } from 'express';
 import { Types } from 'mongoose';
 import { ZodError, ZodType } from 'zod';
-import { ERROR_STATUS, HTTP_STATUS } from './constants';
+import { ERROR_STATUS, HTTP_STATUS, PRODUCT_ERROR_MESSAGES } from './constants';
+import { BadRequestError } from './errors';
 
 /**
  * Validates request data against a Zod schema.
@@ -266,4 +267,21 @@ export const isValidEmail = (email: string): boolean => {
 
   const emailRegex = /^[\w.-]+@[\w.-]+\.\w+$/;
   return emailRegex.test(email);
+};
+
+/**
+ * Validates a product ID string.
+ * Checks if it's a non-empty string and a valid MongoDB ObjectId.
+ * @param productId - Product ID string to validate
+ * @param errorMessage - Error message to use if validation fails
+ * @throws BadRequestError if validation fails
+ */
+export const validateProductId = (productId: string, errorMessage: string): void => {
+  if (!productId?.trim()) {
+    throw new BadRequestError(errorMessage);
+  }
+
+  if (!isValidObjectId(productId)) {
+    throw new BadRequestError(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
+  }
 };

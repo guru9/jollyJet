@@ -23,7 +23,12 @@ import 'reflect-metadata'; // Required for tsyringe to work with decorators and 
 import { initializeDIContainer, swaggerSpec } from '@/config';
 
 import { IRedisService } from '@/domain/interfaces/redis/IRedisService';
-import { corsSecurityHandler, errorHandler, requestLogger } from '@/interface/middlewares';
+import {
+  corsSecurityHandler,
+  errorHandler,
+  requestLogger,
+  responseTimingHandler,
+} from '@/interface/middlewares';
 import { registerRoutes } from '@/interface/routes';
 import { DI_TOKENS } from '@/shared/constants';
 import express from 'express';
@@ -76,6 +81,9 @@ export const jollyJetApp = async (): Promise<express.Application> => {
 
   // Request logging middleware - Log all incoming requests for monitoring
   app.use(requestLogger);
+
+  // Response timing middleware - Measure response time and add to headers
+  app.use(responseTimingHandler);
 
   // ============================================================================
   // API DOCUMENTATION

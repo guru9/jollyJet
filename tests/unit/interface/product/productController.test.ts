@@ -1,4 +1,5 @@
 import { Product } from '@/domain/entities';
+import { IRedisService } from '@/domain/interfaces/redis/IRedisService';
 import { ProductController } from '@/interface/controllers';
 import { CreateProductDTO, ToggleWishlistDTO, UpdateProductDTO } from '@/interface/dtos';
 import {
@@ -38,6 +39,7 @@ describe('ProductController', () => {
   let mockUpdateProductUseCase: jest.Mocked<UpdateProductUseCase>;
   let mockDeleteProductUseCase: jest.Mocked<DeleteProductUseCase>;
   let mockToggleWishlistUseCase: jest.Mocked<ToggleWishlistProductUseCase>;
+  let mockRedisService: jest.Mocked<IRedisService>;
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
   let mockNext: jest.MockedFunction<NextFunction>;
@@ -74,6 +76,21 @@ describe('ProductController', () => {
       execute: jest.fn(),
     } as unknown as jest.Mocked<ToggleWishlistProductUseCase>;
 
+    mockRedisService = {
+      get: jest.fn(),
+      set: jest.fn(),
+      delete: jest.fn(),
+      keys: jest.fn(),
+      flush: jest.fn(),
+      increment: jest.fn(),
+      setWithExpiration: jest.fn(),
+      acquireLock: jest.fn(),
+      releaseLock: jest.fn(),
+      getClient: jest.fn(),
+      isConnected: jest.fn(),
+      getTTL: jest.fn(),
+    } as unknown as jest.Mocked<IRedisService>;
+
     mockLogger = {
       info: jest.fn(),
       error: jest.fn(),
@@ -90,6 +107,7 @@ describe('ProductController', () => {
       mockUpdateProductUseCase,
       mockDeleteProductUseCase,
       mockToggleWishlistUseCase,
+      mockRedisService,
       mockLogger
     );
 
@@ -503,7 +521,7 @@ describe('ProductController', () => {
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: RESPONSE_STATUS.ERROR,
         message: PRODUCT_ERROR_MESSAGES.NOT_FOUND,
-        errors: [{ field: 'id', message: 'Product with specified ID does not exist' }],
+        errors: [{ field: 'id', message: 'Product with specified ID does not exist.' }],
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -607,8 +625,11 @@ describe('ProductController', () => {
 
       // Assert
       expect(mockDeleteProductUseCase.execute).toHaveBeenCalledWith(productId);
-      expect(mockResponse.status).toHaveBeenCalledWith(HTTP_STATUS.NO_CONTENT);
-      expect(mockResponse.send).toHaveBeenCalled();
+      expect(mockResponse.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        status: RESPONSE_STATUS.SUCCESS,
+        message: PRODUCT_SUCCESS_MESSAGES.PRODUCT_DELETED,
+      });
       expect(mockNext).not.toHaveBeenCalled();
     });
 

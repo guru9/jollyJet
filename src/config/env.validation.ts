@@ -28,8 +28,6 @@ export type IEnvConfig = z.infer<typeof envSchema>;
 export const validateEnv = (): IEnvConfig => {
   const result = envSchema.safeParse(process.env);
   if (!result.success) {
-    // Log full validation details to help debugging which variables are missing/invalid
-
     // Throw a clearer error including a summary of the issues
     throw new Error(
       `Invalid environment configuration: ${result.error?.issues.map((i) => `${i.path.join('.')} - ${i.message}`).join(', ')}`

@@ -111,6 +111,31 @@ export class RedisService implements IRedisService {
   }
 
   /**
+   * Gets the TTL (time-to-live) of a key in seconds
+   * @param key - The cache key
+   * @returns TTL in seconds, or -2 if key doesn't exist, -1 if no TTL, or 0 if Redis unavailable
+   *
+   * Error Handling:
+   * - Returns 0 if Redis connection is unavailable (graceful degradation)
+   * - Re-throws Redis operation errors for caller to handle
+   */
+  public async getTTL(key: string): Promise<number> {
+    if (!this.isConnected()) return 0;
+    try {
+      return await this.getClient().ttl(key);
+    } catch (error) {
+      this.logger.error(
+        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED(
+          'TTL',
+          key,
+          error instanceof Error ? error.message : String(error)
+        )
+      );
+      throw error;
+    }
+  }
+
+  /**
    * Removes a key from Redis cache
    * @param key - The cache key to delete
    *

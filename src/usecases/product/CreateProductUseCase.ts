@@ -72,7 +72,8 @@ export class CreateProductUseCase {
       // Invalidate product list and count caches
       await Promise.all([
         this.cacheService.deleteByPattern('products:*'),
-        this.cacheService.deleteByPattern('product:count:*'),
+        this.cacheService.deleteByPattern('product:*'),
+        this.cacheService.deleteByPattern('products:count:*'),
       ]);
       this.logger.info(CACHE_LOG_MESSAGES.CACHE_INVALIDATED('Product'));
     } catch (error) {

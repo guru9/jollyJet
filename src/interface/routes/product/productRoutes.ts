@@ -221,27 +221,7 @@ const createProductRoutes = (): Router => {
    *         description: Number of products per page
    *     responses:
    *       200:
-   *         $ref: '#/components/responses/CacheResponse'
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: success
-   *                 results:
-   *                   type: integer
-   *                   example: 10
-   *                 total:
-   *                   type: integer
-   *                   example: 25
-   *                 data:
-   *                   type: array
-   *                   items:
-   *                     $ref: '#/components/schemas/Product'
-   *                 cacheInfo:
-   *                   $ref: '#/components/schemas/CacheInfo'
+   *         $ref: '#/components/responses/ProductListResponse'
    */
   router.get(
     '/wishlist',
@@ -474,8 +454,22 @@ const createProductRoutes = (): Router => {
    *           type: string
    *         description: Product ID
    *     responses:
-   *       204:
+   *       200:
    *         description: Product deleted successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 data:
+   *                   type: null
+   *                   example: null
+   *                 message:
+   *                   type: string
+   *                   example: "Product deleted successfully"
    *       404:
    *         description: Product not found
    */

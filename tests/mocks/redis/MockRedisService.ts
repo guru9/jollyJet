@@ -291,6 +291,39 @@ export class MockRedisService implements IRedisService {
   }
 
   /**
+   * Gets the TTL (time-to-live) of a key in seconds
+   * @param key - The cache key
+   * @returns TTL in seconds, or -2 if key doesn't exist, -1 if no TTL
+   */
+  async getTTL(key: string): Promise<number> {
+    if (!this.connectedState) {
+      this.logger.warn('MockRedis: Not connected, ttl returning -2');
+      return -2;
+    }
+
+    const item = this.store.get(key);
+    if (!item) {
+      this.logger.debug(`MockRedis: Key does not exist for ttl: ${key}`);
+      return -2;
+    }
+
+    if (item.expiresAt && Date.now() > item.expiresAt) {
+      this.store.delete(key);
+      this.logger.debug(`MockRedis: Key expired for ttl: ${key}`);
+      return -2;
+    }
+
+    if (!item.ttl || !item.expiresAt) {
+      this.logger.debug(`MockRedis: Key has no TTL: ${key}`);
+      return -1;
+    }
+
+    const remainingTTL = Math.floor((item.expiresAt - Date.now()) / 1000);
+    this.logger.debug(`MockRedis: Key TTL: ${key} = ${remainingTTL}`);
+    return remainingTTL;
+  }
+
+  /**
    * Checks if the mock Redis is connected
    * @returns true if connected, false otherwise
    */

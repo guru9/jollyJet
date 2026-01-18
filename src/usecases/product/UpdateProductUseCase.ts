@@ -4,13 +4,13 @@ import { ProductService } from '@/domain/services';
 import { CacheService } from '@/domain/services/cache/CacheService';
 import { UpdateProductDTO } from '@/interface/dtos';
 import {
-  BadRequestError,
+  CACHE_KEYS_PATTERNS,
   DI_TOKENS,
   Logger,
   NotFoundError,
   PRODUCT_ERROR_MESSAGES,
-  CACHE_KEYS_PATTERNS,
 } from '@/shared';
+import { validateProductId } from '@/shared/utils';
 
 import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
@@ -41,30 +41,49 @@ export class UpdateProductUseCase {
    * 📋 Business Rules: Enforced by domain entity validation
    */
   public async execute(productId: string, productData: UpdateProductDTO): Promise<Product> {
-    // Validate input
-    if (!productId?.trim()) {
-      throw new BadRequestError(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_REQ_UPDATE);
+    try {
+      // Validate product ID
+      validateProductId(productId, PRODUCT_ERROR_MESSAGES.PRODUCT_ID_REQ_UPDATE);
+
+      // Log update operation (without sensitive data)
+      const updatedFields = Object.keys(productData).filter(
+        (key) => productData[key as keyof UpdateProductDTO] !== undefined
+      );
+      this.logger.info({ productId, updatedFields }, 'Product update initiated');
+
+      // Retrieve the existing product using the repository
+      this.logger.debug({ productId }, 'Fetching existing product');
+      let existingProduct = await this.productRepository.findById(productId);
+
+      if (!existingProduct) {
+        this.logger.warn({ productId }, 'Product not found for update');
+        throw new NotFoundError(PRODUCT_ERROR_MESSAGES.NOT_FOUND);
+      }
+
+      this.logger.debug({ productId }, 'Applying product updates');
+      // Apply all updates to the product
+      existingProduct = this.applyProductUpdates(existingProduct, productData);
+
+      this.logger.debug({ productId }, 'Persisting updated product');
+      // Persist the updated product using the repository
+      // 💡 Dependency Inversion: Use Cases depend on abstractions (interfaces)
+      // 💡 This enables switching database implementations without changing business logic
+      const updatedProduct = await this.productRepository.update(existingProduct);
+
+      // Log successful update
+      this.logger.info({ productId, updatedFields }, 'Product updated successfully');
+
+      // Invalidate product-related cache entries
+      await this.invalidateProductCache(productId);
+
+      return updatedProduct;
+    } catch (error) {
+      this.logger.error(
+        { productId, error: error instanceof Error ? error.message : String(error) },
+        'Product update failed'
+      );
+      throw error;
     }
-
-    // Retrieve the existing product using the repository
-    let existingProduct = await this.productRepository.findById(productId);
-
-    if (!existingProduct) {
-      throw new NotFoundError(PRODUCT_ERROR_MESSAGES.NOT_FOUND);
-    }
-
-    // Apply all updates to the product
-    existingProduct = this.applyProductUpdates(existingProduct, productData);
-
-    // Persist the updated product using the repository
-    // 💡 Dependency Inversion: Use Cases depend on abstractions (interfaces)
-    // 💡 This enables switching database implementations without changing business logic
-    const updatedProduct = await this.productRepository.update(existingProduct);
-
-    // Invalidate product-related cache entries
-    await this.invalidateProductCache(productId);
-
-    return updatedProduct;
   }
 
   /**
@@ -108,7 +127,7 @@ export class UpdateProductUseCase {
    */
   private applyProductDetailsUpdates(product: Product, updates: UpdateProductDTO): Product {
     const detailsUpdates: Partial<
-      Pick<UpdateProductDTO, 'name' | 'description' | 'category' | 'isActive'>
+      Pick<UpdateProductDTO, 'name' | 'description' | 'category' | 'isActive' | 'images'>
     > = {};
 
     // Collect all product details updates
@@ -116,6 +135,7 @@ export class UpdateProductUseCase {
     if (updates.description !== undefined) detailsUpdates.description = updates.description;
     if (updates.category !== undefined) detailsUpdates.category = updates.category;
     if (updates.isActive !== undefined) detailsUpdates.isActive = updates.isActive;
+    if (updates.images !== undefined) detailsUpdates.images = updates.images;
 
     // Apply updates only if there are any details to update
     if (Object.keys(detailsUpdates).length > 0) {

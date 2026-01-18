@@ -1,4 +1,5 @@
 import { Product } from '@/domain/entities';
+import { CacheService } from '@/domain/services';
 import { Productmodel } from '@/infrastructure/models';
 import { ProductRepository } from '@/infrastructure/repositories';
 import { Logger } from '@/shared';
@@ -7,10 +8,10 @@ describe('ProductRepository', () => {
   let productRepository: ProductRepository;
 
   let mockLogger: jest.Mocked<Logger>;
+  let mockCacheService: jest.Mocked<CacheService>;
 
   beforeAll(async () => {
     // Create mock logger
-
     mockLogger = {
       info: jest.fn(),
       error: jest.fn(),
@@ -18,8 +19,18 @@ describe('ProductRepository', () => {
       debug: jest.fn(),
     } as unknown as jest.Mocked<Logger>;
 
+    // Create mock cache service
+    mockCacheService = {
+      get: jest.fn(),
+      set: jest.fn(),
+      delete: jest.fn(),
+      deleteByPattern: jest.fn(),
+      getOrSet: jest.fn(),
+      isConnected: jest.fn().mockReturnValue(true),
+    } as unknown as jest.Mocked<CacheService>;
+
     // Use the global test database connection
-    productRepository = new ProductRepository(mockLogger);
+    productRepository = new ProductRepository(mockLogger, mockCacheService);
   });
 
   afterAll(async () => {

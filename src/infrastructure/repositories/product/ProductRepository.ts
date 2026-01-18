@@ -1,7 +1,9 @@
-import { Product } from '@/domain/entities';
+import { Product, ProductProps } from '@/domain/entities';
 import { IProductRepository, ProductFilter } from '@/domain/interfaces';
+import { CacheService } from '@/domain/services/cache/CacheService';
 import { Productmodel } from '@/infrastructure/models';
-import { DI_TOKENS, Logger, PRODUCT_ERROR_MESSAGES } from '@/shared';
+import { CACHE_LOG_MESSAGES, DI_TOKENS, Logger, PRODUCT_ERROR_MESSAGES } from '@/shared';
+import { BadRequestError } from '@/shared/errors';
 
 import { PaginationParams } from '@/types';
 import mongoose from 'mongoose';
@@ -12,8 +14,12 @@ export class ProductRepository implements IProductRepository {
   /**
    * Creates an instance of ProductRepository
    * @param logger Injected logger service
+   * @param cacheService Injected cache service
    */
-  constructor(@inject(DI_TOKENS.LOGGER) private logger: Logger) {}
+  constructor(
+    @inject(DI_TOKENS.LOGGER) private logger: Logger,
+    @inject(DI_TOKENS.CACHE_SERVICE) private cacheService: CacheService
+  ) {}
 
   /**
    * Creates a new product in the database.
@@ -25,7 +31,22 @@ export class ProductRepository implements IProductRepository {
 
     // Create document in MongoDB and convert back to domain entity
     const createdProduct = await Productmodel.create(productData);
-    return Product.createProduct(createdProduct.toObject());
+    const productObj = createdProduct.toObject();
+    const productProps: ProductProps = {
+      ...productObj,
+      id: productObj._id.toString(), // Map _id to id
+    };
+    const productEntity = Product.createProduct(productProps);
+
+    // Cache the new product
+    const cacheKey = `product:${productEntity.toProps().id}`;
+    await this.cacheService.set(cacheKey, productEntity.toProps());
+
+    // Invalidate list caches
+    await this.cacheService.deleteByPattern('products:*');
+    await this.cacheService.deleteByPattern('product:count:*');
+
+    return productEntity;
   }
 
   /**
@@ -58,17 +79,33 @@ export class ProductRepository implements IProductRepository {
    */
   public async update(product: Product): Promise<Product> {
     const productData = product.toProps();
-    if (!productData.id) throw new Error(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_REQ_UPDATE);
+    if (!productData.id) throw new BadRequestError(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_REQ_UPDATE);
     if (!mongoose.isValidObjectId(productData.id)) {
-      throw new Error(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
+      throw new BadRequestError(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
     }
 
     //find the updated document, return the updated product
     const updatedProduct = await Productmodel.findByIdAndUpdate(productData.id, productData, {
       new: true,
     });
-    if (!updatedProduct) throw new Error(PRODUCT_ERROR_MESSAGES.PRODUCT_NOT_FOUND_UPDATE);
-    return Product.createProduct(updatedProduct.toObject());
+    if (!updatedProduct) throw new BadRequestError(PRODUCT_ERROR_MESSAGES.PRODUCT_NOT_FOUND_UPDATE);
+
+    const productObj = updatedProduct.toObject();
+    const productProps: ProductProps = {
+      ...productObj,
+      id: productObj._id.toString(), // Map _id to id
+    };
+    const productEntity = Product.createProduct(productProps);
+
+    // Update cache with new data
+    const cacheKey = `product:${productData.id}`;
+    await this.cacheService.set(cacheKey, productEntity.toProps());
+
+    // Invalidate list caches
+    await this.cacheService.deleteByPattern('products:*');
+    await this.cacheService.deleteByPattern('product:count:*');
+
+    return productEntity;
   }
 
   /**
@@ -79,12 +116,30 @@ export class ProductRepository implements IProductRepository {
   public async findById(id: string): Promise<Product | null> {
     if (!id) return null; // Return null for invalid IDs
     if (!mongoose.Types.ObjectId.isValid(id))
-      throw new Error(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
+      throw new BadRequestError(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
 
+    const cacheKey = `product:${id}`;
+    const cachedProductProps = await this.cacheService.get<ProductProps>(cacheKey);
+
+    if (cachedProductProps) {
+      this.logger.debug(CACHE_LOG_MESSAGES.CACHE_HIT(cacheKey));
+      return Product.createProduct(cachedProductProps);
+    }
+
+    // Cache miss - fetch from MongoDB
+    this.logger.debug(CACHE_LOG_MESSAGES.CACHE_MISS(cacheKey, 'database'));
     const productDocument = await Productmodel.findById(id);
     if (!productDocument) return null; // Return null if document not found
 
-    return Product.createProduct(productDocument.toObject()); // Convert to Product entity
+    const productObj = productDocument.toObject();
+    const productProps: ProductProps = {
+      ...productObj,
+      id: productObj._id.toString(), // Map _id to id
+    };
+    const product = Product.createProduct(productProps); // Convert to Product entity
+    await this.cacheService.set(cacheKey, product.toProps());
+
+    return product;
   }
 
   /**
@@ -94,7 +149,17 @@ export class ProductRepository implements IProductRepository {
    * @returns Promise with array of Product entities
    */
   public async findAll(filter?: ProductFilter, pagination?: PaginationParams): Promise<Product[]> {
-    // Build the query with filters applied
+    // Generate cache key based on filter and pagination
+    const cacheKey = `products:${JSON.stringify({ filter, pagination })}`;
+    const cachedProductProps = await this.cacheService.get<ProductProps[]>(cacheKey);
+
+    if (cachedProductProps) {
+      this.logger.debug(CACHE_LOG_MESSAGES.CACHE_HIT(cacheKey));
+      return cachedProductProps.map((props) => Product.createProduct(props));
+    }
+
+    // Cache miss - fetch from MongoDB
+    this.logger.debug(CACHE_LOG_MESSAGES.CACHE_MISS(cacheKey, 'database'));
     const query = this.buildFilteredQuery(filter);
 
     // Apply pagination if provided
@@ -105,7 +170,23 @@ export class ProductRepository implements IProductRepository {
 
     // Execute the query and convert documents to Product entities
     const productDocuments = await query.exec();
-    return productDocuments.map((doc) => Product.createProduct(doc.toObject()));
+    const products = productDocuments.map((doc) => {
+      const docObj = doc.toObject();
+      const productProps: ProductProps = {
+        ...docObj,
+        id: docObj._id.toString(), // Map _id to id
+      };
+      return Product.createProduct(productProps);
+    });
+
+    // Cache the result with shorter TTL for lists
+    await this.cacheService.set(
+      cacheKey,
+      products.map((p) => p.toProps()),
+      300
+    ); // 5 minutes
+
+    return products;
   }
 
   /**
@@ -119,15 +200,37 @@ export class ProductRepository implements IProductRepository {
       throw new Error(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
 
     const result = await Productmodel.findByIdAndDelete(id);
+
+    if (result) {
+      // Remove from cache
+      const cacheKey = `product:${id}`;
+      await this.cacheService.delete(cacheKey);
+
+      // Invalidate list caches
+      await this.cacheService.deleteByPattern('products:*');
+      await this.cacheService.deleteByPattern('product:count:*');
+    }
+
     return result !== null;
   }
+
   /**
    * Gets the count of products matching the filter
    * @param filter Optional filter criteria
    * @returns Promise with count of matching products
    */
   public async count(filter?: ProductFilter): Promise<number> {
-    // Build a count query with the same filters
+    // Generate cache key based on filter
+    const cacheKey = `product:count:${JSON.stringify(filter)}`;
+    const cachedCount = await this.cacheService.get<number>(cacheKey);
+
+    if (cachedCount !== null && cachedCount !== undefined) {
+      this.logger.debug(CACHE_LOG_MESSAGES.CACHE_HIT(cacheKey));
+      return cachedCount;
+    }
+
+    // Cache miss - fetch from MongoDB
+    this.logger.debug(CACHE_LOG_MESSAGES.CACHE_MISS(cacheKey, 'database'));
     const countQuery = Productmodel.find();
 
     // Apply filters if provided (same logic as buildFilteredQuery)
@@ -142,7 +245,12 @@ export class ProductRepository implements IProductRepository {
     }
 
     // Count documents matching the filters
-    return await countQuery.countDocuments().exec();
+    const count = await countQuery.countDocuments().exec();
+
+    // Cache the count with shorter TTL
+    await this.cacheService.set(cacheKey, count, 300); // 5 minutes
+
+    return count;
   }
 
   /**
@@ -166,6 +274,16 @@ export class ProductRepository implements IProductRepository {
       throw new Error(PRODUCT_ERROR_MESSAGES.NOT_FOUND);
     }
 
-    return Product.createProduct(updatedProduct.toObject()); // Convert to Product entity
+    const productEntity = Product.createProduct(updatedProduct.toObject()); // Convert to Product entity
+
+    // Update cache with new data
+    const cacheKey = `product:${id}`;
+    await this.cacheService.set(cacheKey, productEntity);
+
+    // Invalidate list caches
+    await this.cacheService.deleteByPattern('products:*');
+    await this.cacheService.deleteByPattern('product:count:*');
+
+    return productEntity;
   }
 }

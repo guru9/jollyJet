@@ -117,7 +117,10 @@ export const registerRoutes = async (app: Application): Promise<void> => {
     }
 
     // Log route registration for debugging
-    logger.info({ moduleName: module.name, modulePath: module.path }, '📍 Registered route module');
+    logger.info(
+      { moduleName: module.name, modulePath: module.path },
+      `Registered route module - ${module.name}`
+    );
   }
 };
 

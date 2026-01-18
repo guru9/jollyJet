@@ -1,7 +1,7 @@
 import { IProductRepository, ProductFilter } from '@/domain/interfaces';
 import { ProductService } from '@/domain/services';
 import { CacheService } from '@/domain/services/cache/CacheService';
-import { DI_TOKENS, Logger, CACHE_KEYS_PATTERNS } from '@/shared';
+import { CACHE_KEYS_PATTERNS, DI_TOKENS, Logger } from '@/shared';
 
 import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';

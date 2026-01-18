@@ -2,9 +2,33 @@
 
 **Project analysis #01 - Enhanced**
 
-**Last Updated:** January 14, 2026 - 17:30 IST  
-**Project:** JollyJet E-commerce Application  
+**Last Updated:** January 18, 2026 - 14:10 IST
+
+**Project:** JollyJet E-commerce Application
 **Architecture:** Clean Architecture with TypeScript(NodeJS) + Express + MongoDB + Redis (Monolithic)
+
+---
+
+## JollyJet Run Scripts
+
+The JollyJet project provides the following npm scripts for development and production:
+
+```bash
+npm start          # Start production server
+npm run build      # Build TypeScript to JavaScript
+npm run dev        # Start development server with hot reload
+npm run debug      # Start debug server with inspector
+npm run predev     # Pre-dev hook (format, lint, build)
+npm run format     # Format code with Prettier
+npm run format:check # Check code formatting
+npm run lint       # Lint code with ESLint
+npm run lint:fix   # Auto-fix linting issues
+npm test           # Run all tests
+npm run test:watch # Run tests in watch mode
+npm run test:coverage # Run tests with coverage
+```
+
+![JollyJet Run Scripts](../extra/jollyjet-run-scripts.png)
 
 ---
 
@@ -12,7 +36,7 @@
 
 JollyJet is a **high-performance e-commerce shopping application** built with modern TypeScript/Node.js technologies following **Clean Architecture principles**. The project demonstrates excellent software engineering practices with a solid foundation and systematic approach to development.
 
-**Current Status:** ✅ **Foundation Complete (7/7 phases)** | ✅ **Product Module Complete (8th phase - Fully Operational with Wishlist Features)** | ✅ **CORS Policy & Security Complete (11th phase - Production-ready security implementation)** | 🚧 **Redis Integration Progress (95% - Static messages updated, Cloud Redis connected)** | ✅ **Cache Consistency Service TypeScript Fix Applied** | ✅ **MongoDB & Redis Successfully Connected**
+**Current Status:** ✅ **Foundation Complete (7/7 phases)** | ✅ **Product Module Complete (8th phase - Fully Operational with Wishlist Features)** | ✅ **CORS Policy & Security Complete (11th phase - Production-ready security implementation)** | ✅ **Redis Integration Complete - Redis-First Cache Implementation** | ✅ **Cache Consistency Service TypeScript Fix Applied** | ✅ **MongoDB & Redis Successfully Connected** | ✅ **API Response Standards Updated (DELETE: 200 OK with message, PUT: 200 OK with resource)** | ✅ **Static Messages Centralized (Constants-based error/success messages)** | ✅ **Comprehensive Redis Cache Testing (11 additional tests)**
 
 ---
 
@@ -141,7 +165,7 @@ src/
 
 **Test Suite Analysis:**
 
-- ✅ **231 tests** covering all critical paths (206 general + 25 CORS-specific tests)
+- ✅ **340 tests** covering all critical paths (318 general + 22 Redis cache-specific tests)
 - ✅ **Unit tests** for utilities, errors, middleware, and CORS configuration
 - ✅ **Integration tests** for API endpoints
 - ✅ **In-memory MongoDB** for testing
@@ -689,7 +713,7 @@ GET    /api/products/wishlist        # Get all wishlist products (paginated)
 - **Consistency:** Robust monitoring and stale data handling
 - **Decorators:** `@Cacheable` and `@CacheEvict` for clean implementation
 
-**Redis Integration Status:** 🚧 **Partially Implemented (85%)**
+**Redis Integration Status:** ✅ **Completed - Redis-First Cache Implementation**
 
 - ✅ **Step 1.1 Completed** - Redis configuration constants added
 - ✅ **Step 1.2 Completed** - `IRedisService` interface created in Domain
@@ -1821,8 +1845,8 @@ npm run test:watch         # Watch mode for development
 
 ### 📈 **Project Statistics**
 
-- **Total Files:** 26+ source files (including tests)
-- **Test Count:** 231 tests passing (206 general + 25 CORS-specific)
+- **Total Files:** 27+ source files (including tests)
+- **Test Count:** 340 tests passing (318 general + 22 Redis cache-specific)
 - **Architecture:** Clean Architecture with 4 distinct layers
 - **Type Safety:** Full TypeScript strict mode compliance
 - **Linting:** ESLint v9 with custom TypeScript rules
@@ -1869,7 +1893,7 @@ The project is **exceptionally well-architected** and **ready for feature develo
 - **Redis Integration:** 🚧 25% Complete (Configuration & Cache Consistency complete, service implementation pending)
 - **Server Status:** ✅ Running successfully on port 3000 with debug mode
 - **API Status:** ✅ All endpoints available via Swagger UI at http://localhost:3000/api-docs
-- **Test Suite:** ✅ 231 tests passing (206 general + 25 CORS) with 100% coverage
+- **Test Suite:** ✅ 340 tests passing (318 general + 22 Redis cache) with 100% coverage
 - **Next Milestone:** 🚀 Redis Service Implementation (Phase 9 - Steps 1.2-1.3)
 
 **Recommended next action:** Complete Redis Integration by implementing the Redis service interface and concrete service implementation (Steps 1.2-1.3), then proceed with cache decorators and middleware (Steps 2.1-2.2). Follow the comprehensive 15-step Redis implementation plan for systematic development.
@@ -1959,7 +1983,7 @@ git status .env                       # Result: Not tracked ✅
 
 **Test Results:**
 
-- ✅ **231 tests** passing (206 general + 25 CORS)
+- ✅ **340 tests** passing (318 general + 22 Redis cache)
 - ✅ **100% coverage** for critical code
 - ✅ **Clean test organization** (unit/integration separation)
 
@@ -2204,10 +2228,11 @@ The **jollyJet** project is **production-ready** with exceptional code quality a
    - Modern dependency stack
 
 4. **🧪 Testing Excellence**
-   - 231 passing tests
+   - 340 passing tests
    - 100% coverage for critical paths
    - Well-organized test suites
    - In-memory testing infrastructure
+   - Comprehensive Redis cache testing
 
 5. **📚 Documentation Excellence**
    - Comprehensive README
