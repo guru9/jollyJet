@@ -25,9 +25,6 @@ export const logger = pino({
           },
         }
       : undefined,
-  formatters: {
-    level: (label) => ({ level: label }),
-  },
   base: {
     env: config.env,
     port: config.port,

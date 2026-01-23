@@ -21,6 +21,20 @@ const envSchema = z.object({
       })
   ),
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
+
+  // Security Configuration
+  SECURITY_HEADERS_ENABLED: z
+    .string()
+    .default('false')
+    .transform((val) => val === 'true'),
+  GEO_BLOCKING_ENABLED: z
+    .string()
+    .default('false')
+    .transform((val) => val === 'true'),
+  GEO_ALLOWED_COUNTRIES: z.string().default(''),
+  GEO_BLOCKED_COUNTRIES: z.string().default('CN,RU,KP,IR'),
+  IP_WHITELIST: z.string().default(''),
+  IP_BLACKLIST: z.string().default(''),
 });
 
 export type IEnvConfig = z.infer<typeof envSchema>;
@@ -28,9 +42,6 @@ export type IEnvConfig = z.infer<typeof envSchema>;
 export const validateEnv = (): IEnvConfig => {
   const result = envSchema.safeParse(process.env);
   if (!result.success) {
-    // Log full validation details to help debugging which variables are missing/invalid
-    console.error('Invalid environment variables:', JSON.stringify(result.error.format(), null, 2));
-
     // Throw a clearer error including a summary of the issues
     throw new Error(
       `Invalid environment configuration: ${result.error?.issues.map((i) => `${i.path.join('.')} - ${i.message}`).join(', ')}`

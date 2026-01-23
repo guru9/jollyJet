@@ -1,5 +1,6 @@
 import { IRedisService } from '@/domain/interfaces/redis/IRedisService';
 import { Logger } from '@/shared/logger';
+import Redis from 'ioredis';
 
 /**
  * Mock RedisService for unit testing
@@ -220,8 +221,7 @@ export class MockRedisService implements IRedisService {
    * Gets the underlying mock client (for testing purposes)
    * @returns Mock client object
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getClient(): any {
+  getClient(): Redis {
     return {
       isMock: true,
       store: this.store,
@@ -287,7 +287,40 @@ export class MockRedisService implements IRedisService {
         }
         return '';
       },
-    };
+    } as unknown as Redis;
+  }
+
+  /**
+   * Gets the TTL (time-to-live) of a key in seconds
+   * @param key - The cache key
+   * @returns TTL in seconds, or -2 if key doesn't exist, -1 if no TTL
+   */
+  async getTTL(key: string): Promise<number> {
+    if (!this.connectedState) {
+      this.logger.warn('MockRedis: Not connected, ttl returning -2');
+      return -2;
+    }
+
+    const item = this.store.get(key);
+    if (!item) {
+      this.logger.debug(`MockRedis: Key does not exist for ttl: ${key}`);
+      return -2;
+    }
+
+    if (item.expiresAt && Date.now() > item.expiresAt) {
+      this.store.delete(key);
+      this.logger.debug(`MockRedis: Key expired for ttl: ${key}`);
+      return -2;
+    }
+
+    if (!item.ttl || !item.expiresAt) {
+      this.logger.debug(`MockRedis: Key has no TTL: ${key}`);
+      return -1;
+    }
+
+    const remainingTTL = Math.floor((item.expiresAt - Date.now()) / 1000);
+    this.logger.debug(`MockRedis: Key TTL: ${key} = ${remainingTTL}`);
+    return remainingTTL;
   }
 
   /**

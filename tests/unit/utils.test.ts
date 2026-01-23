@@ -1,16 +1,25 @@
+import { Types } from 'mongoose';
+import { z, ZodType } from 'zod';
 import {
   calculatePaginationMeta,
+  capitalize,
   createPaginatedResponse,
   formatDate,
   generateRandomString,
   getPaginationParams,
+  isEmpty,
   isExpired,
   isValidEmail,
   isValidObjectId,
+  safeParseBoolean,
+  safeParseFloat,
+  safeParseInt,
+  safeParseString,
   slugify,
   toObjectId,
-} from '@/shared';
-import { Types } from 'mongoose';
+  validateProductId,
+  validateRequest,
+} from '../../src/shared/utils';
 
 describe('Utility Functions', () => {
   describe('isValidObjectId', () => {
@@ -167,6 +176,238 @@ describe('Utility Functions', () => {
       const str1 = generateRandomString(20);
       const str2 = generateRandomString(20);
       expect(str1).not.toBe(str2);
+    });
+  });
+
+  describe('safeParseInt', () => {
+    it('should parse valid string to integer', () => {
+      expect(safeParseInt('123')).toBe(123);
+      expect(safeParseInt('0')).toBe(0);
+      expect(safeParseInt('-456')).toBe(-456);
+    });
+
+    it('should return default value for invalid string', () => {
+      expect(safeParseInt('abc')).toBe(0);
+      expect(safeParseInt('123abc')).toBe(0);
+      expect(safeParseInt('')).toBe(0);
+    });
+
+    it('should return default value for non-string types', () => {
+      expect(safeParseInt(123 as unknown as string)).toBe(0);
+      expect(safeParseInt(null as unknown as string)).toBe(0);
+      expect(safeParseInt(undefined as unknown as string)).toBe(0);
+      expect(safeParseInt(true as unknown as string)).toBe(0);
+    });
+
+    it('should use custom default value', () => {
+      expect(safeParseInt('abc', 10)).toBe(10);
+      expect(safeParseInt('', 5)).toBe(5);
+    });
+  });
+
+  describe('safeParseFloat', () => {
+    it('should parse valid string to float', () => {
+      expect(safeParseFloat('123.45')).toBe(123.45);
+      expect(safeParseFloat('0.0')).toBe(0);
+      expect(safeParseFloat('-45.67')).toBe(-45.67);
+    });
+
+    it('should return default value for invalid string', () => {
+      expect(safeParseFloat('abc')).toBe(0);
+      expect(safeParseFloat('123abc')).toBe(0);
+      expect(safeParseFloat('')).toBe(0);
+    });
+
+    it('should return default value for non-string types', () => {
+      expect(safeParseFloat(123 as unknown as string)).toBe(0);
+      expect(safeParseFloat(null as unknown as string)).toBe(0);
+      expect(safeParseFloat(undefined as unknown as string)).toBe(0);
+      expect(safeParseFloat(true as unknown as string)).toBe(0);
+    });
+
+    it('should use custom default value', () => {
+      expect(safeParseFloat('abc', 10.5)).toBe(10.5);
+      expect(safeParseFloat('', 5.5)).toBe(5.5);
+    });
+  });
+
+  describe('isEmpty', () => {
+    it('should return true for null/undefined', () => {
+      expect(isEmpty(null)).toBe(true);
+      expect(isEmpty(undefined)).toBe(true);
+    });
+
+    it('should return true for empty string', () => {
+      expect(isEmpty('')).toBe(true);
+      expect(isEmpty('   ')).toBe(true);
+    });
+
+    it('should return true for empty array', () => {
+      expect(isEmpty([])).toBe(true);
+    });
+
+    it('should return true for empty plain object', () => {
+      expect(isEmpty({})).toBe(true);
+    });
+
+    it('should return true for empty Map/Set', () => {
+      expect(isEmpty(new Map())).toBe(true);
+      expect(isEmpty(new Set())).toBe(true);
+    });
+
+    it('should return false for non-empty values', () => {
+      expect(isEmpty('hello')).toBe(false);
+      expect(isEmpty([1])).toBe(false);
+      expect(isEmpty({ key: 'value' })).toBe(false);
+      expect(isEmpty(new Map([['key', 'value']]))).toBe(false);
+      expect(isEmpty(new Set([1]))).toBe(false);
+      expect(isEmpty(0)).toBe(false);
+      expect(isEmpty(false)).toBe(false);
+    });
+  });
+
+  describe('capitalize', () => {
+    it('should capitalize string correctly', () => {
+      expect(capitalize('hello')).toBe('Hello');
+      expect(capitalize('HELLO')).toBe('Hello');
+      expect(capitalize('h')).toBe('H');
+    });
+
+    it('should return original value for empty string', () => {
+      expect(capitalize('')).toBe('');
+    });
+
+    it('should return original value for non-string types', () => {
+      expect(capitalize(123 as unknown as string)).toBe(123);
+      expect(capitalize(null as unknown as string)).toBe(null);
+      expect(capitalize(undefined as unknown as string)).toBe(undefined);
+    });
+  });
+
+  describe('safeParseString', () => {
+    it('should return string value for string input', () => {
+      expect(safeParseString('hello')).toBe('hello');
+      expect(safeParseString('')).toBe('');
+    });
+
+    it('should return undefined for non-string types', () => {
+      expect(safeParseString(123)).toBeUndefined();
+      expect(safeParseString(null)).toBeUndefined();
+      expect(safeParseString(undefined)).toBeUndefined();
+      expect(safeParseString(true)).toBeUndefined();
+      expect(safeParseString([])).toBeUndefined();
+      expect(safeParseString({})).toBeUndefined();
+    });
+  });
+
+  describe('safeParseBoolean', () => {
+    it('should parse "true" to true', () => {
+      expect(safeParseBoolean('true')).toBe(true);
+      expect(safeParseBoolean('TRUE')).toBeUndefined();
+    });
+
+    it('should parse "false" to false', () => {
+      expect(safeParseBoolean('false')).toBe(false);
+      expect(safeParseBoolean('FALSE')).toBeUndefined();
+    });
+
+    it('should return undefined for other string values', () => {
+      expect(safeParseBoolean('')).toBeUndefined();
+      expect(safeParseBoolean('abc')).toBeUndefined();
+      expect(safeParseBoolean('123')).toBeUndefined();
+    });
+
+    it('should return undefined for non-string types', () => {
+      expect(safeParseBoolean(true)).toBeUndefined();
+      expect(safeParseBoolean(false)).toBeUndefined();
+      expect(safeParseBoolean(123)).toBeUndefined();
+      expect(safeParseBoolean(null)).toBeUndefined();
+      expect(safeParseBoolean(undefined)).toBeUndefined();
+    });
+  });
+
+  describe('validateProductId', () => {
+    it('should throw error for invalid product id', () => {
+      expect(() => validateProductId('', 'Product ID is required')).toThrow();
+      expect(() => validateProductId('   ', 'Product ID is required')).toThrow();
+      expect(() => validateProductId('invalid-id', 'Product ID is required')).toThrow();
+    });
+
+    it('should not throw error for valid product id', () => {
+      const validId = new Types.ObjectId().toString();
+      expect(() => validateProductId(validId, 'Product ID is required')).not.toThrow();
+    });
+  });
+
+  describe('validateRequest', () => {
+    it('should validate request data against Zod schema', () => {
+      const schema = z.object({
+        body: z.object({
+          name: z.string(),
+        }),
+      });
+
+      const middleware = validateRequest(schema);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockReq = { body: { name: 'test' }, query: {}, params: {} } as any;
+
+      const mockRes = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
+      const mockNext = jest.fn();
+
+      middleware(mockReq, mockRes, mockNext);
+
+      expect(mockNext).toHaveBeenCalled();
+    });
+
+    it('should return 422 error for invalid data', () => {
+      const schema = z.object({
+        body: z.object({
+          name: z.string().min(3),
+        }),
+      });
+
+      const middleware = validateRequest(schema);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockReq = { body: { name: 'ab' }, query: {}, params: {} } as any;
+
+      const mockRes = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
+      const mockNext = jest.fn();
+
+      middleware(mockReq, mockRes, mockNext);
+
+      expect(mockRes.status).toHaveBeenCalledWith(422);
+      expect(mockRes.json).toHaveBeenCalled();
+    });
+
+    it('should handle non-Zod errors', () => {
+      const schema = {
+        parse: () => {
+          throw new Error('Non-Zod error');
+        },
+      } as unknown as ZodType;
+
+      const middleware = validateRequest(schema);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockReq = { body: {}, query: {}, params: {} } as any;
+
+      const mockRes = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
+      const mockNext = jest.fn();
+
+      middleware(mockReq, mockRes, mockNext);
+
+      expect(mockNext).toHaveBeenCalledWith(expect.any(Error));
     });
   });
 });

@@ -56,7 +56,7 @@ describe('SessionService', () => {
 
       expect(sessionId).toMatch(/^sess_\d+_[a-z0-9]+$/);
       expect(mockRedisService.set).toHaveBeenCalledWith(
-        CACHE_KEYS_PATTERNS.SESSION(sessionId),
+        CACHE_KEYS_PATTERNS.USER_SESSION(sessionId),
         expect.stringContaining('"userId":"user-123"'),
         expect.any(Number)
       );
@@ -132,7 +132,9 @@ describe('SessionService', () => {
     it('should delete session from Redis', async () => {
       const sessionId = 'test-session';
       await sessionService.deleteSession(sessionId);
-      expect(mockRedisService.delete).toHaveBeenCalledWith(CACHE_KEYS_PATTERNS.SESSION(sessionId));
+      expect(mockRedisService.delete).toHaveBeenCalledWith(
+        CACHE_KEYS_PATTERNS.USER_SESSION(sessionId)
+      );
     });
   });
 

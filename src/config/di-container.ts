@@ -20,12 +20,17 @@ import {
   ISessionService,
 } from '@/domain/interfaces';
 import { ICorsSecurityService } from '@/domain/interfaces/security/ICorsSecurityService';
-import { CacheConsistencyService, ProductService, RedisService } from '@/domain/services';
+import {
+  CacheConsistencyService,
+  CacheService,
+  ProductService,
+  RedisService,
+} from '@/domain/services';
 import { CorsSecurityService } from '@/domain/services/security/CorsSecurityService';
 import { ProductRepository } from '@/infrastructure/repositories';
 import { RateLimitingService, SessionService } from '@/infrastructure/services';
 import { HealthController, ProductController } from '@/interface/controllers';
-import { DI_TOKENS, logger } from '@/shared';
+import { DI_TOKENS, logger, SERVER_LOG_MESSAGES } from '@/shared';
 
 import {
   CountProductsUseCase,
@@ -67,6 +72,14 @@ export const initializeDIContainer = (): void => {
   container.register<ProductService>(ProductService, {
     useClass: ProductService,
   });
+
+  // Register Cache Service - High-Level Caching Abstraction
+  // CacheService provides type-safe Redis operations with cache-aside pattern
+  if (!container.isRegistered(DI_TOKENS.CACHE_SERVICE)) {
+    container.register<CacheService>(DI_TOKENS.CACHE_SERVICE, {
+      useClass: CacheService,
+    });
+  }
 
   // Register Use Cases - Application Logic
   // Each use case orchestrates business operations between domain and infrastructure layers
@@ -142,7 +155,7 @@ export const initializeDIContainer = (): void => {
     });
   }
 
-  logger.info('DI container initialized successfully');
+  logger.info(SERVER_LOG_MESSAGES.DI_INITIALIZED);
 };
 
 // Export the container instance for direct access if needed

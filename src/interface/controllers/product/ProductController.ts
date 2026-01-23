@@ -1,4 +1,5 @@
 import { ProductProps } from '@/domain/entities';
+import { IRedisService } from '@/domain/interfaces/redis/IRedisService';
 import { ToggleWishlistDTO, UpdateProductDTO } from '@/interface/dtos';
 import { productFilterSchema } from '@/interface/validators';
 import {
@@ -75,6 +76,7 @@ export class ProductController {
     private updateProductUseCase: UpdateProductUseCase,
     private deleteProductUseCase: DeleteProductUseCase,
     private toggleWishlistUseCase: ToggleWishlistProductUseCase,
+    @inject(DI_TOKENS.REDIS_SERVICE) private redisService: IRedisService,
     @inject(DI_TOKENS.LOGGER) private logger: Logger
   ) {}
 
@@ -103,6 +105,14 @@ export class ProductController {
     try {
       const productData = req.body;
       const product = await this.createProductUseCase.execute(productData);
+
+      // Invalidate product caches after creation
+      const keys = await this.redisService.keys('products:*');
+      await Promise.all(keys.map((key) => this.redisService.delete(key)));
+
+      // Set data source header
+      res.setHeader('X-Data-Source', 'mongo');
+
       const response: ApiResponse<ProductProps> = {
         status: RESPONSE_STATUS.SUCCESS,
         data: product.toProps(),
@@ -162,10 +172,13 @@ export class ProductController {
       const product = await this.getProductUseCase.execute(productId); // This use case returns Product | null
 
       if (product) {
+        // Set data source header
+        res.setHeader('X-Data-Source', 'mongo');
+
         // Product found, return 200 OK
         const response: ApiResponse<ProductProps> = {
           status: RESPONSE_STATUS.SUCCESS,
-          data: product.toProps(),
+          data: product.toResponseProps(),
           message: PRODUCT_SUCCESS_MESSAGES.PRODUCT_RETRIEVED,
         };
         res.status(HTTP_STATUS.OK).json(response);
@@ -175,7 +188,7 @@ export class ProductController {
           // Using `never` as there's no data for not found
           status: RESPONSE_STATUS.ERROR,
           message: PRODUCT_ERROR_MESSAGES.NOT_FOUND,
-          errors: [{ field: 'id', message: 'Product with specified ID does not exist' }],
+          errors: [{ field: 'id', message: PRODUCT_ERROR_MESSAGES.PRODUCT_NOT_FOUND_BY_ID }],
         };
         res.status(HTTP_STATUS.NOT_FOUND).json(response);
       }
@@ -239,11 +252,15 @@ export class ProductController {
         priceRange: validatedQuery.priceRange,
       };
       const result = await this.listProductsUseCase.execute(queryParams);
+
+      // Set data source header
+      res.setHeader('X-Data-Source', 'mongo');
+
       const response: ApiResponse<ListProductsResponse> = {
         status: RESPONSE_STATUS.SUCCESS,
         data: {
           ...result,
-          products: result.products.map((p) => p.toProps()),
+          products: result.products.map((p) => p.toResponseProps()),
         },
         message: PRODUCT_SUCCESS_MESSAGES.PRODUCTS_RETRIEVED,
       };
@@ -260,7 +277,7 @@ export class ProductController {
    * @param req - Express request object containing query parameters
    * @param res - Express response object
    * @param next - Express next function for error handling
-   * @returns Promise<void>
+   * @returns Promise<void> JSON response with success message for successful deletion, error response for failures
    *
    * @queryParam {string} [category] - Filter by product category
    * @queryParam {string} [search] - Search term for product name/description
@@ -292,11 +309,16 @@ export class ProductController {
       const queryParams: CountProductsQuery = {
         category: validatedQuery.category,
         search: validatedQuery.search,
-        isActive: validatedQuery.isActive ?? false,
-        isWishlistStatus: validatedQuery.isWishlistStatus ?? false,
+        isActive: validatedQuery.isActive, // Only filter if explicitly provided
+        isWishlistStatus: validatedQuery.isWishlistStatus, // Only filter if explicitly provided
         priceRange: validatedQuery.priceRange,
       };
+
       const count = await this.countProductsUseCase.execute(queryParams);
+
+      // Set data source header
+      res.setHeader('X-Data-Source', 'mongo');
+
       const response: ApiResponse<number> = {
         status: RESPONSE_STATUS.SUCCESS,
         data: count,
@@ -333,9 +355,16 @@ export class ProductController {
       const productData: UpdateProductDTO = req.body;
       const product = await this.updateProductUseCase.execute(productId, productData);
       if (product) {
+        // Invalidate product caches after update
+        const keys = await this.redisService.keys('products:*');
+        await Promise.all(keys.map((key) => this.redisService.delete(key)));
+
+        // Set data source header
+        res.setHeader('X-Data-Source', 'mongo');
+
         const response: ApiResponse<ProductProps> = {
           status: RESPONSE_STATUS.SUCCESS,
-          data: product.toProps(),
+          data: product.toResponseProps(),
           message: PRODUCT_SUCCESS_MESSAGES.PRODUCT_UPDATED,
         };
         res.status(HTTP_STATUS.OK).json(response);
@@ -343,7 +372,7 @@ export class ProductController {
         const response: ApiResponse<never> = {
           status: RESPONSE_STATUS.ERROR,
           message: PRODUCT_ERROR_MESSAGES.NOT_FOUND,
-          errors: [{ field: 'id', message: 'Product with specified ID does not exist' }],
+          errors: [{ field: 'id', message: PRODUCT_ERROR_MESSAGES.PRODUCT_NOT_FOUND_BY_ID }],
         };
         res.status(HTTP_STATUS.NOT_FOUND).json(response);
       }
@@ -362,28 +391,59 @@ export class ProductController {
    * @returns Promise<void>
    *
    * @example
-   * // Successful deletion returns 204 No Content
+   * // Successful deletion
+   * {
+   *   "status": "success",
+   *   "message": "Product deleted successfully"
+   * }
    *
    * @example
    * // Product not found
    * {
+   *   "status": "error",
    *   "message": "Product not found"
    * }
    */
   async deleteProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      this.logger.info({ productId: req.params.id }, 'Delete product request received');
       const productId = req.params.id;
       const success = await this.deleteProductUseCase.execute(productId);
       if (success) {
-        res.status(HTTP_STATUS.NO_CONTENT).send();
+        // Invalidate product caches after deletion (don't fail if cache operations fail)
+        try {
+          const keys = await this.redisService.keys('products:*');
+          await Promise.all(keys.map((key) => this.redisService.delete(key)));
+        } catch (cacheError) {
+          this.logger.warn(
+            { cacheError: cacheError instanceof Error ? cacheError.message : String(cacheError) },
+            'Cache invalidation failed after delete'
+          );
+        }
+
+        // Set data source header
+        res.setHeader('X-Data-Source', 'mongo');
+
+        this.logger.info({ productId }, 'Sending delete success response');
+        const response = {
+          status: RESPONSE_STATUS.SUCCESS,
+          message: PRODUCT_SUCCESS_MESSAGES.PRODUCT_DELETED,
+        };
+        res.status(HTTP_STATUS.OK).json(response);
+        return;
       } else {
         const response: ApiResponse<never> = {
           status: RESPONSE_STATUS.ERROR,
           message: PRODUCT_ERROR_MESSAGES.NOT_FOUND,
         };
         res.status(HTTP_STATUS.NOT_FOUND).json(response);
+        return;
       }
     } catch (error) {
+      this.logger.error(
+        { error: error instanceof Error ? error.message : String(error), productId: req.params.id },
+        'Delete product error'
+      );
       next(error);
     }
   }
@@ -426,11 +486,15 @@ export class ProductController {
         isWishlistStatus: true, // Filter specifically for wishlist products
       };
       const result = await this.listProductsUseCase.execute(queryParams);
+
+      // Set data source header
+      res.setHeader('X-Data-Source', 'mongo');
+
       const response: ApiResponse<ListProductsResponse> = {
         status: RESPONSE_STATUS.SUCCESS,
         data: {
           ...result,
-          products: result.products.map((p) => p.toProps()),
+          products: result.products.map((p) => p.toResponseProps()),
         },
         message: PRODUCT_SUCCESS_MESSAGES.WISHLIST_RETRIEVED,
       };
@@ -493,9 +557,17 @@ export class ProductController {
       const productId = req.params.id;
       const wishlistData: ToggleWishlistDTO = req.body;
       const product = await this.toggleWishlistUseCase.execute(productId, wishlistData);
+
+      // Invalidate product caches after wishlist toggle
+      const keys = await this.redisService.keys('products:*');
+      await Promise.all(keys.map((key) => this.redisService.delete(key)));
+
+      // Set data source header
+      res.setHeader('X-Data-Source', 'mongo');
+
       const response: ApiResponse<ProductProps> = {
         status: RESPONSE_STATUS.SUCCESS,
-        data: product.toProps(),
+        data: product.toResponseProps(),
         message: PRODUCT_SUCCESS_MESSAGES.WISHLIST_TOGGLED,
       };
       res.status(HTTP_STATUS.OK).json(response);

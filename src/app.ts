@@ -27,6 +27,7 @@ import { corsSecurityHandler, errorHandler, requestLogger } from '@/interface/mi
 import { registerRoutes } from '@/interface/routes';
 import { DI_TOKENS } from '@/shared/constants';
 import express from 'express';
+import helmet from 'helmet';
 import mongoose from 'mongoose';
 import swaggerUi from 'swagger-ui-express';
 import { container } from 'tsyringe';
@@ -59,6 +60,10 @@ export const jollyJetApp = async (): Promise<express.Application> => {
   // MIDDLEWARE PIPELINE
   // ============================================================================
   // Configure the request processing pipeline in the correct order
+
+  // Helmet security middleware - Protect against common web vulnerabilities
+  // Sets appropriate HTTP headers to prevent XSS attacks, clickjacking, etc.
+  app.use(helmet());
 
   // CORS middleware - Enable cross-origin resource sharing for web clients
   // Essential security middleware includes basic CORS functionality

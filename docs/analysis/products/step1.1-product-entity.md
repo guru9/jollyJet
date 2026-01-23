@@ -186,6 +186,8 @@ export interface ProductProps {
 
 - `get isWishlistStatus(): boolean` - Wishlist status getter
 - `get wishlistCount(): number` - Wishlist count getter
+- `getEffectiveStock(): number` - Returns 0 for inactive products, actual stock for active ones
+- `toResponseProps(): ProductProps` - Returns props with effective stock for API responses
 
 ### Business Rules Enforcement
 
@@ -194,6 +196,7 @@ export interface ProductProps {
 3. **Default Values**: isActive (true), wishlistCount (0), isWishlistStatus (false)
 4. **Automatic Timestamps**: createdAt, updatedAt
 5. **Wishlist Integrity**: Prevents negative wishlist counts
+6. **Effective Stock**: Inactive products show stock: 0 in API responses for frontend consistency
 
 ## 🧪 Testing Strategy
 
@@ -262,9 +265,10 @@ src/__tests__/unit/modules/product.test.ts
 #### 5. **stock: number**
 
 - **Type**: Required number
-- **Purpose**: Available quantity
+- **Purpose**: Available quantity (shows effective stock in API responses)
 - **Validation**: Must be non-negative
 - **Usage**: Inventory management
+- **API Behavior**: Inactive products show `stock: 0` for frontend consistency
 - **Future**: Add stock threshold alerts
 
 #### 6. **category: string**
@@ -463,6 +467,3 @@ This analysis document focuses exclusively on **Step 1.1: Product Entity** imple
 _Analysis completed: 2025-12-16_
 _Analyst: Kilo Code Debugger_
 _Status: Production Ready ✅_
-
-
-

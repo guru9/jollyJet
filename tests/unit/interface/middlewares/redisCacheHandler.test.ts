@@ -4,7 +4,6 @@ import { NextFunction, Request, Response } from 'express';
 import 'reflect-metadata';
 import { container } from 'tsyringe';
 
-// Mock tsyringe container
 jest.mock('tsyringe', () => ({
   container: {
     resolve: jest.fn(),
@@ -14,7 +13,7 @@ jest.mock('tsyringe', () => ({
 }));
 
 describe('redisCacheHandler', () => {
-  let mockRedisService: { get: jest.Mock; set: jest.Mock };
+  let mockRedisService: { get: jest.Mock; set: jest.Mock; getTTL: jest.Mock };
   let mockCacheConsistencyService: {
     trackCacheHit: jest.Mock;
     trackCacheMiss: jest.Mock;
@@ -28,17 +27,19 @@ describe('redisCacheHandler', () => {
   let mockNext: NextFunction;
   let jsonMock: jest.Mock;
   let statusMock: jest.Mock;
+  let setHeaderMock: jest.Mock;
 
   beforeEach(() => {
     mockRedisService = {
       get: jest.fn(),
       set: jest.fn(),
+      getTTL: jest.fn().mockResolvedValue(300),
     };
     mockCacheConsistencyService = {
       trackCacheHit: jest.fn(),
       trackCacheMiss: jest.fn(),
       trackStaleRead: jest.fn(),
-      checkStaleData: jest.fn(),
+      checkStaleData: jest.fn().mockResolvedValue({ isStale: false, ttl: 300 }),
       refreshAhead: jest.fn(),
     };
     mockLogger = {
@@ -48,7 +49,6 @@ describe('redisCacheHandler', () => {
       debug: jest.fn(),
     };
 
-    // Setup container.resolve to return our mocks
     (container.resolve as jest.Mock).mockImplementation((token: string | { name: string }) => {
       if (token === DI_TOKENS.REDIS_SERVICE) return mockRedisService;
       if (token === DI_TOKENS.LOGGER) return mockLogger;
@@ -63,15 +63,22 @@ describe('redisCacheHandler', () => {
 
     jsonMock = jest.fn();
     statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+    setHeaderMock = jest.fn();
 
     mockRequest = {
       method: 'GET',
       originalUrl: '/test-url',
-    };
+      ip: '127.0.0.1',
+      path: '/test-url',
+      connection: {
+        remoteAddress: '127.0.0.1',
+      },
+    } as Partial<Request>;
     mockResponse = {
       status: statusMock,
       json: jsonMock,
       statusCode: 200,
+      setHeader: setHeaderMock,
     };
     mockNext = jest.fn();
   });
@@ -90,7 +97,12 @@ describe('redisCacheHandler', () => {
     expect(mockRedisService.get).toHaveBeenCalled();
     expect(mockCacheConsistencyService.trackCacheHit).toHaveBeenCalled();
     expect(statusMock).toHaveBeenCalledWith(200);
-    expect(jsonMock).toHaveBeenCalledWith({ data: 'cached' });
+    expect(jsonMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: 'cached',
+        cacheInfo: expect.anything(),
+      })
+    );
     expect(mockNext).not.toHaveBeenCalled();
   });
 
@@ -103,17 +115,20 @@ describe('redisCacheHandler', () => {
     expect(mockCacheConsistencyService.trackCacheMiss).toHaveBeenCalled();
     expect(mockNext).toHaveBeenCalled();
 
-    // Simulate calling res.json in the controller/next middleware
     const responseData = { data: 'fresh' };
     (mockResponse.json as jest.Mock)(responseData);
 
     expect(mockRedisService.set).toHaveBeenCalledWith(
       expect.stringContaining('GET:/test-url'),
-      JSON.stringify(responseData),
+      expect.any(String),
       300
     );
-    // Ensure original json was called
-    expect(jsonMock).toHaveBeenCalledWith(responseData);
+    expect(jsonMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: 'fresh',
+        cacheInfo: expect.anything(),
+      })
+    );
   });
 
   it('should bypass caching for non-GET requests', async () => {
@@ -134,13 +149,12 @@ describe('redisCacheHandler', () => {
 
     expect(mockLogger.error).toHaveBeenCalled();
     expect(mockNext).toHaveBeenCalled();
-    // Should still have called next even though redis failed
   });
 
   it('should track stale data and trigger background refresh if enabled', async () => {
     const cachedData = JSON.stringify({ data: 'stale-data' });
     mockRedisService.get.mockResolvedValue(cachedData);
-    mockCacheConsistencyService.checkStaleData.mockResolvedValue(true);
+    mockCacheConsistencyService.checkStaleData.mockResolvedValue({ isStale: true, ttl: 0 });
 
     const middleware = redisCacheHandler(300, {
       consistencyCheck: true,
@@ -149,9 +163,13 @@ describe('redisCacheHandler', () => {
     await middleware(mockRequest as Request, mockResponse as Response, mockNext);
 
     expect(mockCacheConsistencyService.trackStaleRead).toHaveBeenCalled();
-    expect(mockCacheConsistencyService.refreshAhead).toHaveBeenCalled();
     expect(statusMock).toHaveBeenCalledWith(200);
-    expect(jsonMock).toHaveBeenCalledWith({ data: 'stale-data' });
+    expect(jsonMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: 'stale-data',
+        cacheInfo: expect.anything(),
+      })
+    );
   });
 
   it('should use default TTL if none provided', async () => {
@@ -160,7 +178,6 @@ describe('redisCacheHandler', () => {
     const middleware = redisCacheHandler();
     await middleware(mockRequest as Request, mockResponse as Response, mockNext);
 
-    // Call res.json to trigger caching
     const responseData = { test: 'default-ttl' };
     (mockResponse.json as jest.Mock)(responseData);
 

@@ -1,5 +1,5 @@
-import { logger } from '@/shared';
 import { CACHE_LOG_MESSAGES, REDIS_CONFIG } from '@/shared/constants';
+import { logger } from '@/shared/logger';
 import Redis from 'ioredis';
 
 class RedisConnection {
@@ -44,7 +44,7 @@ class RedisConnection {
 
     this.client.on('error', (err) => {
       this.isConnected = false;
-      logger.error(CACHE_LOG_MESSAGES.CONNECTION_ERROR.replace('{error}', err.message));
+      logger.error(CACHE_LOG_MESSAGES.CONNECTION_ERROR(err.message));
     });
 
     this.client.on('close', () => {
@@ -57,7 +57,7 @@ class RedisConnection {
   public async connect(): Promise<void> {
     // Guard clause: If Redis is disabled, don't attempt connection
     if (REDIS_CONFIG.DISABLED) {
-      logger.warn('Redis is disabled in configuration. Skipping connection.');
+      logger.warn(CACHE_LOG_MESSAGES.CONNECTION_DISABLED);
       return;
     }
 
@@ -70,10 +70,7 @@ class RedisConnection {
       await this.client.connect();
     } catch (error) {
       const err = error as Error;
-      logger.error(
-        { err: error },
-        CACHE_LOG_MESSAGES.CONNECTION_ERROR.replace('{error}', err.message)
-      );
+      logger.error({ err: error }, CACHE_LOG_MESSAGES.CONNECTION_ERROR(err.message));
       throw error;
     }
   }
@@ -82,7 +79,7 @@ class RedisConnection {
   public async disconnect(): Promise<void> {
     // Guard clause: If Redis is disabled, nothing to disconnect
     if (REDIS_CONFIG.DISABLED) {
-      logger.warn('Redis is disabled. Skipping disconnection.');
+      logger.warn(CACHE_LOG_MESSAGES.DISCONNECT_DISABLED);
       return;
     }
 
@@ -95,7 +92,8 @@ class RedisConnection {
       await this.client.quit();
       this.isConnected = false; // Update our status
     } catch (error) {
-      logger.info({ err: error }, CACHE_LOG_MESSAGES.CONNECTION_CLOSE_ERROR);
+      const err = error instanceof Error ? error : new Error(String(error));
+      logger.info({ err: error }, CACHE_LOG_MESSAGES.CONNECTION_CLOSE_ERROR(err.message));
       throw error;
     }
   }

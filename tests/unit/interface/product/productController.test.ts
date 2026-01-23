@@ -1,4 +1,5 @@
 import { Product } from '@/domain/entities';
+import { IRedisService } from '@/domain/interfaces/redis/IRedisService';
 import { ProductController } from '@/interface/controllers';
 import { CreateProductDTO, ToggleWishlistDTO, UpdateProductDTO } from '@/interface/dtos';
 import {
@@ -20,15 +21,6 @@ import {
 } from '@/usecases';
 import { NextFunction, Request, Response } from 'express';
 
-// Mock the use cases
-jest.mock('@/usecases/product/CountProductsUseCase');
-jest.mock('@/usecases/product/CreateProductUseCase');
-jest.mock('@/usecases/product/GetProductUseCase');
-jest.mock('@/usecases/product/ListProductsUseCase');
-jest.mock('@/usecases/product/UpdateProductUseCase');
-jest.mock('@/usecases/product/DeleteProductUseCase');
-jest.mock('@/usecases/product/ToggleWishlistProductUseCase');
-
 describe('ProductController', () => {
   let productController: ProductController;
   let mockCountProductsUseCase: jest.Mocked<CountProductsUseCase>;
@@ -38,6 +30,7 @@ describe('ProductController', () => {
   let mockUpdateProductUseCase: jest.Mocked<UpdateProductUseCase>;
   let mockDeleteProductUseCase: jest.Mocked<DeleteProductUseCase>;
   let mockToggleWishlistUseCase: jest.Mocked<ToggleWishlistProductUseCase>;
+  let mockRedisService: jest.Mocked<IRedisService>;
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
   let mockNext: jest.MockedFunction<NextFunction>;
@@ -48,38 +41,46 @@ describe('ProductController', () => {
 
     mockCountProductsUseCase = {
       execute: jest.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    } as unknown as jest.Mocked<CountProductsUseCase>;
 
     mockCreateProductUseCase = {
       execute: jest.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    } as unknown as jest.Mocked<CreateProductUseCase>;
 
     mockGetProductUseCase = {
       execute: jest.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    } as unknown as jest.Mocked<GetProductUseCase>;
 
     mockListProductsUseCase = {
       execute: jest.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    } as unknown as jest.Mocked<ListProductsUseCase>;
 
     mockUpdateProductUseCase = {
       execute: jest.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    } as unknown as jest.Mocked<UpdateProductUseCase>;
 
     mockDeleteProductUseCase = {
       execute: jest.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    } as unknown as jest.Mocked<DeleteProductUseCase>;
 
     mockToggleWishlistUseCase = {
       execute: jest.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    } as unknown as jest.Mocked<ToggleWishlistProductUseCase>;
+
+    mockRedisService = {
+      get: jest.fn(),
+      set: jest.fn(),
+      delete: jest.fn(),
+      keys: jest.fn().mockResolvedValue([]),
+      flush: jest.fn(),
+      increment: jest.fn(),
+      setWithExpiration: jest.fn(),
+      acquireLock: jest.fn(),
+      releaseLock: jest.fn(),
+      getClient: jest.fn(),
+      isConnected: jest.fn(),
+      getTTL: jest.fn(),
+    } as unknown as jest.Mocked<IRedisService>;
 
     mockLogger = {
       info: jest.fn(),
@@ -97,6 +98,7 @@ describe('ProductController', () => {
       mockUpdateProductUseCase,
       mockDeleteProductUseCase,
       mockToggleWishlistUseCase,
+      mockRedisService,
       mockLogger
     );
 
@@ -106,6 +108,7 @@ describe('ProductController', () => {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
       send: jest.fn().mockReturnThis(),
+      setHeader: jest.fn(),
     };
     mockNext = jest.fn();
   });
@@ -225,7 +228,7 @@ describe('ProductController', () => {
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: RESPONSE_STATUS.ERROR,
         message: PRODUCT_ERROR_MESSAGES.NOT_FOUND,
-        errors: [{ field: 'id', message: 'Product with specified ID does not exist' }],
+        errors: [{ field: 'id', message: PRODUCT_ERROR_MESSAGES.PRODUCT_NOT_FOUND_BY_ID }],
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -376,8 +379,8 @@ describe('ProductController', () => {
       expect(mockCountProductsUseCase.execute).toHaveBeenCalledWith({
         category: undefined,
         search: undefined,
-        isActive: false,
-        isWishlistStatus: false,
+        isActive: undefined,
+        isWishlistStatus: undefined,
         priceRange: undefined,
       });
       expect(mockResponse.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
@@ -496,8 +499,7 @@ describe('ProductController', () => {
 
       mockRequest.params = { id: productId };
       mockRequest.body = updateData;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockUpdateProductUseCase.execute.mockResolvedValue(null as any);
+      mockUpdateProductUseCase.execute.mockResolvedValue(null as unknown as Product);
 
       // Act
       await productController.updateProduct(
@@ -511,7 +513,7 @@ describe('ProductController', () => {
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: RESPONSE_STATUS.ERROR,
         message: PRODUCT_ERROR_MESSAGES.NOT_FOUND,
-        errors: [{ field: 'id', message: 'Product with specified ID does not exist' }],
+        errors: [{ field: 'id', message: 'Product with specified ID does not exist.' }],
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -615,8 +617,11 @@ describe('ProductController', () => {
 
       // Assert
       expect(mockDeleteProductUseCase.execute).toHaveBeenCalledWith(productId);
-      expect(mockResponse.status).toHaveBeenCalledWith(HTTP_STATUS.NO_CONTENT);
-      expect(mockResponse.send).toHaveBeenCalled();
+      expect(mockResponse.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        status: RESPONSE_STATUS.SUCCESS,
+        message: PRODUCT_SUCCESS_MESSAGES.PRODUCT_DELETED,
+      });
       expect(mockNext).not.toHaveBeenCalled();
     });
 

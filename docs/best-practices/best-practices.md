@@ -1100,7 +1100,7 @@ res.status(HTTP_STATUS.NO_CONTENT).send();
 res.status(HTTP_STATUS.NOT_FOUND).json({
   status: 'error',
   message: 'Product not found',
-  errors: [{ field: 'id', message: 'Product with specified ID does not exist' }],
+  errors: [{ field: 'id', message: PRODUCT_ERROR_MESSAGES.PRODUCT_NOT_FOUND_BY_ID }],
 });
 
 // ✅ Best Practice: Simple error response
@@ -1147,6 +1147,50 @@ async createProduct(req: Request, res: Response, next: NextFunction): Promise<vo
     next(error); // Let global error handler format the error response
   }
 }
+```
+
+**Example: Key Naming Conventions**
+
+```typescript
+// ✅ Do: Use consistent key naming conventions
+const KEYS = {
+  PRODUCTS: {
+    LIST: (filters: string) => `products:list:${filters}`,
+    DETAIL: (id: string) => `products:detail:${id}`,
+    SEARCH: (query: string) => `products:search:${hashQuery(query)}`,
+  },
+  SESSIONS: {
+    USER: (userId: string) => `sessions:user:${userId}`,
+    TOKEN: (token: string) => `sessions:token:${token}`,
+  },
+  RATE_LIMITS: {
+    API: (userId: string) => `rate_limit:api:${userId}`,
+    AUTH: (ip: string) => `rate_limit:auth:${ip}`,
+  },
+} as const;
+```
+
+**Example: Cache Invalidation on Write Operations**
+
+```typescript
+// ✅ Do: Implement proper cache invalidation
+class ProductCacheInvalidator {
+  constructor(private redisService: IRedisService) {}
+
+  async invalidateProductCaches(): Promise<void> {
+    const keys = await this.redisService.keys('products:*');
+    if (keys.length > 0) {
+      await Promise.all(keys.map(key => this.redisService.delete(key)));
+    }
+  }
+
+  async updateProduct(productId: string, updates: Partial<Product>): Promise<void> {
+    // Update database first
+    await this.productRepository.update(productId, updates);
+    // Invalidate related caches
+    await this.invalidateProductCaches();
+  }
+}
 
 async getProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -1164,7 +1208,7 @@ async getProduct(req: Request, res: Response, next: NextFunction): Promise<void>
       res.status(HTTP_STATUS.NOT_FOUND).json(errorResponse(
         'Product not found',
         HTTP_STATUS.NOT_FOUND,
-        [{ field: 'id', message: 'Product with specified ID does not exist' }]
+        [{ field: 'id', message: PRODUCT_ERROR_MESSAGES.PRODUCT_NOT_FOUND_BY_ID }]
       ));
     }
   } catch (error) {
@@ -1875,6 +1919,10 @@ logger.info('User login', {
 
 #### ✅ Do's
 
+- **Do** implement Redis-first pattern for all read operations (check cache before database)
+- **Do** implement cache invalidation on all write operations to maintain data consistency
+- **Do** include cache metadata in API responses for transparency
+- **Do** add response headers for timing (`X-Response-Time`) and data source (`X-Data-Source`)
 - **Do** implement graceful degradation when Redis is unavailable
 - **Do** use connection pooling for Redis connections
 - **Do** set appropriate TTL values based on data volatility
@@ -1888,10 +1936,104 @@ logger.info('User login', {
 - **Do** use cache-aside pattern for read-heavy operations
 - **Do** implement cache warming for frequently accessed data
 
-**Example: Proper Redis implementation with graceful degradation**
+**Example: Redis-first caching with cache metadata and response headers**
 
 ```typescript
-// ✅ Do: Graceful degradation and proper error handling
+// ✅ Do: Redis-first pattern with cache metadata
+export const redisCacheHandler = (ttl?: number, options?: CacheOptions) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    const redisService = container.resolve<IRedisService>(DI_TOKENS.REDIS_SERVICE);
+    const cacheKey = generateCacheKey(req);
+
+    // Redis-first: Check cache first
+    const cachedResponse = await redisService.get(cacheKey);
+    if (cachedResponse) {
+      // Cache hit - add metadata and data source header
+      const cachedData = JSON.parse(cachedResponse);
+      cachedData.cacheInfo = {
+        cacheStatus: 'hit',
+        cacheKey,
+        ttl: await redisService.getTTL(cacheKey),
+        cachedAt: cachedData.cacheInfo?.cachedAt || new Date().toISOString(),
+      };
+      res.setHeader('X-Data-Source', 'cache');
+      return res.status(200).json(cachedData);
+    }
+
+    // Cache miss - intercept response to cache it
+    const originalJson = res.json;
+    res.json = (body: unknown) => {
+      if (res.statusCode === 200) {
+        const bodyWithCacheInfo = {
+          ...(body as object),
+          cacheInfo: {
+            cacheStatus: 'miss',
+            cacheKey,
+            ttl: ttl || REDIS_CONFIG.TTL.DEFAULT,
+            cachedAt: new Date().toISOString(),
+          },
+        };
+        redisService.set(cacheKey, JSON.stringify(bodyWithCacheInfo), ttl);
+        res.setHeader('X-Data-Source', 'mongo');
+        return originalJson.call(res, bodyWithCacheInfo);
+      }
+      res.setHeader('X-Data-Source', 'mongo');
+      return originalJson.call(res, body);
+    };
+
+    next();
+  };
+};
+
+// ✅ Do: Cache invalidation on write operations
+export class ProductController {
+  @inject(DI_TOKENS.REDIS_SERVICE)
+  private redisService: IRedisService;
+
+  async createProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const product = await this.createProductUseCase.execute(req.body);
+
+      // Invalidate cache after write
+      const keys = await this.redisService.keys('products:*');
+      await Promise.all(keys.map((key) => this.redisService.delete(key)));
+
+      res.setHeader('X-Data-Source', 'mongo');
+      res.status(HTTP_STATUS.CREATED).json({
+        status: RESPONSE_STATUS.SUCCESS,
+        data: product,
+        message: PRODUCT_SUCCESS_MESSAGES.PRODUCT_CREATED,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+// ✅ Do: Response timing middleware
+export const responseTimingHandler = (req: Request, res: Response, next: NextFunction): void => {
+  const start = Date.now();
+
+  // Store start time on request object
+  (req as Request & { startTime?: number }).startTime = start;
+
+  // Override res.end to set timing header before response is sent
+  const originalEnd = res.end;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  res.end = function (this: Response, chunk?: any, encoding?: any, callback?: any): Response {
+    const duration = Date.now() - start;
+    res.setHeader('X-Response-Time', `${duration}ms`);
+    return originalEnd.call(this, chunk, encoding, callback);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any;
+
+  next();
+};
+```
+
+**Example: Redis Service Implementation**
+
+```typescript
 @injectable()
 export class RedisService implements IRedisService {
   private redis: Redis;
@@ -1961,6 +2103,16 @@ export class RedisService implements IRedisService {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  async getTTL(key: string): Promise<number> {
+    if (!this.isConnected) return 0;
+    try {
+      return await this.redis.ttl(key);
+    } catch (error) {
+      this.logger.error(`Redis TTL error for key ${key}:`, error);
+      throw error;
     }
   }
 }

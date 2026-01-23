@@ -14,26 +14,28 @@
  * - Dependency injection initialization via reflect-metadata
  */
 
-import 'module-alias/register';
 import 'reflect-metadata'; // Required for tsyringe to work with decorators and reflection metadata
 
 import { jollyJetApp } from '@/app';
 import config from '@/config';
 import mongoDBConnection from '@/infrastructure/database/mongodb';
 import redisConnection from '@/infrastructure/database/redis';
-import { logger } from '@/shared';
+import { CACHE_LOG_MESSAGES, logger, MONGODB_LOG_MESSAGES, SERVER_LOG_MESSAGES } from '@/shared';
 
 // Graceful shutdown handler
 const gracefulShutdown = async (signal: string) => {
-  logger.info({ signal: signal }, 'signal: received. Closing gracefully...');
+  logger.info({ signal: signal }, SERVER_LOG_MESSAGES.SHUTDOWN_RECEIVE(signal));
   try {
     await mongoDBConnection.disconnect();
-    logger.info('MongoDB disconnected');
+    logger.info(MONGODB_LOG_MESSAGES.DISCONNECT_SUCCESS);
     await redisConnection.disconnect();
-    logger.info('Redis disconnected');
+    logger.info(CACHE_LOG_MESSAGES.CONNECTION_CLOSED);
     process.exit(0);
   } catch (error) {
-    logger.error({ err: error }, 'Error during shutdown');
+    logger.error(
+      { err: error },
+      SERVER_LOG_MESSAGES.SHUTDOWN_ERROR(error instanceof Error ? error.message : String(error))
+    );
     process.exit(1);
   }
 };
@@ -44,12 +46,12 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Handle uncaught errors
 process.on('uncaughtException', (error: Error) => {
-  logger.error({ err: error }, 'Uncaught Exception:');
+  logger.error({ err: error }, SERVER_LOG_MESSAGES.UNCAUGHT_EXCEPTION);
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason: unknown) => {
-  logger.error({ err: reason }, 'Unhandled Rejection:');
+  logger.error({ err: reason }, SERVER_LOG_MESSAGES.UNHANDLED_REJECTION);
   process.exit(1);
 });
 
@@ -58,27 +60,40 @@ const startServer = async () => {
   const app = await jollyJetApp();
 
   try {
-    // Try to connect to MongoDB first
+    // Connect to MongoDB first - required for server startup
     await mongoDBConnection.connect();
-    logger.info('MongoDB connected successfully.');
+    logger.info(MONGODB_LOG_MESSAGES.CONNECTION_SUCCESS);
   } catch (error) {
-    logger.warn({ error: error }, 'MongoDB connection failed. Starting server without database.');
-    // Continue without database connection
+    logger.error({ error: error }, MONGODB_LOG_MESSAGES.CONNECTION_FAILED);
+    process.exit(1);
   }
 
   try {
-    // Try to connect to Redis
+    // Connect to Redis - required for server startup
     await redisConnection.connect();
-    logger.info('Redis connected successfully.');
+    // Note: Connection success is already logged by the Redis connection event handler
   } catch (error) {
-    logger.warn({ error: error }, 'Redis connection failed. Starting server without Redis.');
-    // Continue without Redis connection
+    logger.error(
+      { err: error },
+      CACHE_LOG_MESSAGES.CONNECTION_ERROR(error instanceof Error ? error.message : String(error))
+    );
+    process.exit(1);
   }
 
-  // Start the server regardless of MongoDB and Redis connection status
+  // Start the server only after both MongoDB and Redis are connected
   app.listen(config.port, () => {
-    logger.info(`🛫 jollyJet Server listening on port ${config.port}.`);
+    logger.info(SERVER_LOG_MESSAGES.STATUS_READY);
+    logger.info(SERVER_LOG_MESSAGES.LISTENING(config.port));
+    logger.info(SERVER_LOG_MESSAGES.API_DOCS(config.port));
+    logger.info(SERVER_LOG_MESSAGES.HEALTH_CHECK(config.port));
+    logger.info(SERVER_LOG_MESSAGES.CACHE_STRATEGY);
+    logger.info(SERVER_LOG_MESSAGES.SECURITY_ENABLED);
+    logger.info(SERVER_LOG_MESSAGES.SERVICES_READY);
+    logger.info(SERVER_LOG_MESSAGES.READY_PRODUCTION);
   });
 };
 
-startServer();
+startServer().catch((error) => {
+  logger.error({ err: error }, SERVER_LOG_MESSAGES.STARTUP_ERROR);
+  process.exit(1);
+});

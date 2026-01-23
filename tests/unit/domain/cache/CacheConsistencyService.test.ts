@@ -1,5 +1,6 @@
 import { IRedisService } from '@/domain/interfaces/redis/IRedisService';
 import { CacheConsistencyService } from '@/domain/services/cache/CacheConsistencyService';
+import { Logger } from '@/shared';
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 // Mock RedisService for basic functionality tests
@@ -15,6 +16,7 @@ const mockRedisService = {
   acquireLock: jest.fn(),
   releaseLock: jest.fn(),
   isConnected: jest.fn(),
+  getTTL: jest.fn(),
 } as jest.Mocked<IRedisService>;
 
 // Simple mock logger
@@ -33,8 +35,7 @@ describe('CacheConsistencyService', () => {
     jest.clearAllMocks();
     cacheConsistencyService = new CacheConsistencyService(
       mockRedisService,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockLogger as any
+      mockLogger as unknown as Logger
     );
   });
 
@@ -223,13 +224,13 @@ describe('CacheConsistencyService', () => {
       const testKey = 'test:key';
 
       // Setup mock
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (mockRedisService.getClient as any).mockReturnValue({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ttl: (jest.fn() as any).mockResolvedValue(300),
+      const mockTtl = jest.fn().mockImplementation(() => Promise.resolve(300));
+      (mockRedisService.getClient as jest.Mock).mockReturnValue({
+        ttl: mockTtl,
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (mockRedisService.get as any).mockResolvedValue('{"id": "test"}');
+      (mockRedisService.get as jest.Mock).mockImplementation(() =>
+        Promise.resolve('{"id": "test"}')
+      );
 
       const result = await cacheConsistencyService.checkStaleData(testKey);
 
@@ -247,13 +248,11 @@ describe('CacheConsistencyService', () => {
       const testKey = 'nonexistent:key';
 
       // Setup mock
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (mockRedisService.getClient as any).mockReturnValue({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ttl: (jest.fn() as any).mockResolvedValue(-1),
+      const mockTtlMissing = jest.fn().mockImplementation(() => Promise.resolve(-1));
+      (mockRedisService.getClient as jest.Mock).mockReturnValue({
+        ttl: mockTtlMissing,
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (mockRedisService.get as any).mockResolvedValue(null);
+      (mockRedisService.get as jest.Mock).mockImplementation(() => Promise.resolve(null));
 
       const result = await cacheConsistencyService.checkStaleData(testKey);
 

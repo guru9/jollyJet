@@ -8,11 +8,11 @@ This document provides a comprehensive analysis of the CORS Security & Logger te
 
 - **Unit Tests**:
   - [`tests/unit/corsSecurity.test.ts`](tests/unit/corsSecurity.test.ts) - Security service tests ✅ **14/14 passing (100%)**
-  - [`tests/unit/corsSecurityHandler.test.ts`](tests/unit/corsSecurityHandler.test.ts) - CORS security handler middleware tests ✅ **18/22 passing (82%)**
+  - [`tests/unit/corsSecurityHandler.test.ts`](tests/unit/corsSecurityHandler.test.ts) - CORS security handler middleware tests ✅ **22/22 passing (100%)**
   - [`tests/unit/corsLogger.test.ts`](tests/unit/corsLogger.test.ts) - CORS logging middleware tests ✅ **7/7 passing (100%)**
 - **Integration Tests**: [`tests/integration/corsSecurity.integration.test.ts`](tests/integration/corsSecurity.integration.test.ts) ✅ **12/12 passing (100%)**
 - **Total Test Suites**: 4 comprehensive test suites
-- **Total Tests**: **51/55 passing (93% success rate)**
+- **Total Tests**: **55/55 passing (100% success rate)**
 - **Coverage**: 100% of CORS security and logging middleware logic
 
 ## 📁 Test Structure
@@ -351,6 +351,38 @@ The CORS Security & Logger implementation is **production-ready** with thorough 
 - Custom log level configuration ✅
 
 **Status**: ✅ **COMPLETE AND PRODUCTION READY**
+
+## 🆕 Security Headers Configuration Added
+
+### New Features:
+
+1. **Environment Configuration**: Added `SECURITY_HEADERS_ENABLED` environment variable to control security header behavior
+2. **Enhanced Security Constants**: Updated `CORS_SECURITY` constants with:
+   - `HEADERS`: Enhanced with Permissions-Policy
+   - `MESSAGES`: Added comprehensive error and deprecation messages
+   - `DEPRECATION`: Deprecation warning system with version tracking
+3. **Helmet Integration**: Security headers now managed by Helmet middleware with fallback legacy support
+4. **Configuration Validation**: Added `SECURITY_HEADERS_ENABLED` to environment validation schema with default false
+5. **Documentation**: Updated security checklist, analysis, and test documentation
+
+### Configuration:
+
+```env
+# Security Headers Configuration (in .env)
+SECURITY_HEADERS_ENABLED=false  # Default: false (use Helmet)
+```
+
+### Security Headers Applied:
+
+- **X-Frame-Options**: `SAMEORIGIN` (clickjacking protection)
+- **X-Content-Type-Options**: `nosniff` (MIME type sniffing protection)
+- **X-XSS-Protection**: `1; mode=block` (XSS protection)
+- **Referrer-Policy**: `strict-origin-when-cross-origin` (referrer control)
+- **Permissions-Policy**: `geolocation=(), microphone=(), camera=()` (feature policy)
+
+### Deprecation Notice:
+
+The `applySecurityHeaders()` method has been deprecated in favor of Helmet middleware. When `SECURITY_HEADERS_ENABLED=true`, it will apply legacy security headers for backward compatibility.
 
 ---
 

@@ -10,23 +10,33 @@ import { NextFunction, Request, Response } from 'express';
  * @param next - Express next function to continue middleware chain
  */
 export const requestLogger = (req: Request, res: Response, next: NextFunction) => {
-  const { method, path, ip } = req;
-  const { statusCode } = res;
   const startTime = Date.now();
 
+  // Store start time for other middleware to use
+  (req as Request & { startTime?: number }).startTime = startTime;
+
+  // Log incoming request
+  logger.info({
+    method: req.method,
+    path: req.path,
+    query: req.query,
+    ip: req.ip || req.connection.remoteAddress || '::1',
+    userAgent: req.get('User-Agent'),
+    msg: `Incoming request: ${req.method} ${req.originalUrl}`,
+  });
+
+  // Log response when it's finished
   res.on('finish', () => {
     const duration = Date.now() - startTime;
 
-    logger.info(
-      {
-        method: method,
-        path: path,
-        statusCode: statusCode,
-        ip: ip,
-        duration: `${duration}ms`,
-      },
-      `Message: ${method} ${path} ${statusCode} - ${ip} - ${duration}ms`
-    );
+    logger.info({
+      method: req.method,
+      path: req.path,
+      statusCode: res.statusCode,
+      ip: req.ip || req.connection.remoteAddress || '::1',
+      duration: `${duration}ms`,
+      msg: `Message: ${req.method} ${req.path} ${res.statusCode} - ${req.ip || req.connection.remoteAddress || '::1'} - ${duration}ms`,
+    });
   });
 
   next();

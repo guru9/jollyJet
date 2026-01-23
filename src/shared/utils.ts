@@ -1,8 +1,9 @@
 import { randomBytes } from 'crypto';
 import { NextFunction, Request, Response } from 'express';
-import { Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { ZodError, ZodType } from 'zod';
-import { ERROR_STATUS, HTTP_STATUS } from './constants';
+import { ERROR_STATUS, HTTP_STATUS, PRODUCT_ERROR_MESSAGES } from './constants';
+import { BadRequestError } from './errors';
 
 /**
  * Validates request data against a Zod schema.
@@ -46,7 +47,9 @@ export const validateRequest = (schema: ZodType) => {
  */
 export const safeParseInt = (value: string, defaultValue: number = 0): number => {
   if (typeof value !== 'string') return defaultValue;
-  const parsed = parseInt(value, 10);
+  const trimmed = value.trim();
+  if (!/^-?\d+$/.test(trimmed)) return defaultValue;
+  const parsed = parseInt(trimmed, 10);
   return isNaN(parsed) ? defaultValue : parsed;
 };
 
@@ -59,7 +62,9 @@ export const safeParseInt = (value: string, defaultValue: number = 0): number =>
  */
 export const safeParseFloat = (value: string, defaultValue: number = 0): number => {
   if (typeof value !== 'string') return defaultValue;
-  const parsed = parseFloat(value);
+  const trimmed = value.trim();
+  if (!/^-?\d+(\.\d+)?$/.test(trimmed)) return defaultValue;
+  const parsed = parseFloat(trimmed);
   return isNaN(parsed) ? defaultValue : parsed;
 };
 
@@ -234,6 +239,14 @@ export const calculatePaginationMeta = (total: number, page: number, limit: numb
 };
 
 /**
+ * Checks if MongoDB is connected and ready for operations.
+ * @returns True if MongoDB is connected (readyState === 1), false otherwise
+ */
+export const isMongoDBConnected = (): boolean => {
+  return mongoose.connection.readyState === 1;
+};
+
+/**
  * Safely converts a value to a string.
  * Returns the string if input is a string, undefined otherwise.
  * @param value - Value to convert
@@ -266,4 +279,21 @@ export const isValidEmail = (email: string): boolean => {
 
   const emailRegex = /^[\w.-]+@[\w.-]+\.\w+$/;
   return emailRegex.test(email);
+};
+
+/**
+ * Validates a product ID string.
+ * Checks if it's a non-empty string and a valid MongoDB ObjectId.
+ * @param productId - Product ID string to validate
+ * @param errorMessage - Error message to use if validation fails
+ * @throws BadRequestError if validation fails
+ */
+export const validateProductId = (productId: string, errorMessage: string): void => {
+  if (!productId?.trim()) {
+    throw new BadRequestError(errorMessage);
+  }
+
+  if (!isValidObjectId(productId)) {
+    throw new BadRequestError(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
+  }
 };

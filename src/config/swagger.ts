@@ -62,7 +62,7 @@ const options: swaggerJsdoc.Options = {
             },
             stock: {
               type: 'integer',
-              description: 'Available stock quantity',
+              description: 'Available stock quantity (shows 0 for inactive products)',
               minimum: 0,
               example: 50,
             },
@@ -195,8 +195,59 @@ const options: swaggerJsdoc.Options = {
                     type: 'object',
                     description: 'The actual response data',
                   },
+                  message: {
+                    type: 'string',
+                    example: 'Data retrieved successfully',
+                  },
                   cacheInfo: {
                     $ref: '#/components/schemas/CacheInfo',
+                  },
+                },
+              },
+            },
+          },
+        },
+        ProductListResponse: {
+          description: 'Product list response',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success',
+                  },
+                  data: {
+                    type: 'object',
+                    properties: {
+                      products: {
+                        type: 'array',
+                        items: {
+                          $ref: '#/components/schemas/Product',
+                        },
+                      },
+                      total: {
+                        type: 'integer',
+                        example: 8,
+                      },
+                      page: {
+                        type: 'integer',
+                        example: 1,
+                      },
+                      limit: {
+                        type: 'integer',
+                        example: 10,
+                      },
+                      totalPages: {
+                        type: 'integer',
+                        example: 1,
+                      },
+                    },
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'Products retrieved successfully',
                   },
                 },
               },

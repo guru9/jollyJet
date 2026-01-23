@@ -1,115 +1,114 @@
 import { IRedisService } from '@/domain/interfaces/redis/IRedisService';
 import { CacheConsistencyService } from '@/domain/services/cache/CacheConsistencyService';
-import {
-  CACHE_KEYS_PATTERNS,
-  CACHE_LOG_MESSAGES,
-  CACHE_OPERATIONS,
-  DI_TOKENS,
-  REDIS_CONFIG,
-} from '@/shared/constants';
+import { CACHE_LOG_MESSAGES } from '@/shared';
+import { CACHE_KEYS_PATTERNS, DI_TOKENS, REDIS_CONFIG } from '@/shared/constants';
 import { Logger } from '@/shared/logger';
 import { NextFunction, Request, Response } from 'express';
 import { container } from 'tsyringe';
 
-/**
- * Redis Cache Middleware Handler
- *
- * Provides intelligent caching for Express.js routes using Redis.
- * This middleware intercepts GET requests and attempts to serve cached responses,
- * falling back to the next middleware if cache is unavailable or stale.
- *
- * Features:
- * - Response caching for GET requests only
- * - Configurable TTL and consistency options
- * - Background refresh for stale data
- * - Stampede protection to prevent cache stampedes
- * - Integration with cache consistency service for metrics
- *
- * @param ttl - Time-to-live for cached responses in seconds (optional)
- * @param options - Configuration options for caching behavior
- * @returns Express middleware function
- */
 export const redisCacheHandler = (
-  ttl?: number, // Time-to-live for cached responses in seconds (optional)
+  ttl?: number,
   options?: {
-    consistencyCheck?: boolean; // Enable consistency check
-    stampedeProtection?: boolean; // Enable stampede protection
-    backgroundRefresh?: boolean; // Enable background refresh
+    consistencyCheck?: boolean;
+    stampedeProtection?: boolean;
+    backgroundRefresh?: boolean;
   }
 ) => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    // Resolve dependencies from DI container
     const redisService = container.resolve<IRedisService>(DI_TOKENS.REDIS_SERVICE);
     const cacheConsistencyService = container.resolve(CacheConsistencyService);
     const logger = container.resolve<Logger>(DI_TOKENS.LOGGER);
 
-    // Generate cache key based on request method and URL
     const cacheKey = CACHE_KEYS_PATTERNS.PRODUCT_LIST(`${req.method}:${req.originalUrl}`);
 
-    // Skip caching for non-GET requests to avoid caching mutations
     if (req.method !== 'GET') {
       return next();
     }
 
     try {
-      // Attempt to retrieve cached response from Redis
       const cachedResponse = await redisService.get(cacheKey);
       if (cachedResponse) {
-        // Cache hit - log and track metrics
-        logger.info({ key: cacheKey }, CACHE_LOG_MESSAGES.CACHE_HIT);
+        logger.info({ key: cacheKey }, CACHE_LOG_MESSAGES.CACHE_HIT(cacheKey));
         cacheConsistencyService.trackCacheHit();
 
-        // Optional consistency check for stale data detection
-        if (options?.consistencyCheck) {
-          const isStale = await cacheConsistencyService.checkStaleData(cacheKey);
-          if (isStale) {
-            logger.warn({ key: cacheKey, ttl: 'unknown' }, CACHE_LOG_MESSAGES.STALE_CACHE_DETECTED);
-            cacheConsistencyService.trackStaleRead();
+        const cachedData = JSON.parse(cachedResponse);
 
-            // Trigger background refresh if enabled to update stale cache
-            if (options.backgroundRefresh) {
-              cacheConsistencyService.refreshAhead(
-                cacheKey,
-                async () => {
-                  // Simulate request execution to refresh cache
-                  const fakeRes = { statusCode: 200, jsonData: null } as unknown as Response;
-                  const fakeNext = () => {};
-                  await redisCacheHandler(ttl, options)(req, fakeRes, fakeNext);
-                  return (fakeRes as unknown as { jsonData: unknown }).jsonData;
-                },
-                ttl || Number(REDIS_CONFIG.TTL.DEFAULT) // Default TTL if not provided
-              );
-            }
+        if (options?.consistencyCheck) {
+          const staleCheck = await cacheConsistencyService.checkStaleData(cacheKey);
+          if (staleCheck.isStale) {
+            logger.warn(
+              { key: cacheKey },
+              CACHE_LOG_MESSAGES.STALE_CACHE_DETECTED(cacheKey, staleCheck.ttl)
+            );
+            cacheConsistencyService.trackStaleRead();
           }
         }
 
-        // Return cached response directly
-        return res.status(200).json(JSON.parse(cachedResponse));
+        const currentTTL = await redisService.getTTL(cacheKey);
+
+        cachedData.cacheInfo = {
+          cacheStatus: 'hit',
+          cacheKey,
+          ttl: currentTTL,
+          cachedAt: cachedData.cacheInfo?.cachedAt || new Date().toISOString(),
+        };
+
+        res.setHeader('X-Data-Source', 'cache');
+
+        const timingStart = (req as Request & { startTime?: number }).startTime || Date.now();
+        const duration = Date.now() - timingStart;
+        res.setHeader('X-Response-Time', `${duration}ms`);
+
+        logger.info({
+          method: req.method,
+          path: req.path,
+          statusCode: 200,
+          ip: req.ip || req.connection.remoteAddress || '::1',
+          duration: `${duration}ms`,
+          msg: `Message: ${req.method} ${req.path} 200 - ${req.ip || req.connection.remoteAddress || '::1'} - ${duration}ms`,
+        });
+
+        return res.status(200).json(cachedData);
       }
 
-      // Cache miss - track metrics and prepare for caching
       cacheConsistencyService.trackCacheMiss();
-      logger.info({ key: cacheKey, source: 'database' }, CACHE_LOG_MESSAGES.CACHE_MISS);
+      logger.info(
+        {
+          key: cacheKey,
+          source: 'database',
+        },
+        CACHE_LOG_MESSAGES.CACHE_MISS(cacheKey, 'database')
+      );
 
-      // Override res.json to cache the response
       const originalJson = res.json;
       res.json = (body: unknown) => {
         if (res.statusCode === 200) {
-          redisService.set(cacheKey, JSON.stringify(body), ttl || Number(REDIS_CONFIG.TTL.DEFAULT));
+          const cacheTTL = ttl || Number(REDIS_CONFIG.TTL.DEFAULT);
+          const bodyWithCacheInfo = {
+            ...(body as object),
+            cacheInfo: {
+              cacheStatus: 'miss',
+              cacheKey,
+              ttl: cacheTTL,
+              cachedAt: new Date().toISOString(),
+            },
+          };
+          redisService.set(cacheKey, JSON.stringify(bodyWithCacheInfo), cacheTTL);
+          return originalJson.call(res, bodyWithCacheInfo);
         }
         return originalJson.call(res, body);
       };
 
       next();
     } catch (error) {
-      // Log cache middleware errors and continue with request processing
+      const errMsg = error instanceof Error ? error.message : String(error);
       logger.error(
         {
-          operation: CACHE_OPERATIONS.CACHE_MIDDLEWARE,
           key: cacheKey,
-          error: error instanceof Error ? error.message : String(error),
+          error: errMsg,
+          stack: error instanceof Error ? error.stack : undefined,
         },
-        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED
+        CACHE_LOG_MESSAGES.CACHE_OPERATION_FAILED('middleware', cacheKey, errMsg)
       );
       next();
     }

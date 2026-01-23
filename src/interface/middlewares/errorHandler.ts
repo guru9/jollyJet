@@ -13,13 +13,16 @@ import { NextFunction, Request, Response } from 'express';
  */
 export const errorHandler = (err: Error, req: Request, res: Response, _next: NextFunction) => {
   if (err instanceof AppError) {
+    // Clean error message for production logs
     logger.error(
-      `AppError: ${err.message} - ${JSON.stringify({
+      {
+        message: err.message,
         statusCode: err.statusCode,
         path: req.path,
         method: req.method,
-        stack: err.stack,
-      })}`
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+      },
+      `AppError: ${err.message}`
     );
 
     return res.status(err.statusCode).json({
@@ -28,13 +31,15 @@ export const errorHandler = (err: Error, req: Request, res: Response, _next: Nex
     });
   }
 
-  // Unexpected errors
+  // Unexpected errors - include stack trace in development only
   logger.error(
-    `Unexpected Error: ${err.message} - ${JSON.stringify({
+    {
+      message: err.message,
       path: req.path,
       method: req.method,
-      stack: err.stack,
-    })}`
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    },
+    `Unexpected Error: ${err.message}`
   );
 
   return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({

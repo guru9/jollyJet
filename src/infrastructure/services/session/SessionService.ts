@@ -90,13 +90,11 @@ export class SessionService implements ISessionService {
     };
 
     const ttl = options.ttl || (REDIS_CONFIG.TTL.SESSION as number);
-    const sessionKey = CACHE_KEYS_PATTERNS.SESSION(sessionId);
+    const sessionKey = CACHE_KEYS_PATTERNS.USER_SESSION(sessionId);
 
     await this.redisService.set(sessionKey, JSON.stringify(sessionData), ttl);
 
-    this.logger.info(
-      CACHE_LOG_MESSAGES.CACHE_SET.replace('{key}', sessionKey).replace('{ttl}', ttl.toString())
-    );
+    this.logger.info(CACHE_LOG_MESSAGES.CACHE_SET(sessionKey, ttl));
 
     this.logger.debug(`Session created for user ${options.userId} with session ID ${sessionId}`);
 
@@ -113,11 +111,11 @@ export class SessionService implements ISessionService {
    * @returns Promise resolving to SessionData if found, null otherwise
    */
   public async getSession(sessionId: string): Promise<SessionData | null> {
-    const sessionKey = CACHE_KEYS_PATTERNS.SESSION(sessionId);
+    const sessionKey = CACHE_KEYS_PATTERNS.USER_SESSION(sessionId);
     const sessionData = await this.redisService.get(sessionKey);
 
     if (sessionData) {
-      this.logger.debug(CACHE_LOG_MESSAGES.CACHE_HIT.replace('{key}', sessionKey));
+      this.logger.debug(CACHE_LOG_MESSAGES.CACHE_HIT(sessionKey));
 
       // Parse stored session data
       const parsed = JSON.parse(sessionData) as SessionData;
@@ -135,12 +133,7 @@ export class SessionService implements ISessionService {
       return parsed;
     }
 
-    this.logger.debug(
-      CACHE_LOG_MESSAGES.CACHE_MISS.replace('{key}', sessionKey).replace(
-        '{source}',
-        'session_store'
-      )
-    );
+    this.logger.debug(CACHE_LOG_MESSAGES.CACHE_MISS(sessionKey, 'session_store'));
     return null;
   }
 
@@ -155,7 +148,7 @@ export class SessionService implements ISessionService {
    * @returns Promise resolving to true if updated, false if session not found
    */
   public async updateSession(sessionId: string, updates: Partial<SessionData>): Promise<boolean> {
-    const sessionKey = CACHE_KEYS_PATTERNS.SESSION(sessionId);
+    const sessionKey = CACHE_KEYS_PATTERNS.USER_SESSION(sessionId);
     const existingSession = await this.getSession(sessionId);
 
     if (!existingSession) {
@@ -190,10 +183,10 @@ export class SessionService implements ISessionService {
    * @returns Promise resolving to true when deleted
    */
   public async deleteSession(sessionId: string): Promise<boolean> {
-    const sessionKey = CACHE_KEYS_PATTERNS.SESSION(sessionId);
+    const sessionKey = CACHE_KEYS_PATTERNS.USER_SESSION(sessionId);
     await this.redisService.delete(sessionKey);
 
-    this.logger.debug(CACHE_LOG_MESSAGES.CACHE_DELETE.replace('{key}', sessionKey));
+    this.logger.debug(CACHE_LOG_MESSAGES.CACHE_DELETE(sessionKey));
     this.logger.info(`Session ${sessionId} deleted`);
 
     return true;
@@ -210,7 +203,7 @@ export class SessionService implements ISessionService {
    * @returns Promise resolving to true if extended, false if session not found
    */
   public async extendSession(sessionId: string, ttl?: number): Promise<boolean> {
-    const sessionKey = CACHE_KEYS_PATTERNS.SESSION(sessionId);
+    const sessionKey = CACHE_KEYS_PATTERNS.USER_SESSION(sessionId);
     const extensionTtl = ttl || (REDIS_CONFIG.TTL.SESSION as number);
 
     const sessionData = await this.redisService.get(sessionKey);

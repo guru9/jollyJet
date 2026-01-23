@@ -111,12 +111,21 @@ app.use(
 ### **Security Headers Applied:**
 
 ```typescript
-// Applied in corsSecurity.ts
+// Deprecated - use Helmet middleware instead
+@deprecated
 applySecurityHeaders(res: Response): void {
-  res.setHeader('X-Frame-Options', 'DENY'); // Prevents clickjacking
-  res.setHeader('X-Content-Type-Options', 'nosniff'); // Prevents MIME-type sniffing
-  res.setHeader('X-XSS-Protection', '1; mode=block'); // XSS protection
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin'); // Referrer control
+  // Security headers are now handled by Helmet middleware
+  // This method remains for backwards compatibility
+  // Legacy security headers can be enabled via SECURITY_HEADERS_ENABLED environment variable
+}
+
+// Legacy security headers for backward compatibility
+private applyLegacySecurityHeaders(res: Response): void {
+  res.setHeader('X-Frame-Options', CORS_SECURITY.HEADERS.X_FRAME_OPTIONS); // Prevents clickjacking
+  res.setHeader('X-Content-Type-Options', CORS_SECURITY.HEADERS.X_CONTENT_TYPE_OPTIONS); // Prevents MIME-type sniffing
+  res.setHeader('X-XSS-Protection', CORS_SECURITY.HEADERS.X_XSS_PROTECTION); // XSS protection
+  res.setHeader('Referrer-Policy', CORS_SECURITY.HEADERS.REFERRER_POLICY); // Referrer control
+  res.setHeader('Permissions-Policy', CORS_SECURITY.HEADERS.PERMISSIONS_POLICY); // Feature policy
 }
 ```
 
@@ -186,6 +195,11 @@ GEO_ALLOWED_COUNTRIES=US,CA,GB,DE
 GEO_BLOCKED_COUNTRIES=CN,RU,KP,IR
 IP_WHITELIST=192.168.1.0/24,10.0.0.0/8
 IP_BLACKLIST=192.168.1.100,203.0.113.0/24
+
+# Security Headers Configuration
+# Set to 'true' to enable legacy security headers (for backwards compatibility)
+# Note: Security headers are now primarily handled by Helmet middleware
+SECURITY_HEADERS_ENABLED=false
 ```
 
 ### **Middleware Activation:**
@@ -390,5 +404,6 @@ The CORS Step 3: Essential Security implementation is **fully complete and produ
 - `tests/integration/corsSecurity.integration.test.ts` - Added proper ESLint disable comments
 
 **Implementation Date:** January 14, 2026  
-**Analysis Completion Date:** January 14, 2026  
+**Analysis Completion Date:** January 19, 2026  
+**Security Headers Update:** January 19, 2026 - Added Helmet middleware integration and environment configuration  
 **Status:** ✅ **IMPLEMENTATION COMPLETE & OPTIMIZED**

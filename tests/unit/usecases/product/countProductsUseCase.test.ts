@@ -1,5 +1,6 @@
 import { IProductRepository } from '@/domain/interfaces';
 import { ProductService } from '@/domain/services';
+import { CacheService } from '@/domain/services/cache/CacheService';
 import { Logger } from '@/shared';
 import { CountProductsUseCase } from '@/usecases';
 
@@ -8,6 +9,7 @@ describe('CountProductsUseCase', () => {
   let mockRepository: jest.Mocked<IProductRepository>;
   let productService: ProductService;
   let mockLogger: jest.Mocked<Logger>;
+  let mockCacheService: jest.Mocked<CacheService>;
 
   beforeEach(() => {
     productService = new ProductService();
@@ -37,7 +39,20 @@ describe('CountProductsUseCase', () => {
       useOnlyCustomLevels: false,
     } as unknown as jest.Mocked<Logger>;
 
-    countProductsUseCase = new CountProductsUseCase(mockRepository, productService, mockLogger);
+    mockCacheService = {
+      get: jest.fn().mockResolvedValue(null),
+      set: jest.fn(),
+      delete: jest.fn(),
+      deleteByPattern: jest.fn(),
+      getOrSet: jest.fn(),
+    } as unknown as jest.Mocked<CacheService>;
+
+    countProductsUseCase = new CountProductsUseCase(
+      mockRepository,
+      productService,
+      mockLogger,
+      mockCacheService
+    );
   });
 
   describe('execute', () => {

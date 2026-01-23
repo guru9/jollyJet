@@ -1,17 +1,21 @@
 import { Product } from '@/domain/entities';
 import { IProductRepository } from '@/domain/interfaces';
+import { CacheService } from '@/domain/services/cache/CacheService';
 import { Logger } from '@/shared';
 import { DeleteProductUseCase } from '@/usecases';
+import { Types } from 'mongoose';
 
 describe('DeleteProductUseCase', () => {
   let useCase: DeleteProductUseCase;
   let mockRepository: jest.Mocked<IProductRepository>;
   let mockLogger: jest.Mocked<Logger>;
+  let mockCacheService: jest.Mocked<CacheService>;
   let existingProduct: Product;
 
   beforeEach(() => {
+    const validId = new Types.ObjectId().toString();
     existingProduct = new Product({
-      id: '1',
+      id: validId,
       name: 'Test Product',
       description: 'Test Description',
       price: 100,
@@ -44,7 +48,15 @@ describe('DeleteProductUseCase', () => {
       useOnlyCustomLevels: false,
     } as unknown as jest.Mocked<Logger>;
 
-    useCase = new DeleteProductUseCase(mockRepository, mockLogger);
+    mockCacheService = {
+      get: jest.fn().mockResolvedValue(null),
+      set: jest.fn(),
+      delete: jest.fn(),
+      deleteByPattern: jest.fn(),
+      getOrSet: jest.fn(),
+    } as unknown as jest.Mocked<CacheService>;
+
+    useCase = new DeleteProductUseCase(mockRepository, mockLogger, mockCacheService);
   });
 
   describe('execute method', () => {
@@ -52,19 +64,20 @@ describe('DeleteProductUseCase', () => {
       mockRepository.findById.mockResolvedValue(existingProduct);
       mockRepository.delete.mockResolvedValue(true);
 
-      const result = await useCase.execute('1');
+      const result = await useCase.execute(existingProduct.toProps().id!);
 
-      expect(mockRepository.findById).toHaveBeenCalledWith('1');
-      expect(mockRepository.delete).toHaveBeenCalledWith('1');
+      expect(mockRepository.findById).toHaveBeenCalledWith(existingProduct.toProps().id);
+      expect(mockRepository.delete).toHaveBeenCalledWith(existingProduct.toProps().id);
       expect(result).toBe(true);
     });
 
     it('should return false when product does not exist', async () => {
+      const validId = new Types.ObjectId().toString();
       mockRepository.findById.mockResolvedValue(null);
 
-      const result = await useCase.execute('non-existent-id');
+      const result = await useCase.execute(validId);
 
-      expect(mockRepository.findById).toHaveBeenCalledWith('non-existent-id');
+      expect(mockRepository.findById).toHaveBeenCalledWith(validId);
       expect(mockRepository.delete).not.toHaveBeenCalled();
       expect(result).toBe(false);
     });
@@ -87,10 +100,10 @@ describe('DeleteProductUseCase', () => {
       mockRepository.findById.mockResolvedValue(existingProduct);
       mockRepository.delete.mockResolvedValue(false);
 
-      const result = await useCase.execute('1');
+      const result = await useCase.execute(existingProduct.toProps().id!);
 
-      expect(mockRepository.findById).toHaveBeenCalledWith('1');
-      expect(mockRepository.delete).toHaveBeenCalledWith('1');
+      expect(mockRepository.findById).toHaveBeenCalledWith(existingProduct.toProps().id);
+      expect(mockRepository.delete).toHaveBeenCalledWith(existingProduct.toProps().id);
       expect(result).toBe(false);
     });
 
@@ -98,7 +111,9 @@ describe('DeleteProductUseCase', () => {
       const error = new Error('Database connection failed');
       mockRepository.findById.mockRejectedValue(error);
 
-      await expect(useCase.execute('1')).rejects.toThrow('Database connection failed');
+      await expect(useCase.execute(existingProduct.toProps().id!)).rejects.toThrow(
+        'Database connection failed'
+      );
       expect(mockRepository.delete).not.toHaveBeenCalled();
     });
 
@@ -107,14 +122,15 @@ describe('DeleteProductUseCase', () => {
       mockRepository.findById.mockResolvedValue(existingProduct);
       mockRepository.delete.mockRejectedValue(error);
 
-      await expect(useCase.execute('1')).rejects.toThrow('Delete operation failed');
+      await expect(useCase.execute(existingProduct.toProps().id!)).rejects.toThrow(
+        'Delete operation failed'
+      );
     });
   });
 
   describe('dependency injection', () => {
     it('should inject repository dependency', () => {
       expect(useCase).toBeInstanceOf(DeleteProductUseCase);
-      // The constructor properly injects the dependencies
     });
   });
 
@@ -122,17 +138,18 @@ describe('DeleteProductUseCase', () => {
     it('should validate product exists before deletion', async () => {
       mockRepository.findById.mockResolvedValue(null);
 
-      const result = await useCase.execute('1');
+      const result = await useCase.execute(existingProduct.toProps().id!);
 
-      expect(mockRepository.findById).toHaveBeenCalledWith('1');
+      expect(mockRepository.findById).toHaveBeenCalledWith(existingProduct.toProps().id);
       expect(mockRepository.delete).not.toHaveBeenCalled();
       expect(result).toBe(false);
     });
 
     it('should prevent deletion of non-existent products', async () => {
+      const validId = new Types.ObjectId().toString();
       mockRepository.findById.mockResolvedValue(null);
 
-      const result = await useCase.execute('invalid-id');
+      const result = await useCase.execute(validId);
 
       expect(result).toBe(false);
       expect(mockRepository.delete).not.toHaveBeenCalled();
@@ -144,7 +161,9 @@ describe('DeleteProductUseCase', () => {
       const dbError = new Error('MongoDB connection lost');
       mockRepository.findById.mockRejectedValue(dbError);
 
-      await expect(useCase.execute('1')).rejects.toThrow('MongoDB connection lost');
+      await expect(useCase.execute(existingProduct.toProps().id!)).rejects.toThrow(
+        'MongoDB connection lost'
+      );
     });
 
     it('should handle network timeouts gracefully', async () => {
@@ -152,7 +171,9 @@ describe('DeleteProductUseCase', () => {
       mockRepository.findById.mockResolvedValue(existingProduct);
       mockRepository.delete.mockRejectedValue(timeoutError);
 
-      await expect(useCase.execute('1')).rejects.toThrow('Operation timed out');
+      await expect(useCase.execute(existingProduct.toProps().id!)).rejects.toThrow(
+        'Operation timed out'
+      );
     });
   });
 });

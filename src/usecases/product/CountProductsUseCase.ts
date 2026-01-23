@@ -1,6 +1,7 @@
 import { IProductRepository, ProductFilter } from '@/domain/interfaces';
 import { ProductService } from '@/domain/services';
-import { DI_TOKENS, Logger } from '@/shared';
+import { CacheService } from '@/domain/services/cache/CacheService';
+import { CACHE_KEYS_PATTERNS, DI_TOKENS, Logger } from '@/shared';
 
 import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
@@ -19,19 +20,20 @@ export interface CountProductsQuery {
 }
 
 /**
- * Use case for counting products matching filter criteria
- * 🔧 Depends on: DI_TOKENS.PRODUCT_REPOSITORY (Step 4.1)
- * 📋 Handles: Filter processing and count retrieval
- * 🏗️ Implements: Efficient count queries with validation
+ * Use case for counting products matching filter criteria using Redis-first caching
+ * 🔧 Depends on: DI_TOKENS.PRODUCT_REPOSITORY, CacheService
+ * 📋 Handles: Filter processing and count retrieval with caching
+ * 🏗️ Implements: Efficient count queries with validation and cache-aside pattern
  */
 @injectable()
 export class CountProductsUseCase {
   constructor(
     @inject(DI_TOKENS.PRODUCT_REPOSITORY) private productRepository: IProductRepository,
     private productService: ProductService,
-    @inject(DI_TOKENS.LOGGER) private logger: Logger
-    // 💡 Dependency Injection: Repository is injected via DI_TOKENS
-    // 💡 This enables loose coupling and easy testing
+    @inject(DI_TOKENS.LOGGER) private logger: Logger,
+    @inject(DI_TOKENS.CACHE_SERVICE) private cacheService: CacheService
+    // 💡 Dependency Injection: Repository and CacheService are injected via DI_TOKENS
+    // 💡 This enables loose coupling and easy testing with caching
   ) {}
 
   public async execute(query: CountProductsQuery): Promise<number> {
@@ -46,10 +48,29 @@ export class CountProductsUseCase {
     if (this.productService.isValidPriceRange(query.priceRange))
       filter.priceRange = query.priceRange; // Filter by price range. Must be non-negative.
 
+    // Create cache key based on query parameters
+    const cacheKey = CACHE_KEYS_PATTERNS.PRODUCT_COUNT(JSON.stringify(filter));
+
+    // Redis-first: Try to get from cache first
+    const cachedCount = await this.cacheService.get<number>(cacheKey);
+    if (cachedCount !== null) {
+      this.logger.debug({ query, cacheKey }, 'Product count retrieved from cache');
+      return cachedCount;
+    }
+
+    // Cache miss: Fetch from database
+    this.logger.debug(
+      { query, cacheKey },
+      'Product count not found in cache, fetching from database'
+    );
+
     // Execute count query
     // 💡 Performance: Direct count query without pagination overhead
     // 💡 Efficiency: Optimized for count-only operations
     const count = await this.productRepository.count(filter);
+
+    // Cache the result for 30 minutes
+    await this.cacheService.set(cacheKey, count, 1800);
 
     return count;
   }

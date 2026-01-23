@@ -35,7 +35,7 @@ cd jollyJet
 npm install
 
 # 3. Copy environment template
-cp .env.example .env
+cp .env .env
 
 # 4. Update .env with your credentials
 nano .env

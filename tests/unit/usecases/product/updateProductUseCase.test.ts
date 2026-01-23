@@ -1,20 +1,24 @@
 import { Product } from '@/domain/entities';
 import { IProductRepository } from '@/domain/interfaces';
 import { ProductService } from '@/domain/services';
+import { CacheService } from '@/domain/services/cache/CacheService';
 import { UpdateProductDTO } from '@/interface/dtos';
 import { Logger } from '@/shared';
 import { UpdateProductUseCase } from '@/usecases';
+import { Types } from 'mongoose';
 
 describe('UpdateProductUseCase', () => {
   let useCase: UpdateProductUseCase;
   let mockRepository: jest.Mocked<IProductRepository>;
   let mockService: jest.Mocked<ProductService>;
   let mockLogger: jest.Mocked<Logger>;
+  let mockCacheService: jest.Mocked<CacheService>;
   let existingProduct: Product;
 
   beforeEach(() => {
+    const validId = new Types.ObjectId().toString();
     existingProduct = new Product({
-      id: '1',
+      id: validId,
       name: 'Original Product',
       description: 'Original Description',
       price: 100,
@@ -55,20 +59,27 @@ describe('UpdateProductUseCase', () => {
       useOnlyCustomLevels: false,
     } as unknown as jest.Mocked<Logger>;
 
-    useCase = new UpdateProductUseCase(mockRepository, mockService, mockLogger);
+    mockCacheService = {
+      get: jest.fn().mockResolvedValue(null),
+      set: jest.fn(),
+      delete: jest.fn(),
+      deleteByPattern: jest.fn(),
+      getOrSet: jest.fn(),
+    } as unknown as jest.Mocked<CacheService>;
+
+    useCase = new UpdateProductUseCase(mockRepository, mockService, mockLogger, mockCacheService);
   });
 
   describe('execute method', () => {
     it('should throw error when product not found', async () => {
+      const validId = new Types.ObjectId().toString();
       mockRepository.findById.mockResolvedValue(null);
 
       const productData: UpdateProductDTO = {
         price: 150,
       };
 
-      await expect(useCase.execute('non-existent-id', productData)).rejects.toThrow(
-        'Product not found.'
-      );
+      await expect(useCase.execute(validId, productData)).rejects.toThrow('Product not found.');
     });
 
     it('should update product price successfully', async () => {
@@ -82,9 +93,9 @@ describe('UpdateProductUseCase', () => {
       mockService.updatePrice.mockReturnValue(updatedProduct);
       mockRepository.update.mockResolvedValue(updatedProduct);
 
-      const result = await useCase.execute('1', productData);
+      const result = await useCase.execute(existingProduct.toProps().id!, productData);
 
-      expect(mockRepository.findById).toHaveBeenCalledWith('1');
+      expect(mockRepository.findById).toHaveBeenCalledWith(existingProduct.toProps().id);
       expect(mockService.updatePrice).toHaveBeenCalledWith(existingProduct, 150);
       expect(mockRepository.update).toHaveBeenCalledWith(updatedProduct);
       expect(result.toProps().price).toBe(150);
@@ -101,9 +112,9 @@ describe('UpdateProductUseCase', () => {
       mockService.updateStock.mockReturnValue(updatedProduct);
       mockRepository.update.mockResolvedValue(updatedProduct);
 
-      const result = await useCase.execute('1', productData);
+      const result = await useCase.execute(existingProduct.toProps().id!, productData);
 
-      expect(mockRepository.findById).toHaveBeenCalledWith('1');
+      expect(mockRepository.findById).toHaveBeenCalledWith(existingProduct.toProps().id);
       expect(mockService.updateStock).toHaveBeenCalledWith(existingProduct, 25);
       expect(mockRepository.update).toHaveBeenCalledWith(updatedProduct);
       expect(result.toProps().stock).toBe(25);
@@ -123,9 +134,9 @@ describe('UpdateProductUseCase', () => {
       mockService.updateProductDetails.mockReturnValue(updatedProduct);
       mockRepository.update.mockResolvedValue(updatedProduct);
 
-      const result = await useCase.execute('1', productData);
+      const result = await useCase.execute(existingProduct.toProps().id!, productData);
 
-      expect(mockRepository.findById).toHaveBeenCalledWith('1');
+      expect(mockRepository.findById).toHaveBeenCalledWith(existingProduct.toProps().id);
       expect(mockService.updateProductDetails).toHaveBeenCalledWith(existingProduct, {
         name: 'Updated Product Name',
       });
@@ -147,9 +158,9 @@ describe('UpdateProductUseCase', () => {
       mockService.updateProductDetails.mockReturnValue(updatedProduct);
       mockRepository.update.mockResolvedValue(updatedProduct);
 
-      const result = await useCase.execute('1', productData);
+      const result = await useCase.execute(existingProduct.toProps().id!, productData);
 
-      expect(mockRepository.findById).toHaveBeenCalledWith('1');
+      expect(mockRepository.findById).toHaveBeenCalledWith(existingProduct.toProps().id);
       expect(mockService.updateProductDetails).toHaveBeenCalledWith(existingProduct, {
         description: 'Updated Description',
       });
@@ -171,9 +182,9 @@ describe('UpdateProductUseCase', () => {
       mockService.updateProductDetails.mockReturnValue(updatedProduct);
       mockRepository.update.mockResolvedValue(updatedProduct);
 
-      const result = await useCase.execute('1', productData);
+      const result = await useCase.execute(existingProduct.toProps().id!, productData);
 
-      expect(mockRepository.findById).toHaveBeenCalledWith('1');
+      expect(mockRepository.findById).toHaveBeenCalledWith(existingProduct.toProps().id);
       expect(mockService.updateProductDetails).toHaveBeenCalledWith(existingProduct, {
         category: 'Updated Category',
       });
@@ -195,9 +206,9 @@ describe('UpdateProductUseCase', () => {
       mockService.updateProductDetails.mockReturnValue(updatedProduct);
       mockRepository.update.mockResolvedValue(updatedProduct);
 
-      const result = await useCase.execute('1', productData);
+      const result = await useCase.execute(existingProduct.toProps().id!, productData);
 
-      expect(mockRepository.findById).toHaveBeenCalledWith('1');
+      expect(mockRepository.findById).toHaveBeenCalledWith(existingProduct.toProps().id);
       expect(mockService.updateProductDetails).toHaveBeenCalledWith(existingProduct, {
         isActive: false,
       });
@@ -220,9 +231,9 @@ describe('UpdateProductUseCase', () => {
       mockService.updateWishlistStatus.mockReturnValue(updatedProduct);
       mockRepository.update.mockResolvedValue(updatedProduct);
 
-      const result = await useCase.execute('1', productData);
+      const result = await useCase.execute(existingProduct.toProps().id!, productData);
 
-      expect(mockRepository.findById).toHaveBeenCalledWith('1');
+      expect(mockRepository.findById).toHaveBeenCalledWith(existingProduct.toProps().id);
       expect(mockService.updateWishlistStatus).toHaveBeenCalledWith(existingProduct, true);
       expect(mockRepository.update).toHaveBeenCalledWith(updatedProduct);
       expect(result.toProps().isWishlistStatus).toBe(true);
@@ -235,7 +246,6 @@ describe('UpdateProductUseCase', () => {
       const productData: UpdateProductDTO = {
         name: 'Updated Name',
         description: 'Updated Description',
-        // Other fields omitted - should remain unchanged
       };
 
       const updatedProduct = new Product({
@@ -246,13 +256,13 @@ describe('UpdateProductUseCase', () => {
       mockService.updateProductDetails.mockReturnValue(updatedProduct);
       mockRepository.update.mockResolvedValue(updatedProduct);
 
-      const result = await useCase.execute('1', productData);
+      const result = await useCase.execute(existingProduct.toProps().id!, productData);
 
       expect(mockService.updateProductDetails).toHaveBeenCalled();
       expect(result.toProps().name).toBe('Updated Name');
       expect(result.toProps().description).toBe('Updated Description');
-      expect(result.toProps().price).toBe(100); // Should remain unchanged
-      expect(result.toProps().stock).toBe(10); // Should remain unchanged
+      expect(result.toProps().price).toBe(100);
+      expect(result.toProps().stock).toBe(10);
     });
 
     it('should update multiple fields at once', async () => {
@@ -278,7 +288,7 @@ describe('UpdateProductUseCase', () => {
       mockService.updateProductDetails.mockReturnValue(updatedProduct);
       mockRepository.update.mockResolvedValue(updatedProduct);
 
-      const result = await useCase.execute('1', productData);
+      const result = await useCase.execute(existingProduct.toProps().id!, productData);
 
       expect(mockService.updatePrice).toHaveBeenCalled();
       expect(mockService.updateStock).toHaveBeenCalled();
@@ -303,7 +313,7 @@ describe('UpdateProductUseCase', () => {
       mockService.updateStock.mockReturnValue(updatedProduct);
       mockRepository.update.mockResolvedValue(updatedProduct);
 
-      const result = await useCase.execute('1', productData);
+      const result = await useCase.execute(existingProduct.toProps().id!, productData);
 
       expect(result.toProps().stock).toBe(0);
     });
@@ -315,19 +325,19 @@ describe('UpdateProductUseCase', () => {
         price: -50,
       };
 
-      // Mock the updatePrice method to throw an error for negative price
       mockService.updatePrice.mockImplementation(() => {
         throw new Error('Price cannot be negative.');
       });
 
-      await expect(useCase.execute('1', productData)).rejects.toThrow('Price cannot be negative.');
+      await expect(useCase.execute(existingProduct.toProps().id!, productData)).rejects.toThrow(
+        'Price cannot be negative.'
+      );
     });
   });
 
   describe('dependency injection', () => {
     it('should inject repository and service dependencies', () => {
       expect(useCase).toBeInstanceOf(UpdateProductUseCase);
-      // The constructor properly injects the dependencies
     });
   });
 
@@ -335,21 +345,16 @@ describe('UpdateProductUseCase', () => {
     it('should handle undefined values in UpdateProductDTO', async () => {
       mockRepository.findById.mockResolvedValue(existingProduct);
 
-      const productData: UpdateProductDTO = {
-        // All fields undefined - should not call any update methods
-      };
+      const productData: UpdateProductDTO = {};
 
       mockRepository.update.mockResolvedValue(existingProduct);
 
-      const result = await useCase.execute('1', productData);
+      const result = await useCase.execute(existingProduct.toProps().id!, productData);
 
-      // Should not call any service methods since no fields are provided
       expect(mockService.updatePrice).not.toHaveBeenCalled();
       expect(mockService.updateStock).not.toHaveBeenCalled();
       expect(mockService.updateProductDetails).not.toHaveBeenCalled();
       expect(mockService.updateWishlistStatus).not.toHaveBeenCalled();
-
-      // Should still call repository update with the original product
       expect(mockRepository.update).toHaveBeenCalledWith(existingProduct);
       expect(result).toBe(existingProduct);
     });
@@ -358,8 +363,8 @@ describe('UpdateProductUseCase', () => {
       mockRepository.findById.mockResolvedValue(existingProduct);
 
       const productData: UpdateProductDTO = {
-        name: 'Updated Name', // Use valid name instead of empty string
-        description: 'Updated Description', // Use valid description instead of empty string
+        name: 'Updated Name',
+        description: 'Updated Description',
       };
 
       const updatedProduct = new Product({
@@ -370,7 +375,7 @@ describe('UpdateProductUseCase', () => {
       mockService.updateProductDetails.mockReturnValue(updatedProduct);
       mockRepository.update.mockResolvedValue(updatedProduct);
 
-      const result = await useCase.execute('1', productData);
+      const result = await useCase.execute(existingProduct.toProps().id!, productData);
 
       expect(mockService.updateProductDetails).toHaveBeenCalled();
       expect(result.toProps().name).toBe('Updated Name');
