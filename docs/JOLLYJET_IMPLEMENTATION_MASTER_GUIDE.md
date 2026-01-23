@@ -44,7 +44,6 @@ e:/Project/jollyJet
 │   ├── jest.config.js.map
 │   └── src/
 ├── docs/
-│   ├── JOLLYJET_COMPLETE_ANALYSIS.md
 │   ├── JOLLYJET_IMPLEMENTATION_MASTER_GUIDE.md
 │   ├── analysis/
 │   │   ├── project-analysis.md
