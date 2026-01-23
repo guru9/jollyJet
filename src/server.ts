@@ -93,4 +93,7 @@ const startServer = async () => {
   });
 };
 
-startServer();
+startServer().catch((error) => {
+  logger.error({ err: error }, SERVER_LOG_MESSAGES.STARTUP_ERROR);
+  process.exit(1);
+});

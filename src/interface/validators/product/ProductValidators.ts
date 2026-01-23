@@ -32,6 +32,7 @@ export const createProductSchema = z.object({
 /**
  * Validation schema for updating an existing product.
  * All fields are optional but must adhere to the same validation rules as creation.
+ * @property {string} id - Product ID (required in params).
  * @property {string} name  - Name of the product (3-30 characters).
  * @property {string} description - Description of the product (minimum 10 characters).
  * @property {number} price - Price of the product (non-negative number).
@@ -42,6 +43,9 @@ export const createProductSchema = z.object({
  * @property {boolean} isWishlistStatus - Wishlist status (optional).
  */
 export const updateProductSchema = z.object({
+  params: z.object({
+    id: z.string().min(1, PRODUCT_VALIDATION_MESSAGES.PRODUCT_ID_REQUIRED),
+  }),
   body: z.object({
     name: z.string().min(3).optional(),
     description: z.string().min(10).optional(),

@@ -15,6 +15,16 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
   // Store start time for other middleware to use
   (req as Request & { startTime?: number }).startTime = startTime;
 
+  // Log incoming request
+  logger.info({
+    method: req.method,
+    path: req.path,
+    query: req.query,
+    ip: req.ip || req.connection.remoteAddress || '::1',
+    userAgent: req.get('User-Agent'),
+    msg: `Incoming request: ${req.method} ${req.originalUrl}`,
+  });
+
   // Log response when it's finished
   res.on('finish', () => {
     const duration = Date.now() - startTime;

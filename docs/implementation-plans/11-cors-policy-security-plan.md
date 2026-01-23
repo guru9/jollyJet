@@ -2071,7 +2071,7 @@ CORS_VERBOSE_LOGGING=false                     # Enable verbose request logging
 - [x] **package.json**: Dependencies defined ✅
 - [x] **tsconfig.json**: TypeScript configuration ✅
 - [x] **jest.config.js**: Test configuration ✅
-- [x] **.env.example**: Environment template ✅
+- [x] **.env**: Environment template ✅
 
 ### 🚀 **DEPENDENCY INSTALLATION STEPS**
 
@@ -2111,7 +2111,7 @@ mkdir -p data
 
 ```bash
 # Copy environment template
-cp .env.example .env
+cp .env .env
 
 # Edit configuration for your needs
 nano .env
@@ -2175,7 +2175,7 @@ mkdir -p data
 
 ```bash
 # Copy environment variables to .env file
-cp .env.example .env
+cp .env .env
 # Edit .env with your configuration
 ```
 

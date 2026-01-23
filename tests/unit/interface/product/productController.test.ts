@@ -21,15 +21,6 @@ import {
 } from '@/usecases';
 import { NextFunction, Request, Response } from 'express';
 
-// Mock the use cases
-jest.mock('@/usecases/product/CountProductsUseCase');
-jest.mock('@/usecases/product/CreateProductUseCase');
-jest.mock('@/usecases/product/GetProductUseCase');
-jest.mock('@/usecases/product/ListProductsUseCase');
-jest.mock('@/usecases/product/UpdateProductUseCase');
-jest.mock('@/usecases/product/DeleteProductUseCase');
-jest.mock('@/usecases/product/ToggleWishlistProductUseCase');
-
 describe('ProductController', () => {
   let productController: ProductController;
   let mockCountProductsUseCase: jest.Mocked<CountProductsUseCase>;
@@ -80,7 +71,7 @@ describe('ProductController', () => {
       get: jest.fn(),
       set: jest.fn(),
       delete: jest.fn(),
-      keys: jest.fn(),
+      keys: jest.fn().mockResolvedValue([]),
       flush: jest.fn(),
       increment: jest.fn(),
       setWithExpiration: jest.fn(),
@@ -117,6 +108,7 @@ describe('ProductController', () => {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
       send: jest.fn().mockReturnThis(),
+      setHeader: jest.fn(),
     };
     mockNext = jest.fn();
   });
@@ -236,7 +228,7 @@ describe('ProductController', () => {
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: RESPONSE_STATUS.ERROR,
         message: PRODUCT_ERROR_MESSAGES.NOT_FOUND,
-        errors: [{ field: 'id', message: 'Product with specified ID does not exist' }],
+        errors: [{ field: 'id', message: PRODUCT_ERROR_MESSAGES.PRODUCT_NOT_FOUND_BY_ID }],
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -387,8 +379,8 @@ describe('ProductController', () => {
       expect(mockCountProductsUseCase.execute).toHaveBeenCalledWith({
         category: undefined,
         search: undefined,
-        isActive: false,
-        isWishlistStatus: false,
+        isActive: undefined,
+        isWishlistStatus: undefined,
         priceRange: undefined,
       });
       expect(mockResponse.status).toHaveBeenCalledWith(HTTP_STATUS.OK);

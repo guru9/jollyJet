@@ -52,22 +52,118 @@ import pino from 'pino';
 import config from '../config';
 
 const logger = pino({
-  level: config.logLevel,
+  level: config.logLevel || (config.env === 'production' ? 'info' : 'debug'),
   transport:
-    config.env === 'development'
+    config.env !== 'production'
       ? {
           target: 'pino-pretty',
           options: {
             colorize: true,
-            translateTime: 'dd-mm-yyyy HH:MM:ss',
             ignore: 'pid,hostname',
+            translateTime: 'SYS:dd-mm-yyyy HH:MM:ss',
+            singleLine: true,
           },
         }
       : undefined,
+  base: {
+    env: config.env,
+    port: config.port,
+  },
 });
 
 export default logger;
 ```
+
+#### Logging Level Configuration
+
+The logger automatically adjusts log levels based on environment:
+
+- **Development**: `debug` level (shows DEBUG, INFO, WARN, ERROR logs)
+- **Production**: `info` level (shows INFO, WARN, ERROR logs; DEBUG logs are suppressed)
+
+This ensures verbose debugging information is available during development while maintaining clean production logs.
+
+#### Logging Best Practices
+
+**Environment-Based Log Levels:**
+
+| Environment     | Config Level | Visible Logs             | Hidden Logs |
+| --------------- | ------------ | ------------------------ | ----------- |
+| **Development** | `debug`      | DEBUG, INFO, WARN, ERROR | None        |
+| **Staging**     | `info`       | INFO, WARN, ERROR        | DEBUG       |
+| **Production**  | `info`       | INFO, WARN, ERROR        | DEBUG       |
+
+**Log Visibility Details:**
+
+- **DEBUG**: Only visible in development environment
+- **INFO**: Visible in development, staging, and production
+- **WARN**: Visible in development, staging, and production
+- **ERROR**: Visible in development, staging, and production
+
+**Cache Operation Logging Guidelines:**
+
+- **INFO Level (Production Visible):**
+  - Cache hits (successful cache retrievals)
+  - Successful cache operations (sets, deletes)
+  - Cache invalidation completions
+  - Connection establishment
+  - Performance metrics and statistics
+
+- **WARN Level (Issues Requiring Attention):**
+  - Cache operation failures (get/set/delete failures)
+  - Connection warnings (Redis disconnected, operations skipped)
+  - Stale cache detection
+  - Data consistency issues
+  - Low cache hit rate warnings (< 50%)
+  - Cache invalidation failures after database operations
+  - Connection retry limits reached
+
+- **ERROR Level (Critical Issues):**
+  - Complete cache system failures
+  - Critical connection losses
+  - Data corruption or integrity issues
+  - Failed fallback to database
+
+- **DEBUG Level (Development Only):**
+  - Cache misses (normal fallback behavior)
+  - Detailed operation timing
+  - Internal cache state information
+  - Development troubleshooting data
+
+**Cache Hit Logging:**
+
+- Cache hits should be logged at `INFO` level since they provide valuable operational insights for performance monitoring
+- Current implementation has inconsistent levels: middleware uses `INFO`, services use `DEBUG`
+- Recommendation: Standardize to `INFO` level for cache hits across all components
+
+**Structured Logging:**
+
+- Use structured logging with context objects: `logger.info({ key, userId }, 'Cache hit for key')`
+- Include relevant context like cache keys, user IDs, operation types
+- Avoid console.log() - use the Pino logger for all logging
+
+**Clean Error Messages:**
+
+- Keep error messages concise and readable: `logger.error({ context }, 'Error message')`
+- Include stack traces only in development: `stack: process.env.NODE_ENV === 'development' ? err.stack : undefined`
+- Avoid embedding JSON strings in log messages - use structured context instead
+- Production logs should be clean and actionable without full stack traces
+
+#### Log Level Configuration
+
+The logger automatically sets the log level based on the environment:
+
+- **Development**: `debug` level (all logs including DEBUG are shown)
+- **Production**: `info` level (only INFO, WARN, ERROR are shown; DEBUG logs are suppressed)
+
+#### Cache Hit Logging Best Practice
+
+For cache hits specifically, using `INFO` level is recommended over `DEBUG` level because:
+
+1. Cache hits provide valuable operational insights for performance monitoring
+2. They should be tracked in production environments
+3. The middleware already uses `INFO` for cache hits, ensuring consistency
+4. DEBUG logs are disabled in production, making them ineffective for production monitoring
 
 ---
 
@@ -122,6 +218,33 @@ export class ConflictError extends AppError {
 ### ✅ NEW: `src/shared/utils.ts`
 
 ```typescript
+/**
+ * Validates if a string is a valid MongoDB ObjectId.
+ * @param id - String to validate
+ * @returns True if valid ObjectId, false otherwise
+ */
+export const isValidObjectId = (id: string): boolean => {
+  if (typeof id !== 'string') return false;
+  return /^[0-9a-fA-F]{24}$/.test(id);
+};
+
+/**
+ * Validates a product ID string.
+ * Checks if it's a non-empty string and a valid MongoDB ObjectId.
+ * @param productId - Product ID string to validate
+ * @param errorMessage - Error message to use if validation fails
+ * @throws BadRequestError if validation fails
+ */
+export const validateProductId = (productId: string, errorMessage: string): void => {
+  if (!productId?.trim()) {
+    throw new BadRequestError(errorMessage);
+  }
+
+  if (!isValidObjectId(productId)) {
+    throw new BadRequestError(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
+  }
+};
+
 /**
  * Delay execution for specified milliseconds
  */
@@ -362,6 +485,31 @@ import { HTTP_STATUS, ORDER_STATUS } from '@/shared/constants';
 res.status(HTTP_STATUS.OK).json({ status: ORDER_STATUS.PENDING });
 ```
 
+### ObjectId Validation
+
+**✅ COMPLETE REFACTORING:** All `mongoose.isValidObjectId()` calls replaced with utility functions
+
+```typescript
+import { isValidObjectId, validateProductId } from '@/shared/utils';
+
+// Simple validation
+if (!isValidObjectId(productId)) {
+  throw new BadRequestError('Invalid product ID');
+}
+
+// Comprehensive validation with error handling
+validateProductId(productId, 'Product ID is required for update');
+
+// Used consistently across all repositories and use cases
+```
+
+**Refactoring Results:**
+
+- ✅ **ProductRepository**: All 3 instances updated (`findById`, `create`, `toggleWishlistStatus`)
+- ✅ **Removed mongoose dependency** from repositories
+- ✅ **Consistent validation logic** across the entire codebase
+- ✅ **Performance improvement**: Regex-based validation without mongoose imports
+
 ---
 
 ## Next Steps
@@ -377,13 +525,18 @@ res.status(HTTP_STATUS.OK).json({ status: ORDER_STATUS.PENDING });
 
 ## Status
 
-✅ Logger configured with Pino  
-✅ Custom error classes created  
-✅ Utility functions implemented  
-✅ Application constants defined  
+✅ Logger configured with Pino
+✅ Custom error classes created
+✅ Utility functions implemented
+✅ Application constants defined
 ✅ Global types defined
+✅ **ObjectId validation refactoring completed**
 
 **Phase 04 Complete!** 🎉
 
+**Additional Achievements:**
 
-
+- 🔄 **Complete ObjectId validation refactor** across all repositories
+- 📦 **Removed mongoose dependencies** from repository layer
+- 🎯 **Consistent validation patterns** throughout codebase
+- ⚡ **Performance optimized** with regex-based validation

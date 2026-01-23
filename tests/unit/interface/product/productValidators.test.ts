@@ -150,6 +150,9 @@ describe('Product Validators - Unit Tests', () => {
   describe('updateProductSchema', () => {
     it('should allow partial updates with valid data', () => {
       const partialData = {
+        params: {
+          id: '507f1f77bcf86cd799439011',
+        },
         body: {
           price: 89,
         },
@@ -162,6 +165,9 @@ describe('Product Validators - Unit Tests', () => {
 
     it('should allow updating multiple fields', () => {
       const multiFieldData = {
+        params: {
+          id: '507f1f77bcf86cd799439011',
+        },
         body: {
           name: 'Updated Product',
           price: 79,
@@ -176,6 +182,9 @@ describe('Product Validators - Unit Tests', () => {
 
     it('should reject invalid field values when provided', () => {
       const invalidData = {
+        params: {
+          id: '507f1f77bcf86cd799439011',
+        },
         body: {
           name: 'Te', // Too short
           price: -1, // Negative
@@ -189,12 +198,42 @@ describe('Product Validators - Unit Tests', () => {
 
     it('should accept empty body for no updates', () => {
       const emptyData = {
+        params: {
+          id: '507f1f77bcf86cd799439011',
+        },
         body: {},
       };
 
       const result = updateProductSchema.safeParse(emptyData);
       expect(result.success).toBe(true);
       expect(result.data).toBeDefined();
+    });
+
+    it('should reject missing product ID', () => {
+      const missingIdData = {
+        body: {
+          price: 89,
+        },
+      };
+
+      const result = updateProductSchema.safeParse(missingIdData);
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('should reject empty product ID', () => {
+      const emptyIdData = {
+        params: {
+          id: '',
+        },
+        body: {
+          price: 89,
+        },
+      };
+
+      const result = updateProductSchema.safeParse(emptyIdData);
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
     });
   });
 

@@ -23,15 +23,11 @@ import 'reflect-metadata'; // Required for tsyringe to work with decorators and 
 import { initializeDIContainer, swaggerSpec } from '@/config';
 
 import { IRedisService } from '@/domain/interfaces/redis/IRedisService';
-import {
-  corsSecurityHandler,
-  errorHandler,
-  requestLogger,
-  responseTimingHandler,
-} from '@/interface/middlewares';
+import { corsSecurityHandler, errorHandler, requestLogger } from '@/interface/middlewares';
 import { registerRoutes } from '@/interface/routes';
 import { DI_TOKENS } from '@/shared/constants';
 import express from 'express';
+import helmet from 'helmet';
 import mongoose from 'mongoose';
 import swaggerUi from 'swagger-ui-express';
 import { container } from 'tsyringe';
@@ -65,6 +61,10 @@ export const jollyJetApp = async (): Promise<express.Application> => {
   // ============================================================================
   // Configure the request processing pipeline in the correct order
 
+  // Helmet security middleware - Protect against common web vulnerabilities
+  // Sets appropriate HTTP headers to prevent XSS attacks, clickjacking, etc.
+  app.use(helmet());
+
   // CORS middleware - Enable cross-origin resource sharing for web clients
   // Essential security middleware includes basic CORS functionality
   app.use(
@@ -81,9 +81,6 @@ export const jollyJetApp = async (): Promise<express.Application> => {
 
   // Request logging middleware - Log all incoming requests for monitoring
   app.use(requestLogger);
-
-  // Response timing middleware - Measure response time and add to headers
-  app.use(responseTimingHandler);
 
   // ============================================================================
   // API DOCUMENTATION

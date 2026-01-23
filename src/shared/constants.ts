@@ -244,6 +244,7 @@ export const SERVER_LOG_MESSAGES = {
   SHUTDOWN_START: 'Server shutting down gracefully...',
   SHUTDOWN_RECEIVE: (signal: string) => `${signal} signal received. Closing gracefully...`,
   SHUTDOWN_ERROR: (error: string) => `Error during shutdown: ${error}`,
+  STARTUP_ERROR: 'Failed to start server',
   UNCAUGHT_EXCEPTION: 'Uncaught Exception detected:',
   UNHANDLED_REJECTION: 'Unhandled Rejection detected:',
   DI_INITIALIZED: 'DI container initialized successfully',
@@ -304,6 +305,8 @@ export const PRODUCT_ERROR_MESSAGES = {
   PRODUCT_ID_REQ_WISHLIST: 'Product ID is required for wishlist toggle.',
   PRODUCT_ID_INVALID: 'Invalid product ID format.',
   PRODUCT_NOT_FOUND_BY_ID: 'Product with specified ID does not exist.',
+  MONGODB_DISCONNECTED_FIND_ALL: 'MongoDB not connected, returning empty product list',
+  MONGODB_DISCONNECTED_COUNT: 'MongoDB not connected, returning 0 product count',
 } as const;
 
 /**
@@ -411,10 +414,22 @@ export const CORS_SECURITY = {
     X_CONTENT_TYPE_OPTIONS: 'nosniff',
     X_XSS_PROTECTION: '1; mode=block',
     REFERRER_POLICY: 'strict-origin-when-cross-origin',
+    PERMISSIONS_POLICY: 'geolocation=(), microphone=(), camera=()',
   },
   MESSAGES: {
     IP_BLOCKED: 'Access denied: IP blocked',
     GEO_BLOCKED: 'Access denied: Location blocked',
+    IP_INVALID_FORMAT: 'IP address format is invalid',
+    IP_VALIDATION_FAILED: 'IP validation failed',
+    GEO_CHECK_FAILED: 'Geographic restriction check failed',
+    SECURITY_HEADERS_APPLIED: 'Legacy security headers applied',
+    SECURITY_HEADERS_FAILED: 'Failed to apply legacy security headers',
+  },
+  DEPRECATION: {
+    APPLY_SECURITY_HEADERS:
+      'applySecurityHeaders method is deprecated. Security headers are now handled by Helmet middleware.',
+    VERSION: '1.0.0',
+    ALTERNATIVE: 'Helmet middleware',
   },
 } as const;
 

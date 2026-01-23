@@ -62,7 +62,7 @@ const options: swaggerJsdoc.Options = {
             },
             stock: {
               type: 'integer',
-              description: 'Available stock quantity',
+              description: 'Available stock quantity (shows 0 for inactive products)',
               minimum: 0,
               example: 50,
             },

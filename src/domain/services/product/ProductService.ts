@@ -4,7 +4,7 @@ import { BadRequestError, PRODUCT_VALIDATION_MESSAGES } from '@/shared';
 export class ProductService {
   // Method to check product availability
   public isAvailable(product: Product): boolean {
-    return product.toProps().isActive && product.toProps().stock > 0;
+    return product.getEffectiveStock() > 0;
   }
 
   // Method to check valid pricerange for the products

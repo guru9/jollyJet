@@ -21,6 +21,20 @@ const envSchema = z.object({
       })
   ),
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
+
+  // Security Configuration
+  SECURITY_HEADERS_ENABLED: z
+    .string()
+    .default('false')
+    .transform((val) => val === 'true'),
+  GEO_BLOCKING_ENABLED: z
+    .string()
+    .default('false')
+    .transform((val) => val === 'true'),
+  GEO_ALLOWED_COUNTRIES: z.string().default(''),
+  GEO_BLOCKED_COUNTRIES: z.string().default('CN,RU,KP,IR'),
+  IP_WHITELIST: z.string().default(''),
+  IP_BLACKLIST: z.string().default(''),
 });
 
 export type IEnvConfig = z.infer<typeof envSchema>;

@@ -39,11 +39,12 @@ The `updatePrice` method handles price updates with validation:
 
 ### `isAvailable` Method Tests
 
-The `isAvailable` method checks product availability:
+The `isAvailable` method checks product availability using effective stock:
 
-- **Available Product**: Returns `true` for active products with stock
-- **Inactive Product**: Returns `false` for inactive products
+- **Available Product**: Returns `true` for active products with stock > 0
+- **Inactive Product**: Returns `false` for inactive products (effective stock = 0)
 - **Out of Stock**: Returns `false` for products with zero stock
+- **Inactive with Stock**: Returns `false` even if inactive product has stock in database
 
 ## Test Execution
 

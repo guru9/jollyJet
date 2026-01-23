@@ -51,9 +51,22 @@ export class Product {
       throw new BadRequestError(PRODUCT_VALIDATION_MESSAGES.WISHLIST_COUNT_INVALID);
   }
 
+  // Method to get effective stock (0 for inactive products)
+  public getEffectiveStock(): number {
+    return this.props.isActive ? this.props.stock : 0;
+  }
+
   // Method to get all props as an object for external use
   public toProps(): ProductProps {
     return { ...this.props };
+  }
+
+  // Method to get props for API responses (with effective stock)
+  public toResponseProps(): ProductProps {
+    return {
+      ...this.props,
+      stock: this.getEffectiveStock(),
+    };
   }
 
   // Factory method for creating validated Product instances

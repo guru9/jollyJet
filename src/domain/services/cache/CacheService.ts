@@ -37,10 +37,10 @@ export class CacheService {
     try {
       const cached = await this.redisService.get(key);
       if (cached) {
-        this.logger.debug({ key }, CACHE_LOG_MESSAGES.CACHE_HIT(key));
+        this.logger.info({ key }, CACHE_LOG_MESSAGES.CACHE_HIT(key));
         return JSON.parse(cached) as T;
       }
-      this.logger.debug({ key }, CACHE_LOG_MESSAGES.CACHE_MISS(key, 'upstream'));
+      this.logger.info({ key }, CACHE_LOG_MESSAGES.CACHE_MISS(key, 'upstream'));
       return null;
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : String(error);

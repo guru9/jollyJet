@@ -100,7 +100,16 @@ describe('Middleware Tests', () => {
       mockRequest = {
         method: 'GET',
         path: '/test',
+        originalUrl: '/test',
+        query: {},
         ip: '127.0.0.1',
+        connection: {
+          remoteAddress: '127.0.0.1',
+        } as any,
+        get: jest.fn((header: string) => {
+          if (header === 'User-Agent') return 'test-agent';
+          return undefined;
+        }) as any,
       };
 
       mockResponse = {

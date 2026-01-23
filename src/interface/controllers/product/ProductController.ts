@@ -178,7 +178,7 @@ export class ProductController {
         // Product found, return 200 OK
         const response: ApiResponse<ProductProps> = {
           status: RESPONSE_STATUS.SUCCESS,
-          data: product.toProps(),
+          data: product.toResponseProps(),
           message: PRODUCT_SUCCESS_MESSAGES.PRODUCT_RETRIEVED,
         };
         res.status(HTTP_STATUS.OK).json(response);
@@ -260,7 +260,7 @@ export class ProductController {
         status: RESPONSE_STATUS.SUCCESS,
         data: {
           ...result,
-          products: result.products.map((p) => p.toProps()),
+          products: result.products.map((p) => p.toResponseProps()),
         },
         message: PRODUCT_SUCCESS_MESSAGES.PRODUCTS_RETRIEVED,
       };
@@ -364,7 +364,7 @@ export class ProductController {
 
         const response: ApiResponse<ProductProps> = {
           status: RESPONSE_STATUS.SUCCESS,
-          data: product.toProps(),
+          data: product.toResponseProps(),
           message: PRODUCT_SUCCESS_MESSAGES.PRODUCT_UPDATED,
         };
         res.status(HTTP_STATUS.OK).json(response);
@@ -494,7 +494,7 @@ export class ProductController {
         status: RESPONSE_STATUS.SUCCESS,
         data: {
           ...result,
-          products: result.products.map((p) => p.toProps()),
+          products: result.products.map((p) => p.toResponseProps()),
         },
         message: PRODUCT_SUCCESS_MESSAGES.WISHLIST_RETRIEVED,
       };
@@ -567,7 +567,7 @@ export class ProductController {
 
       const response: ApiResponse<ProductProps> = {
         status: RESPONSE_STATUS.SUCCESS,
-        data: product.toProps(),
+        data: product.toResponseProps(),
         message: PRODUCT_SUCCESS_MESSAGES.WISHLIST_TOGGLED,
       };
       res.status(HTTP_STATUS.OK).json(response);

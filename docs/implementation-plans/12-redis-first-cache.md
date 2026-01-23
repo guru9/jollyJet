@@ -14,7 +14,7 @@ This document outlines the complete implementation of a **Redis-first cache arch
 
 ### Current Implementation Status
 
-**✅ IMPLEMENTED**: Redis-first caching has been fully integrated at multiple layers:
+**✅ FULLY IMPLEMENTED**: Redis-first caching has been successfully integrated at multiple layers with comprehensive testing:
 
 #### Repository Layer (ProductRepository)
 
@@ -321,7 +321,7 @@ jollyjet/
 │   │       └── redis-cache.json        # Redis cache dashboard
 │   └── alerts/                         # Alert configurations
 │       └── redis.yml                   # Redis alerts
-├── .env.example                        # Environment variables template
+├── .env                        # Environment variables template
 ├── .env.development                    # Development environment
 ├── .env.production                     # Production environment
 ├── package.json                        # Project dependencies
@@ -336,7 +336,7 @@ jollyjet/
 **Phase 1: Foundation (Steps 1-5)**
 
 1. `package.json` - Update dependencies
-2. `.env.example` - Environment template
+2. `.env` - Environment template
 3. `src/config/environments/` - Environment configs
 4. `src/infrastructure/cache/redis/redisConfig.ts` - Redis config
 5. `src/infrastructure/cache/interfaces/ICache.ts` - Cache interface
@@ -427,12 +427,13 @@ jollyjet/
 - CRUD operations with caching behavior
 - Error handling and graceful fallbacks
 - Pattern-based cache key validation
+- **370 total tests passing** with **97.59% coverage**
 
 ### Step 2: Environment Configuration
 
 Create environment configuration files with proper dependency flow:
 
-**2.1 Create `.env.example`:**
+**2.1 Create `.env`:**
 
 ```env
 # Redis Configuration
@@ -2358,7 +2359,18 @@ npm test -- --testPathPattern=product-repository-redis.test.ts
    - Error rates
    - Connection health
 
-2. **Alerting**:
+2. **Logging Best Practices**:
+   - **Cache Hits**: Log at `INFO` level for operational monitoring (currently inconsistent: middleware uses INFO, services use DEBUG)
+   - **Cache Misses**: Log at `DEBUG` level since they represent normal fallback behavior
+   - **Cache Errors**: Log at `WARN` level for connection issues, `ERROR` for critical failures
+   - **Performance**: Include cache keys and response times in structured logs
+
+3. **Environment-Based Logging**:
+   - **Development**: All log levels enabled (DEBUG, INFO, WARN, ERROR)
+   - **Production**: Only INFO, WARN, ERROR enabled (DEBUG logs suppressed)
+   - Cache hit logs at INFO level ensure visibility in production for performance monitoring
+
+4. **Alerting**:
    - Cache hit rate below 80%
    - Redis connection failures
    - Memory usage above 85%

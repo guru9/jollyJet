@@ -3,10 +3,11 @@
 A high-performance Node.js e-commerce API built with TypeScript, Express.js, and Clean Architecture principles.
 
 ![Project Status](https://img.shields.io/badge/status-production-ready-green)
-![Test Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
+![Test Coverage](https://img.shields.io/badge/coverage-97.59%25-brightgreen)
 ![Architecture](https://img.shields.io/badge/architecture-clean-blueviolet)
 ![Language](https://img.shields.io/badge/typescript-v5.0+-blue)
 ![Caching](https://img.shields.io/badge/caching-redis%20first-orange)
+![Tests](https://img.shields.io/badge/tests-370%20passed-blue)
 
 ## 🚀 Features
 
@@ -27,14 +28,17 @@ A high-performance Node.js e-commerce API built with TypeScript, Express.js, and
 
 ### 🛠️ Core Documentation
 
+- 📈 **[Master Implementation Guide](./docs/JOLLYJET_IMPLEMENTATION_MASTER_GUIDE.md)** - **COMPLETE STEP-BY-STEP GUIDE** - Full implementation guide with folder structure, code examples, and architecture details
+- 📈 **[Complete Project Analysis](./docs/JOLLYJET_COMPLETE_ANALYSIS.md)** - **ULTIMATE COMPREHENSIVE GUIDE** - Complete implementation with all code snippets, architecture details, and step-by-step guides (50,000+ lines)
 - 📈 **[Project Analysis](./docs/analysis/project-analysis.md)** - Comprehensive overview of project status and architecture
 - 📋 **[Task Checklist](./docs/tasks/01-jollyjet-task.md)** - Live project roadmap and progress tracker
-- 📊 **[Test Coverage Report](./docs/tests/test-coverage-walkthrough.md)** - Detailed walkthrough of the 100% test coverage suite
+- 📊 **[Test Coverage Report](./docs/tests/test-coverage-walkthrough.md)** - Detailed walkthrough of the 97.29% test coverage suite
 - 📚 **[Best Practices Guide](./docs/best-practices/best-practices.md)** - Complete project best practices and architecture guidelines
 - 🛡️ **[Optimization Guide](./docs/best-practices/improvements-guide.md)** - Performance & Security roadmap (Rate Limiting, Compression, Helmet)
 - 🔄 **[SQL Migration Guide](./docs/migrations/sql-migration-guide.md)** - Comprehensive guide for database migration from MongoDB to SQL
 - 📊 **[SQL Integration Findings](./docs/migrations/sql-integration-findings.md)** - Detailed findings and recommendations for SQL integration
 - 🚀 **[Microservices Migration Plan](./docs/migrations/microservices-migration-plan.md)** - Comprehensive plan for transitioning to microservices architecture
+- ⚙️ **[Environment Setup Guide](./docs/extra/environment-setup.md)** - Complete guide for environment configuration and management
 
 ### 📊 Flowcharts & Visualizations
 
@@ -88,45 +92,37 @@ yarn install
 
 ### 3. Environment Configuration
 
-Create a `.env` file in the root directory:
+The project uses environment-specific configuration files. Copy the example file and customize for your environment:
 
-```env
-# Server Configuration
-PORT=3000
-NODE_ENV=development
+```bash
+# For local development
+cp .env .env.local
 
-# MongoDB Configuration
-MONGODB_URI=mongodb://localhost:27017/jollyjet
-MONGODB_DB_NAME=jollyjet
-MONGODB_MAX_POOL_SIZE=10
-MONGODB_MIN_POOL_SIZE=2
-MONGODB_CONNECTION_TIMEOUT=10000
-MONGODB_SOCKET_TIMEOUT=45000
-MONGODB_SERVER_SELECTION_TIMEOUT=5000
-MONGODB_RETRY_ATTEMPTS=3
-MONGODB_RETRY_DELAY=1000
+# For development environment
+cp .env .env.development
 
-# Redis Configuration
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_PASSWORD=
-REDIS_DB=0
-REDIS_EXPIRE_TIME=86400
-REDIS_MAX_RETRIES=5
-REDIS_RETRY_DELAY=1000
-
-# Redis TTL Configuration (seconds)
-REDIS_TTL_DEFAULT=86400
-REDIS_TTL_SHORT=3600
-REDIS_TTL_LONG=604800
-REDIS_TTL_SESSION=86400
-REDIS_TTL_PRODUCT=86400
-REDIS_TTL_USER=86400
-
-# Rate Limiting
-REDIS_RATE_LIMIT_WINDOW=3600
-REDIS_RATE_LIMIT_LIMIT=100
+# For production environment
+cp .env .env.production
 ```
+
+**Environment File Priority:**
+
+1. `.env` (base configuration)
+2. `.env.local` (local overrides)
+3. `.env.{NODE_ENV}` (environment-specific)
+4. `.env.{NODE_ENV}.local` (environment-specific local overrides)
+
+**Key Environment Variables:**
+
+| Variable                   | Local   | Development | Production | Description             |
+| -------------------------- | ------- | ----------- | ---------- | ----------------------- |
+| `MONGODB_DISABLED`         | `false` | `false`     | `false`    | Enable MongoDB          |
+| `REDIS_DISABLED`           | `false` | `false`     | `false`    | Enable Redis            |
+| `GEO_BLOCKING_ENABLED`     | `false` | `false`     | `true`     | Geographic blocking     |
+| `SECURITY_HEADERS_ENABLED` | `false` | `false`     | `false`    | Legacy security headers |
+| `REDIS_RATE_LIMIT_LIMIT`   | `1000`  | `500`       | `100`      | Rate limit per hour     |
+
+See **[Environment Setup Guide](./docs/extra/environment-setup.md)** for complete configuration details.
 
 ### 4. Database Setup
 

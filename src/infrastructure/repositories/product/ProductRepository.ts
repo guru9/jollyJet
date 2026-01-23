@@ -4,9 +4,9 @@ import { CacheService } from '@/domain/services/cache/CacheService';
 import { Productmodel } from '@/infrastructure/models';
 import { CACHE_LOG_MESSAGES, DI_TOKENS, Logger, PRODUCT_ERROR_MESSAGES } from '@/shared';
 import { BadRequestError } from '@/shared/errors';
+import { isMongoDBConnected, isValidObjectId } from '@/shared/utils';
 
 import { PaginationParams } from '@/types';
-import mongoose from 'mongoose';
 import { inject, injectable } from 'tsyringe';
 
 @injectable()
@@ -80,7 +80,7 @@ export class ProductRepository implements IProductRepository {
   public async update(product: Product): Promise<Product> {
     const productData = product.toProps();
     if (!productData.id) throw new BadRequestError(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_REQ_UPDATE);
-    if (!mongoose.isValidObjectId(productData.id)) {
+    if (!isValidObjectId(productData.id)) {
       throw new BadRequestError(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
     }
 
@@ -115,8 +115,7 @@ export class ProductRepository implements IProductRepository {
    */
   public async findById(id: string): Promise<Product | null> {
     if (!id) return null; // Return null for invalid IDs
-    if (!mongoose.Types.ObjectId.isValid(id))
-      throw new BadRequestError(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
+    if (!isValidObjectId(id)) throw new BadRequestError(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
 
     const cacheKey = `product:${id}`;
     const cachedProductProps = await this.cacheService.get<ProductProps>(cacheKey);
@@ -158,6 +157,12 @@ export class ProductRepository implements IProductRepository {
       return cachedProductProps.map((props) => Product.createProduct(props));
     }
 
+    // Check if MongoDB is connected
+    if (!isMongoDBConnected()) {
+      this.logger.warn(PRODUCT_ERROR_MESSAGES.MONGODB_DISCONNECTED_FIND_ALL);
+      return [];
+    }
+
     // Cache miss - fetch from MongoDB
     this.logger.debug(CACHE_LOG_MESSAGES.CACHE_MISS(cacheKey, 'database'));
     const query = this.buildFilteredQuery(filter);
@@ -196,8 +201,7 @@ export class ProductRepository implements IProductRepository {
    */
   public async delete(id: string): Promise<boolean> {
     if (!id) return false;
-    if (!mongoose.Types.ObjectId.isValid(id))
-      throw new Error(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
+    if (!isValidObjectId(id)) throw new Error(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
 
     const result = await Productmodel.findByIdAndDelete(id);
 
@@ -227,6 +231,12 @@ export class ProductRepository implements IProductRepository {
     if (cachedCount !== null && cachedCount !== undefined) {
       this.logger.debug(CACHE_LOG_MESSAGES.CACHE_HIT(cacheKey));
       return cachedCount;
+    }
+
+    // Check if MongoDB is connected
+    if (!isMongoDBConnected()) {
+      this.logger.warn(PRODUCT_ERROR_MESSAGES.MONGODB_DISCONNECTED_COUNT);
+      return 0;
     }
 
     // Cache miss - fetch from MongoDB
@@ -260,8 +270,7 @@ export class ProductRepository implements IProductRepository {
    * @returns Promise<Product> with the updated product
    */
   public async toggleWishlistStatus(id: string, isWishlistStatus: boolean): Promise<Product> {
-    if (!id || !mongoose.isValidObjectId(id))
-      throw new Error(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
+    if (!id || !isValidObjectId(id)) throw new Error(PRODUCT_ERROR_MESSAGES.PRODUCT_ID_INVALID);
     // Update the isWishlistStatus status and adjust wishlistCount accordingly
     const updatedProduct = await Productmodel.findByIdAndUpdate(
       id,

@@ -3,6 +3,7 @@ import { IProductRepository } from '@/domain/interfaces';
 import { CacheService } from '@/domain/services/cache/CacheService';
 import { Logger } from '@/shared';
 import { GetProductUseCase } from '@/usecases';
+import { Types } from 'mongoose';
 
 describe('GetProductUseCase', () => {
   let useCase: GetProductUseCase;
@@ -48,8 +49,9 @@ describe('GetProductUseCase', () => {
 
   describe('execute method', () => {
     it('should retrieve a product by ID successfully', async () => {
+      const validId = new Types.ObjectId().toString();
       const mockProduct = new Product({
-        id: '1',
+        id: validId,
         name: 'Test Product',
         description: 'Test Description',
         price: 100,
@@ -60,22 +62,23 @@ describe('GetProductUseCase', () => {
 
       mockRepository.findById.mockResolvedValue(mockProduct);
 
-      const result = await useCase.execute('1');
+      const result = await useCase.execute(validId);
 
-      expect(mockRepository.findById).toHaveBeenCalledWith('1');
+      expect(mockRepository.findById).toHaveBeenCalledWith(validId);
       expect(result).toBeInstanceOf(Product);
       if (result) {
-        expect(result.toProps().id).toBe('1');
+        expect(result.toProps().id).toBe(validId);
         expect(result.toProps().name).toBe('Test Product');
       }
     });
 
     it('should return null if product is not found', async () => {
+      const validId = new Types.ObjectId().toString();
       mockRepository.findById.mockResolvedValue(null);
 
-      const result = await useCase.execute('non-existent-id');
+      const result = await useCase.execute(validId);
 
-      expect(mockRepository.findById).toHaveBeenCalledWith('non-existent-id');
+      expect(mockRepository.findById).toHaveBeenCalledWith(validId);
       expect(result).toBeNull();
     });
 
@@ -95,10 +98,11 @@ describe('GetProductUseCase', () => {
     });
 
     it('should handle repository errors', async () => {
+      const validId = new Types.ObjectId().toString();
       const error = new Error('Database error');
       mockRepository.findById.mockRejectedValue(error);
 
-      await expect(useCase.execute('1')).rejects.toThrow('Database error');
+      await expect(useCase.execute(validId)).rejects.toThrow('Database error');
     });
   });
 

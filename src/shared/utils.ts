@@ -1,6 +1,6 @@
 import { randomBytes } from 'crypto';
 import { NextFunction, Request, Response } from 'express';
-import { Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { ZodError, ZodType } from 'zod';
 import { ERROR_STATUS, HTTP_STATUS, PRODUCT_ERROR_MESSAGES } from './constants';
 import { BadRequestError } from './errors';
@@ -47,7 +47,9 @@ export const validateRequest = (schema: ZodType) => {
  */
 export const safeParseInt = (value: string, defaultValue: number = 0): number => {
   if (typeof value !== 'string') return defaultValue;
-  const parsed = parseInt(value, 10);
+  const trimmed = value.trim();
+  if (!/^-?\d+$/.test(trimmed)) return defaultValue;
+  const parsed = parseInt(trimmed, 10);
   return isNaN(parsed) ? defaultValue : parsed;
 };
 
@@ -60,7 +62,9 @@ export const safeParseInt = (value: string, defaultValue: number = 0): number =>
  */
 export const safeParseFloat = (value: string, defaultValue: number = 0): number => {
   if (typeof value !== 'string') return defaultValue;
-  const parsed = parseFloat(value);
+  const trimmed = value.trim();
+  if (!/^-?\d+(\.\d+)?$/.test(trimmed)) return defaultValue;
+  const parsed = parseFloat(trimmed);
   return isNaN(parsed) ? defaultValue : parsed;
 };
 
@@ -232,6 +236,14 @@ export const calculatePaginationMeta = (total: number, page: number, limit: numb
     limit,
     totalPages,
   };
+};
+
+/**
+ * Checks if MongoDB is connected and ready for operations.
+ * @returns True if MongoDB is connected (readyState === 1), false otherwise
+ */
+export const isMongoDBConnected = (): boolean => {
+  return mongoose.connection.readyState === 1;
 };
 
 /**
