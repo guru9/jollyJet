@@ -1,6 +1,7 @@
 import { errorHandler, requestLogger } from '@/interface/middlewares';
 import { BadRequestError, InternalServerError, NotFoundError, UnauthorizedError } from '@/shared';
 import { NextFunction, Request, Response } from 'express';
+import { Socket } from 'net';
 
 describe('Middleware Tests', () => {
   describe('errorHandler', () => {
@@ -105,11 +106,14 @@ describe('Middleware Tests', () => {
         ip: '127.0.0.1',
         connection: {
           remoteAddress: '127.0.0.1',
-        } as any,
+        } as unknown as Socket,
         get: jest.fn((header: string) => {
           if (header === 'User-Agent') return 'test-agent';
           return undefined;
-        }) as any,
+        }) as {
+          (name: 'set-cookie'): string[] | undefined;
+          (name: string): string | undefined;
+        },
       };
 
       mockResponse = {

@@ -1,5 +1,5 @@
 import config from '@/config';
-import { logger, MONGODB_CONFIG, MONGODB_LOG_MESSAGES } from '@/shared';
+import { logger, MONGODB_LOG_MESSAGES } from '@/shared';
 import mongoose from 'mongoose';
 
 class MongoDBConnection {
@@ -19,7 +19,7 @@ class MongoDBConnection {
   //Connect to MongoDB
   public async connect(): Promise<void> {
     // Guard clause: If MongoDB is disabled, don't attempt connection
-    if (MONGODB_CONFIG.DISABLED) {
+    if (config.mongoConfig.disabled) {
       logger.warn(MONGODB_LOG_MESSAGES.CONNECTION_DISABLED);
       return;
     }
@@ -30,10 +30,51 @@ class MongoDBConnection {
     }
 
     try {
-      await mongoose.connect(config.mongoUri, {
-        serverSelectionTimeoutMS: 5000,
-        socketTimeoutMS: 45000,
-      });
+      let uri = config.mongoConfig.uri;
+
+      // If we have detailed config, prefer constructing the URI for clarity and flexibility
+      // This supports the modular configuration style requested:
+      // mongodb+srv://${username}:${password}@${cluster}/?authSource=${authSource}
+      if (
+        config.mongoConfig.username &&
+        config.mongoConfig.password &&
+        config.mongoConfig.host &&
+        !config.mongoConfig.host.includes('localhost')
+      ) {
+        const protocol = config.mongoConfig.srv ? 'mongodb+srv' : 'mongodb';
+        // When using SRV, simple host is enough. For standard, we might need port.
+        const host = config.mongoConfig.srv
+          ? config.mongoConfig.host
+          : `${config.mongoConfig.host}:${config.mongoConfig.port}`;
+
+        uri = `${protocol}://${config.mongoConfig.username}:${config.mongoConfig.password}@${host}/${config.mongoConfig.dbName}?authSource=${config.mongoConfig.authSource}&retryWrites=true&w=majority`;
+
+        if (config.mongoConfig.authMechanism) {
+          uri += `&authMechanism=${config.mongoConfig.authMechanism}`;
+        }
+      }
+
+      const connectOptions: mongoose.ConnectOptions & Record<string, unknown> = {
+        dbName: config.mongoConfig.dbName,
+        maxPoolSize: config.mongoConfig.maxPoolSize,
+        minPoolSize: config.mongoConfig.minPoolSize,
+        serverSelectionTimeoutMS: config.mongoConfig.serverSelectionTimeout,
+        socketTimeoutMS: config.mongoConfig.socketTimeout,
+        connectTimeoutMS: config.mongoConfig.connectionTimeout,
+      };
+
+      // If we constructed the URI with credentials in it, 'auth' option is technically redundant
+      // but harmless. However, for SRV connections, credentials MUST be in the URI usually.
+
+      if (config.mongoConfig.ssl) {
+        connectOptions['tls'] = true;
+      }
+
+      if (config.mongoConfig.replicaSet) {
+        connectOptions['replicaSet'] = config.mongoConfig.replicaSet;
+      }
+
+      await mongoose.connect(uri, connectOptions);
 
       this.isConnected = true;
 
@@ -94,7 +135,7 @@ class MongoDBConnection {
   //Disconnect from MongoDB
   public async disconnect(): Promise<void> {
     // Guard clause: If MongoDB is disabled, nothing to disconnect
-    if (MONGODB_CONFIG.DISABLED) {
+    if (config.mongoConfig.disabled) {
       logger.warn(MONGODB_LOG_MESSAGES.CONNECTION_DISABLED);
       return;
     }

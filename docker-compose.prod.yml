@@ -1,0 +1,21 @@
+# JollyJet - Production Region Docker Configuration
+# This file is used for production deployment.
+# It connects to cloud services using .env.production.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: jollyjet-api:latest
+    container_name: jollyjet-api-prod
+    restart: always
+    ports:
+      - '${PORT:-3000}:3000'
+    env_file:
+      - .env.production
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'

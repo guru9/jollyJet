@@ -86,27 +86,25 @@ Before debugging, collect this information:
    npm install
    ```
 
-4. **Check MongoDB Connection:**
+4. **Check MongoDB Connection (Cloud First):**
 
    ```bash
    # Test MongoDB connection string
    node -e "
    const mongoose = require('mongoose');
-   mongoose.connect(process.env.MONGO_URI)
+   mongoose.connect(process.env.MONGODB_URI)
      .then(() => console.log('MongoDB connected'))
      .catch(err => console.error('MongoDB error:', err));
    "
    ```
 
-5. **Check Redis Connection:**
+5. **Check Redis Connection (Cloud First):**
    ```bash
    # Test Redis connection
    node -e "
-   const redis = require('redis');
-   const client = redis.createClient({
-     url: process.env.REDIS_URL
-   });
-   client.connect()
+   const Redis = require('ioredis');
+   const client = new Redis(process.env.REDIS_URI);
+   client.ping()
      .then(() => console.log('Redis connected'))
      .catch(err => console.error('Redis error:', err));
    "
@@ -212,14 +210,18 @@ Before debugging, collect this information:
 
 1. **Check Redis Connection:**
 
-   ```bash
-   # Test Redis CLI
-   redis-cli -u redis://user:pass@host:port
+   # Test Redis CLI with credentials
+
+   redis-cli -h your-host -p 6379 -a your-password --tls
 
    # Basic Redis commands
+
    PING
    INFO server
-   KEYS *
+   KEYS \*
+
+   ```
+
    ```
 
 2. **Check Cache Implementation:**

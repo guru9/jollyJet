@@ -3,6 +3,24 @@
     "start": "node dist/src/server.js",
     "build": "tsc && tsc-alias",
     "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/server.ts",
+    "dev:cloud": "cross-env NODE_ENV=development nodemon --exec ts-node -r tsconfig-paths/register src/server.ts",
+    "docker:up": "docker compose -f docker-compose.yml up -d",
+    "docker:up:local": "docker compose -f docker-compose.yml up -d",
+    "docker:up:dev": "docker compose -f docker-compose.dev.yml up -d",
+    "docker:up:prod": "docker compose -f docker-compose.prod.yml up -d",
+    "docker:down": "docker compose -f docker-compose.yml down",
+    "docker:down:local": "docker compose -f docker-compose.yml down",
+    "docker:down:dev": "docker compose -f docker-compose.dev.yml down",
+    "docker:down:prod": "docker compose -f docker-compose.prod.yml down",
+    "docker:build": "docker compose -f docker-compose.yml build",
+    "docker:build:local": "docker compose -f docker-compose.yml build",
+    "docker:build:dev": "docker compose -f docker-compose.dev.yml build",
+    "docker:build:prod": "docker compose -f docker-compose.prod.yml build",
+    "docker:logs": "docker compose -f docker-compose.yml logs -f",
+    "docker:logs:local": "docker compose -f docker-compose.yml logs -f",
+    "docker:logs:dev": "docker compose -f docker-compose.dev.yml logs -f",
+    "docker:logs:prod": "docker compose -f docker-compose.prod.yml logs -f",
+    "docker:ps": "docker compose ps",
     "debug": "node --inspect=0.0.0.0:9228 -r ts-node/register -r tsconfig-paths/register src/server.ts",
     "predev": "echo 'Formatting...' && npm run format && echo 'Linting...' && npm run lint && echo 'Building...' && npm run build",
     "format": "prettier --write \"{src,tests}/**/*.{ts,js,json}\"",
@@ -12,6 +30,32 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
+  },
+  "scriptsInfo": {
+    "start": "Start the production server (requires build first).",
+    "build": "Compile TypeScript to JavaScript and resolve path aliases.",
+    "dev": "Start development server with hot reload (uses .env for Cloud First).",
+    "dev:cloud": "Force development mode with cloud services.",
+    "docker:up": "Start the application container (uses docker-compose.yml with .env).",
+    "docker:up:local": "Start the application container locally (uses docker-compose.yml with .env).",
+    "docker:up:dev": "Start the application container for dev region (uses docker-compose.dev.yml with .env.development).",
+    "docker:up:prod": "Start the application container for prod region (uses docker-compose.prod.yml with .env.production).",
+    "docker:down": "Stop the application container (uses docker-compose.yml).",
+    "docker:down:local": "Stop the local application container (uses docker-compose.yml).",
+    "docker:down:dev": "Stop the dev region application container (uses docker-compose.dev.yml).",
+    "docker:down:prod": "Stop the prod region application container (uses docker-compose.prod.yml).",
+    "docker:build": "Build the application Docker image (uses docker-compose.yml).",
+    "docker:build:local": "Build the local application Docker image (uses docker-compose.yml).",
+    "docker:build:dev": "Build the dev region application Docker image (uses docker-compose.dev.yml).",
+    "docker:build:prod": "Build the prod region application Docker image (uses docker-compose.prod.yml).",
+    "docker:logs": "Show live logs from the application container (uses docker-compose.yml).",
+    "docker:logs:local": "Show live logs from the local application container (uses docker-compose.yml).",
+    "docker:logs:dev": "Show live logs from the dev region application container (uses docker-compose.dev.yml).",
+    "docker:logs:prod": "Show live logs from the prod region application container (uses docker-compose.prod.yml).",
+    "docker:ps": "List running Docker containers.",
+    "format": "Format code with Prettier.",
+    "lint": "Check code for linting issues.",
+    "test": "Run all tests once."
   },
   "main": "dist/src/server.js",
   "devDependencies": {
@@ -26,6 +70,7 @@
     "@types/supertest": "^6.0.3",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
+    "cross-env": "^10.1.0",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "jest": "^30.2.0",
@@ -55,12 +100,12 @@
     "tsyringe": "^4.10.0",
     "zod": "^4.1.13"
   },
-  "name": "jollyjet",
+  "name": "jollyjet-starter",
   "version": "1.0.0",
   "description": "- **Shopping App (When Speed and Happiness Matters :)**",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/guru9/jollyJet.git"
+    "url": "git+https://github.com/guru9/jollyjet-starter.git"
   },
   "keywords": [],
   "author": "Gururaj Moger",
@@ -68,5 +113,5 @@
   "bugs": {
     "url": "https://github.com/guru9/jollyJet/issues"
   },
-  "homepage": "https://github.com/guru9/jollyJet#readme"
+  "homepage": "https://github.com/guru9/jollyjet-starter#readme"
 }
