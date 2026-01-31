@@ -60,12 +60,25 @@ const startServer = async () => {
   const app = await jollyJetApp();
 
   try {
-    // Connect to MongoDB first - required for server startup
+    // Connect to MongoDB first
     await mongoDBConnection.connect();
     logger.info(MONGODB_LOG_MESSAGES.CONNECTION_SUCCESS);
   } catch (error) {
-    logger.error({ error: error }, MONGODB_LOG_MESSAGES.CONNECTION_FAILED);
-    process.exit(1);
+    // In development we allow the server to start even if Mongo is unavailable.
+    // This helps with local iteration when developers use remote DBs or prefer
+    // to run services separately. In production we keep the existing behaviour
+    // of failing fast to avoid running in a degraded state.
+    logger.error(
+      { error: error },
+      MONGODB_LOG_MESSAGES.CONNECTION_ERROR(error instanceof Error ? error.message : String(error))
+    );
+
+    if (config.env === 'development') {
+      logger.warn('MongoDB connection failed, continuing startup in development mode.');
+    } else {
+      logger.error({ error: error }, MONGODB_LOG_MESSAGES.CONNECTION_FAILED);
+      process.exit(1);
+    }
   }
 
   try {
@@ -77,7 +90,12 @@ const startServer = async () => {
       { err: error },
       CACHE_LOG_MESSAGES.CONNECTION_ERROR(error instanceof Error ? error.message : String(error))
     );
-    process.exit(1);
+
+    if (config.env === 'development') {
+      logger.warn('Redis connection failed, continuing startup in development mode.');
+    } else {
+      process.exit(1);
+    }
   }
 
   // Start the server only after both MongoDB and Redis are connected

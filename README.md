@@ -1,16 +1,18 @@
-# JollyJet E-commerce API
+# jollyjet-starter
 
-A high-performance Node.js e-commerce API built with TypeScript, Express.js, and Clean Architecture principles.
+A high-performance Node.js starter for JollyJet E-commerce API with **Cloud First Architecture**. Includes Docker Compose stacks for local, dev, and prod and helpful scripts to boot the project quickly.
 
 ![Project Status](https://img.shields.io/badge/status-production-ready-green)
 ![Test Coverage](https://img.shields.io/badge/coverage-97.59%25-brightgreen)
 ![Architecture](https://img.shields.io/badge/architecture-clean-blueviolet)
 ![Language](https://img.shields.io/badge/typescript-v5.0+-blue)
 ![Caching](https://img.shields.io/badge/caching-redis%20first-orange)
+![Cloud First](https://img.shields.io/badge/cloud%20first-mongodb%20atlas%20%2B%20upstash%20redis-blue)
 ![Tests](https://img.shields.io/badge/tests-370%20passed-blue)
 
 ## 🚀 Features
 
+- **Cloud First Architecture**: MongoDB Atlas + Upstash Redis for all environments (local, dev, prod)
 - **Redis-First Caching**: Implements cache-aside pattern with Redis as primary cache and MongoDB as fallback
 - **Required Database Connections**: Server starts only after successful MongoDB and Redis connections
 - **Clean Architecture**: Separation of concerns with Domain, Application, Infrastructure, and Interface layers
@@ -32,7 +34,7 @@ A high-performance Node.js e-commerce API built with TypeScript, Express.js, and
 - 📈 **[Complete Project Analysis](./docs/JOLLYJET_COMPLETE_ANALYSIS.md)** - **ULTIMATE COMPREHENSIVE GUIDE** - Complete implementation with all code snippets, architecture details, and step-by-step guides (50,000+ lines)
 - 📈 **[Project Analysis](./docs/analysis/project-analysis.md)** - Comprehensive overview of project status and architecture
 - 📋 **[Task Checklist](./docs/tasks/01-jollyjet-task.md)** - Live project roadmap and progress tracker
-- 📊 **[Test Coverage Report](./docs/tests/test-coverage-walkthrough.md)** - Detailed walkthrough of the 97.29% test coverage suite
+- 📊 **[Test Coverage Report](./docs/tests/test-coverage-walkthrough.md)** - Detailed walkthrough of 97.29% test coverage suite
 - 📚 **[Best Practices Guide](./docs/best-practices/best-practices.md)** - Complete project best practices and architecture guidelines
 - 🛡️ **[Optimization Guide](./docs/best-practices/improvements-guide.md)** - Performance & Security roadmap (Rate Limiting, Compression, Helmet)
 - 🔄 **[SQL Migration Guide](./docs/migrations/sql-migration-guide.md)** - Comprehensive guide for database migration from MongoDB to SQL
@@ -42,9 +44,9 @@ A high-performance Node.js e-commerce API built with TypeScript, Express.js, and
 
 ### 📊 Flowcharts & Visualizations
 
-- 🖼️ **[JollyJet E-Commerce Flow](./docs/flowchart/jollyjet-ecommerce-flow.md)** - Visual representation of the complete e-commerce user journey
+- 🖼️ **[JollyJet E-Commerce Flow](./docs/flowchart/jollyjet-ecommerce-flow.md)** - Visual representation of complete e-commerce user journey
 
-- 🖼️ **[Product Flowchart](./docs/flowchart/product-flowchart.md)** - Detailed flowchart of the product module architecture and data flow
+- 🖼️ **[Product Flowchart](./docs/flowchart/product-flowchart.md)** - Detailed flowchart of product module architecture and data flow
 
 ### 🏗️ Implementation Plans
 
@@ -59,50 +61,95 @@ A high-performance Node.js e-commerce API built with TypeScript, Express.js, and
 - 🧪 **[Phase 7: Testing](./docs/implementation-plans/07-testing-setup-plan.md)** - Jest infrastructure & test suites
 - 🛍️ **[Phase 8: Product Module](./docs/implementation-plans/08-product-module-plan.md)** - Product CRUD operations & catalog management
 - ⚡ **[Phase 9: Redis Integration](./docs/implementation-plans/09-redis-implementation-plan.md)** - Caching, Session, & Rate Limiting
+- 🛡️ **[Phase 11: CORS Security](./docs/implementation-plans/11-cors-policy-security-plan.md)** - Global security & Geo-blocking
+- 🚀 **[Phase 12: Redis-First Cache](./docs/implementation-plans/12-redis-first-cache.md)** - Performance optimization
+- ☁️ **[Phase 13: Cloud First Architecture](./docs/implementation-plans/13-cloud-first-architecture.md)** - Infrastructure & Local Dev Optimization
+- ☁️ **[Phase 14: PubSub Implementation](./docs/implementation-plans/14-pubsub-implementation-plan.md)** - Event-driven architecture
 
 ---
 
 ## ⚡ Quick Start
 
-## 📋 Prerequisites
+### 📋 Prerequisites
 
-Before running the application, ensure you have the following installed:
+JollyJet uses a **Cloud First Architecture**. You don't need to install databases locally.
 
 - **Node.js** (v18 or higher)
-- **MongoDB** (v5.0 or higher)
-- **Redis** (v6.0 or higher)
-- **npm** or **yarn** package manager
+- **npm** (v9 or higher)
+- **Cloud Accounts**: MongoDB Atlas and Upstash/Redis Cloud (required for all environments)
 
-## 🛠️ Setup Steps
+### 🛠️ Setup Steps
 
-### 1. Clone the Repository
+1. **Clone Repository**
+
+   ```bash
+   git clone https://github.com/guru9/jollyjet-starter.git
+   cd jollyjet-starter
+   ```
+
+2. **Install Dependencies**
+
+   ```bash
+   npm install
+   ```
+
+3. **Environment Configuration**
+
+   The `.env` file is pre-configured for local development using cloud instances.
+
+   ```bash
+   # Create a local override if needed
+   cp .env .env.local
+   ```
+
+4. **Start Development (Host Mode)**
+
+   Since we use cloud services, you can run the app directly on your host. This is the fastest way to develop.
+
+   ```bash
+   npm run dev
+   ```
+
+---
+
+## 🏗️ Execution Modes
+
+### **Host Mode (Recommended for Daily Dev)**
+
+Run the app directly on your machine. This is the fastest way to develop with Hot Module Replacement (HMR).
 
 ```bash
-git clone https://github.com/guru9/jollyJet.git
-cd jollyJet
+npm run dev
 ```
 
-### 2. Install Dependencies
+### **Regional Container Mode (Deployment Testing)**
+
+Use Docker to package the app for specific regions (simulates production/staging).
 
 ```bash
-npm install
-# or
-yarn install
+# Local Development (uses docker-compose.yml with .env)
+npm run docker:up:local
+
+# Dev Region (Asia Pacific - Mumbai)
+npm run docker:up:dev
+
+# Production Region
+npm run docker:up:prod
 ```
 
-### 3. Environment Configuration
+---
 
-The project uses environment-specific configuration files. Copy the example file and customize for your environment:
+## 🏗️ Clean Architecture
 
-```bash
-# For local development
-cp .env .env.local
+The project follows a modular structure based on **Clean Architecture** principles:
 
-# For development environment
-cp .env .env.development
-
-# For production environment
-cp .env .env.production
+```text
+src/
+├── domain/         # Core business logic (Entities, Interfaces, Services)
+├── usecases/       # Application logic (Orchestrators)
+├── infrastructure/ # External services (Database, Cache, External APIs)
+├── interface/      # Input adapters (Controllers, Routes, DTOs)
+└── shared/         # Common utilities, constants, and logging
 ```
 
 **Environment File Priority:**
@@ -124,49 +171,49 @@ cp .env .env.production
 
 See **[Environment Setup Guide](./docs/extra/environment-setup.md)** for complete configuration details.
 
-### 4. Database Setup
+### 4. Database Setup (Cloud First)
 
-#### MongoDB
+The project follows a **Cloud First Architecture**, using persistent cloud services even during development.
 
-```bash
-# Start MongoDB service
-mongod --dbpath /path/to/your/db
+#### ☁️ Primary Backend Services
 
-# Or use Docker
-docker run -d -p 27017:27017 --name mongodb mongo:latest
-```
+- **MongoDB**: [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) (Managed NoSQL)
+- **Redis**: [Upstash](https://upstash.com/) or [Redis Cloud](https://redis.com/cloud/overview/) (Serverless Cache & Rate Limiting)
 
-#### Redis
+#### 🚀 Getting Started (Local)
 
-```bash
-# Start Redis service
-redis-server
+1. **Configure Environment**: The `.env` file is pre-configured for local development using cloud instances (Atlas & Upstash).
+2. **Run on Host**:
+   ```bash
+   npm run dev
+   ```
+   _Note: Docker is not required for local development in this architecture._
 
-# Or use Docker
-docker run -d -p 6379:6379 --name redis redis:latest
-```
+#### 🐋 Docker Mode (Dev/Prod Regions)
 
-### 5. Run the Application
-
-#### Development Mode
+If you need to run the application in a containerized environment (e.g., dev or production regions):
 
 ```bash
-npm run dev
+# Start for Local Development (.env)
+npm run docker:up:local
+
+# Start for Dev Region (.env.development)
+npm run docker:up:dev
+
+# Start for Production Region (.env.production)
+npm run docker:up:prod
 ```
 
-#### Production Mode
+See **[DOCKER_SETUP.md](./docs/extra/DOCKER_SETUP.md)** for detailed container orchestration info.
 
-```bash
-npm run build
-npm start
-```
-
-### 4️⃣ Access API Documentation
+### 5. Access API Documentation
 
 Once the server is running, access the interactive API documentation:
 
 - **Swagger UI:** [http://localhost:3000/api-docs/](http://localhost:3000/api-docs/)
-- **OpenAPI Spec:** [http://localhost:3000/api-docs.json](http://localhost:3000/api-docs.json)
+- **OpenAPI Spec (JSON):** [http://localhost:3000/api-docs.json](http://localhost:3000/api-docs.json)
+
+---
 
 ---
 
@@ -177,13 +224,21 @@ Once the server is running, access the interactive API documentation:
 | Command                 | Description                 |
 | ----------------------- | --------------------------- |
 | `npm run lint`          | Check for code style issues |
-| `npm run lint:fix`      | Auto-fix listing issues     |
+| `npm run lint:fix`      | Auto-fix linting issues     |
 | `npm run format`        | Format code with Prettier   |
 | `npm test`              | Run all tests               |
 | `npm run test:watch`    | Run tests in watch mode     |
 | `npm run test:coverage` | Generate coverage report    |
 
 ---
+
+## 🧰 Recommended Tools
+
+- **Docker Desktop**: Run and manage containers locally.
+- **MongoDB Compass** or **MongoDB for VS Code**: GUI exploration and query runner (the repo already recommends `mongodb.mongodb-vscode`).
+- **RedisInsight**: GUI for inspecting Redis data, useful for cache debugging.
+
+Install VS Code recommended extensions (open the Extensions view and choose "Install Recommended Extensions") or install desktop tools from their official sites.
 
 ## 📁 Project Structure
 
@@ -308,9 +363,8 @@ jollyJet/
 ┌─────────────────────────────────────────┐
 │             Interface Layer              │
 │  (Controllers, Middleware, Routes)   │
-├─────────────────────────────────────────┤
+In CI and production pipelines prefer running `docker compose` (or image builds) directly with the production env file and `docker-compose.prod.yml` override. Do not rely on developer npm wrappers in CI.
 │           Application Layer             │
-│         (Use Cases)                │
 ├─────────────────────────────────────────┤
 │            Domain Layer                │
 │     (Entities, Services)            │
@@ -324,136 +378,19 @@ jollyJet/
 
 ## 🛠️ Technology Stack Analysis
 
-### **Modern & Robust Stack** ⭐⭐⭐⭐⭐
-
-| Category                 | Technology           | Version         | Assessment            |
-| ------------------------ | -------------------- | --------------- | --------------------- |
-| **Runtime**              | Node.js              | Latest          | ✅ Modern             |
-| **Language**             | TypeScript           | 5.9.3           | ✅ Strict typing      |
-| **Framework**            | Express.js           | 5.1.0           | ✅ Latest version     |
-| **Database**             | MongoDB + Mongoose   | 9.0.0           | ✅ Type-safe ODM      |
-| **Dependency Injection** | tsyringe             | 4.10.0          | ✅ Industry standard  |
-| **Validation**           | Zod                  | 4.1.13          | ✅ Runtime validation |
-| **Testing**              | Jest + Supertest     | 30.2.0 + 7.1.4  | ✅ Comprehensive      |
-| **Documentation**        | Swagger/OpenAPI      | 6.2.8 + 5.0.1   | ✅ Auto-generated     |
-| **Logging**              | Pino + Pino-pretty   | 10.1.0 + 13.1.3 | ✅ Structured logging |
-| **Code Quality**         | Prettier + ESLint v9 | 3.7.4 + 9.39.1  | ✅ Modern config      |
+| Category                 | Technology         | Version         | Assessment            |
+| ------------------------ | ------------------ | --------------- | --------------------- |
+| **Runtime**              | Node.js            | Latest          | ✅ Modern             |
+| **Language**             | TypeScript         | 5.9.3           | ✅ Strict typing      |
+| **Framework**            | Express.js         | 5.1.0           | ✅ Latest version     |
+| **Database**             | MongoDB + Mongoose | 9.0.0           | ✅ Type-safe ODM      |
+| **Dependency Injection** | tsyringe           | 4.10.0          | ✅ Industry standard  |
+| **Validation**           | Zod                | 4.1.13          | ✅ Runtime validation |
+| **Testing**              | Jest + Supertest   | 30.2.0 + 7.1.4  | ✅ Comprehensive      |
+| **Documentation**        | Swagger/OpenAPI    | 6.2.8 + 5.0.1   | ✅ Auto-generated     |
+| **Logging**              | Pino + Pino-pretty | 10.1.0 + 13.1.3 | ✅ Structured logging |
 
 ---
-
-### Folder Structure
-
-#### 📂 High-Level Overview
-
-```bash
-src/
-│
-├── 🧠 𝗱𝗼𝗺𝗮𝗶𝗻/                 # 🧠 Pure Business Logic (Entities & Interfaces)
-│
-├── 🔌 𝗶𝗻𝗳𝗿𝗮𝘀𝘁𝗿𝘂𝗰𝘁𝘂𝗿𝗲/         # 🔌 External Services (DB, APIs)
-│
-├── 📡 𝗶𝗻𝘁𝗲𝗿𝗳𝗮𝗰𝗲/              # 📡 HTTP Layer (Controllers, Routes)
-│
-├── 💼 𝘂𝘀𝗲𝗰𝗮𝘀𝗲𝘀/               # 💼 Application Use Cases
-│
-├── 🧩 shared/                 # 🧩 Shared Utilities & Constants
-│
-├── 🏷️ types/                  # 🏷️ Global TypeScript Types
-│
-├── ⚙️ config/                 # ⚙️ Configuration & DI Container
-│
-├── 🚀 app.ts                  # 🚀 App Entry Point
-└── 🎬 server.ts               # 🎬 Server Bootstrap
-```
-
-#### 🏗️ Detailed Architecture (Recommended)
-
-```bash
-src/
-│
-├── 🧠 𝗱𝗼𝗺𝗮𝗶𝗻/
-│   ├── 🏛️ entities/                        # Core business models
-│   │   ├── 𝑃𝑟𝑜𝑑𝑢𝑐𝑡.𝑡𝑠
-│   │   └── 𝑈𝑠𝑒𝑟.𝑡𝑠
-│   │
-│   ├── 🔗 interfaces/                      # Contracts & Abstractions
-│   │   ├── 𝐼𝑃𝑟𝑜𝑑𝑢𝑐𝑡𝑅𝑒𝑝𝑜𝑠𝑖𝑡𝑜𝑟𝑦.𝑡𝑠
-│   │   └── 𝐼𝐸𝑚𝑎𝑖𝑙𝑆𝑒𝑟𝑣𝑖𝑐𝑒.𝑡𝑠
-│   │
-│   └── ⚙️ services/                        # Pure domain logic
-│       └── 𝑃𝑟𝑖𝑐𝑖𝑛𝑔𝑆𝑒𝑟𝑣𝑖𝑐𝑒.𝑡𝑠
-│
-├── 💼 𝘂𝘀𝗲𝗰𝗮𝘀𝗲𝘀/
-│   └── 🛍️ product/                         # Application business rules
-│       ├── 𝐶𝑟𝑒𝑎𝑡𝑒𝑃𝑟𝑜𝑑𝑢𝑐𝑡𝑈𝑠𝑒𝐶𝑎𝑠𝑒.𝑡𝑠
-│       └── 𝐺𝑒𝑡𝑃𝑟𝑜𝑑𝑢𝑐𝑡𝑈𝑠𝑒𝐶𝑎𝑠𝑒.𝑡𝑠
-│
-├── 🔌 𝗶𝗻𝗳𝗿𝗮𝘀𝘁𝗿𝘂𝗰𝘁𝘂𝗿𝗲/
-│   ├── 🍃 database/                        # Database implementations
-│   │   └── mongodb/
-│   │       ├── 🗂️ schemas/                 # ORM Schemas
-│   │       │   └── 𝑃𝑟𝑜𝑑𝑢𝑐𝑡𝑆𝑐ℎ𝑒𝑚𝑎.𝑡𝑠
-│   │       └── 𝑐𝑜𝑛𝑛𝑒𝑐𝑡𝑖𝑜𝑛.𝑡𝑠
-│   │
-│   ├── 🗃️ repositories/                    # Data access implementation
-│   │   └── 𝑀𝑜𝑛𝑔𝑜𝑃𝑟𝑜𝑑𝑢𝑐𝑡𝑅𝑒𝑝𝑜𝑠𝑖𝑡𝑜𝑟𝑦.𝑡𝑠
-│   │
-│   └── 🌍 external/                        # 3rd party adapters
-│       ├── 𝑆𝑡𝑟𝑖𝑝𝑒𝑃𝑎𝑦𝑚𝑒𝑛𝑡𝑆𝑒𝑟𝑣𝑖𝑐𝑒.𝑡𝑠
-│       └── 𝑆𝑒𝑛𝑑𝐺𝑟𝑖𝑑𝐸𝑚𝑎𝑖𝑙𝑆𝑒𝑟𝑣𝑖𝑐𝑒.𝑡𝑠
-│
-├── 📡 𝗶𝗻𝘁𝗲𝗿𝗳𝗮𝗰𝗲/
-│   ├── 🎛️ controllers/                     # Request handlers
-│   │   └── 𝑃𝑟𝑜𝑑𝑢𝑐𝑡𝐶𝑜𝑛𝑡𝑟𝑜𝑙𝑙𝑒𝑟.𝑡𝑠
-│   │
-│   ├── 🛣️ routes/                          # API Definitions
-│   │   └── 𝑝𝑟𝑜𝑑𝑢𝑐𝑡𝑅𝑜𝑢𝑡𝑒𝑠.𝑡𝑠
-│   │
-│   ├── 🚦 middlewares/                     # Request processing
-│   │   ├── 𝑎𝑢𝑡ℎ𝑀𝑖𝑑𝑑𝑙𝑒𝑤𝑎𝑟𝑒.𝑡𝑠
-│   │   ├── 𝑣𝑎𝑙𝑖𝑑𝑎𝑡𝑖𝑜𝑛𝑀𝑖𝑑𝑑𝑙𝑒𝑤𝑎𝑟𝑒.𝑡𝑠
-│   │   └── 𝑒𝑟𝑟𝑜𝑟𝐻𝑎𝑛𝑑𝑙𝑒𝑟.𝑡𝑠
-│   │
-│   └── 🛡️ dtos/                            # Input validation schemas
-│       ├── 𝑃𝑟𝑜𝑑𝑢𝑐𝑡𝐷𝑇𝑂.𝑡𝑠
-│       └── 𝑈𝑠𝑒𝑟𝐷𝑇𝑂.𝑡𝑠
-│
-├── ⚙️ config/
-│   ├── index.ts                            # Environment configs
-│   └── di-container.ts                     # Dependency Injection
-│
-├── 🧩 shared/
-│   ├── constants.ts                        # Global constants
-│   ├── errors.ts                           # Error definitions
-│   └── utils.ts                            # Shared helpers
-│
-├── 🏷️ types/                               # Type definitions
-├── 🚀 app.ts                               # App setup
-└── 🎬 server.ts                            # Entry point
-
-tests/                                      # 🧪 Test suites (Unit & Integration)
-```
-
----
-
-## 🛠️ Technology Stack
-
-### **Modern & Robust Stack** ⭐⭐⭐⭐⭐
-
-| Category                 | Technology            | Version         | Purpose                          |
-| ------------------------ | --------------------- | --------------- | -------------------------------- |
-| **Runtime**              | Node.js               | Latest LTS      | JavaScript runtime               |
-| **Language**             | TypeScript            | 5.9.3           | Strict typing & modern features  |
-| **Framework**            | Express.js            | 5.1.0           | Web framework                    |
-| **Database**             | MongoDB + Mongoose    | 9.0.0           | Type-safe ODM                    |
-| **Dependency Injection** | tsyringe              | 4.10.0          | Industry standard DI             |
-| **Validation**           | Zod                   | 4.1.13          | Runtime validation               |
-| **Testing**              | Jest + Supertest      | 30.2.0 + 7.1.4  | Comprehensive testing            |
-| **Documentation**        | Swagger/OpenAPI       | 6.2.8 + 5.0.1   | Auto-generated API docs          |
-| **Logging**              | Pino + Pino-pretty    | 10.1.0 + 13.1.3 | Structured logging               |
-| **Code Quality**         | Prettier + ESLint v9  | 3.7.4 + 9.39.1  | Modern code formatting & linting |
-| **Development**          | Nodemon               | 3.1.11          | Hot reloading                    |
-| **Test Database**        | mongodb-memory-server | 10.4.1          | In-memory testing                |
 
 ### **Complete Package List**
 
@@ -510,7 +447,7 @@ tests/                                      # 🧪 Test suites (Unit & Integrati
 ### 🏗️ Architecture & Core
 
 - **Clean Architecture:** Strict separation of concerns (Domain, Use Case, Infra, Interface) ensuring long-term maintainability.
-- **💉 Dependency Injection:** Powerful LoC (Inversion of Control) container using `tsyringe` for modular, testable code.
+- **💉 Dependency Injection:** Powerful IoC (Inversion of Control) container using `tsyringe` for modular, testable code.
 - **🔒 Advanced Type Safety:** Built with **Strict TypeScript** configuration (ES2020 target) for robust, error-free development.
 - **📦 DTO Pattern:** Data Transfer Objects with strict validation layers to sanitize all inputs.
 

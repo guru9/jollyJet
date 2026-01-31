@@ -56,18 +56,35 @@ export const ERROR_STATUS = {
 
 /**
  * MongoDB configuration constants for connection management.
+ * Mirrors the structure pattern from REDIS_CONFIG for consistency.
  */
 export const MONGODB_CONFIG = {
+  // Connection
+  HOST: process.env.MONGODB_HOST || 'localhost',
+  PORT: parseInt(process.env.MONGODB_PORT || '27017', 10),
+  USERNAME: process.env.MONGODB_USERNAME || '',
+  PASSWORD: process.env.MONGODB_PASSWORD || '',
+  DATABASE: process.env.MONGODB_DATABASE || 'jollyjet',
+  URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/jollyjet',
   DISABLED: process.env.MONGODB_DISABLED === 'true',
-  CONNECTION_STRING: process.env.MONGODB_URI || 'mongodb://localhost:27017/jollyjet',
-  DB_NAME: process.env.MONGODB_DB_NAME || 'jollyjet',
-  MAX_POOL_SIZE: process.env.MONGODB_MAX_POOL_SIZE || 10,
-  MIN_POOL_SIZE: process.env.MONGODB_MIN_POOL_SIZE || 2,
-  CONNECTION_TIMEOUT: process.env.MONGODB_CONNECTION_TIMEOUT || 10000,
-  SOCKET_TIMEOUT: process.env.MONGODB_SOCKET_TIMEOUT || 45000,
-  SERVER_SELECTION_TIMEOUT: process.env.MONGODB_SERVER_SELECTION_TIMEOUT || 5000,
-  RETRY_ATTEMPTS: process.env.MONGODB_RETRY_ATTEMPTS || 3,
-  RETRY_DELAY: process.env.MONGODB_RETRY_DELAY || 1000,
+  AUTH_SOURCE: process.env.MONGODB_AUTH_SOURCE || 'admin',
+  AUTH_MECHANISM: process.env.MONGODB_AUTH_MECHANISM || '',
+  SSL: process.env.MONGODB_SSL === 'true',
+  REPLICA_SET: process.env.MONGODB_REPLICA_SET || '',
+  SRV: process.env.MONGODB_SRV === 'true',
+
+  // Connection Pooling
+  MAX_POOL_SIZE: parseInt(process.env.MONGODB_MAX_POOL_SIZE || '10', 10),
+  MIN_POOL_SIZE: parseInt(process.env.MONGODB_MIN_POOL_SIZE || '2', 10),
+
+  // Timeouts (ms)
+  CONNECTION_TIMEOUT: parseInt(process.env.MONGODB_CONNECTION_TIMEOUT || '10000', 10),
+  SOCKET_TIMEOUT: parseInt(process.env.MONGODB_SOCKET_TIMEOUT || '45000', 10),
+  SERVER_SELECTION_TIMEOUT: parseInt(process.env.MONGODB_SERVER_SELECTION_TIMEOUT || '5000', 10),
+
+  // Retry Settings
+  RETRY_ATTEMPTS: parseInt(process.env.MONGODB_RETRY_ATTEMPTS || '3', 10),
+  RETRY_DELAY: parseInt(process.env.MONGODB_RETRY_DELAY || '1000', 10),
 } as const;
 
 /**
@@ -99,6 +116,7 @@ export const REDIS_CONFIG = {
   PASSWORD: process.env.REDIS_PASSWORD || '',
   DB: process.env.REDIS_DB || 0,
   DISABLED: process.env.REDIS_DISABLED === 'true',
+  TLS: process.env.REDIS_TLS === 'true',
   EXPIRE_TIME: process.env.REDIS_EXPIRE_TIME || 60 * 60 * 24,
   MAX_RETRIES: process.env.REDIS_MAX_RETRIES || 5,
   RETRY_DELAY: process.env.REDIS_RETRY_DELAY || 1000,
@@ -457,4 +475,19 @@ export const REDIS_CONTROLLER_MESSAGES = {
   PATTERN_PARAMETER_REQUIRED: 'Pattern parameter is required',
   ERROR_INVALIDATING_CACHE: 'Error invalidating cache',
   ERROR_GETTING_CACHE_STATUS: 'Error getting cache status',
+} as const;
+
+/**
+ * ============================================
+ * 9) ENVIRONMENT VALIDATION CONSTANTS
+ * ============================================
+ */
+
+/**
+ * Environment variable validation error messages for consistent error reporting.
+ */
+export const ENV_VALIDATION_MESSAGES = {
+  INVALID_CONFIGURATION: 'Invalid environment configuration',
+  MONGO_URI_INVALID:
+    'MONGO_URI must be a valid MongoDB connection string (mongodb:// or mongodb+srv://)',
 } as const;

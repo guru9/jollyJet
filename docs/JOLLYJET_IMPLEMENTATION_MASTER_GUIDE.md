@@ -1,25 +1,30 @@
-# JollyJet: Redis-First Cache Architecture Implementation Guide
+# JollyJet: Cloud First Architecture Implementation Guide
 
 ---
 
-## Production-Grade E-commerce System with Redis-First Caching & Clean Architecture
+## Production-Grade E-commerce System with Cloud First Architecture
 
-**A comprehensive implementation guide focusing on Redis-first caching strategy with complete middleware, use cases, and architectural patterns.**
+**A comprehensive implementation guide focusing on Cloud First architecture with MongoDB Atlas, Upstash Redis, and Clean Architecture principles.**
 
-- **Architecture**: Clean Architecture + Redis-First Caching + MongoDB
-- **Cache Strategy**: Read-Aside Pattern with TTL Management
-- **Last Updated**: January 23, 2026
+- **Architecture**: Clean Architecture + Cloud First (MongoDB Atlas + Upstash Redis)
+- **Cache Strategy**: Redis-first Read-Aside Pattern with TTL Management
+- **Database**: MongoDB Atlas (managed NoSQL)
+- **Cache**: Upstash Redis (serverless Redis)
+- **Last Updated**: January 31, 2026
 
 ## 📁 Project Folder Structure
 
 ```
 e:/Project/jollyJet
-├── .env
-├── .env.development
-├── .env.local
-├── .env.production
+├── .env                    # Primary local configuration (Cloud First - MongoDB Atlas + Upstash Redis)
+├── .env.development        # Dev region template (MongoDB Atlas + Upstash)
+├── .env.production         # Prod region template (MongoDB Atlas + Upstash)
 ├── .gitignore
 ├── .prettierrc
+├── docker-compose.yml      # Base Docker config (uses .env for local development)
+├── docker-compose.dev.yml  # Dev region Docker config (uses .env.development)
+├── docker-compose.prod.yml # Production region Docker config (uses .env.production)
+├── Dockerfile
 ├── eslint.config.mjs
 ├── jest.config.ts
 ├── nodemon.json
@@ -92,9 +97,9 @@ e:/Project/jollyJet
 │   │   ├── environment-setup.md
 │   │   ├── improvements-guide.md
 │   │   ├── jollyjet-run-scripts.png
-│   │   ├── MONGODB_SETUP.md
+│   │   ├── MONGODB_SETUP.md      # MongoDB Atlas setup guide
 │   │   ├── products-api-500-error-fix.md
-│   │   ├── REDIS_SETUP.md
+│   │   ├── REDIS_SETUP.md        # Upstash Redis setup guide
 │   │   ├── security-checklist.md
 │   │   └── vs-code-extensions.md
 │   ├── flowchart/
@@ -189,8 +194,8 @@ e:/Project/jollyJet
 │   │           └── CorsSecurityService.ts
 │   ├── infrastructure/
 │   │   ├── database/
-│   │   │   ├── mongodb.ts
-│   │   │   └── redis.ts
+│   │   │   ├── mongodb.ts          # MongoDB Atlas connection
+│   │   │   └── redis.ts            # Upstash Redis connection
 │   │   ├── models/
 │   │   │   ├── index.ts
 │   │   │   └── product/
@@ -376,23 +381,417 @@ GET    /api/v1/products/count    # Count products
    ```
 
 3. **Environment Setup**
+   The [`.env`](.env) file is pre-configured for local development using Cloud First architecture (MongoDB Atlas + Upstash Redis).
 
    ```bash
-   cp .env.example .env
-   # Configure MongoDB and Redis connections
+   # Create local overrides if needed
+   cp .env .env.local
    ```
 
-4. **Start Development**
+4. **Start Development (Host Mode - Cloud First)**
 
    ```bash
    npm run dev
    ```
 
-5. **Run Tests**
+   This uses the [`.env`](.env) file which connects to:
+   - MongoDB Atlas: `cluster0.y2vibke.mongodb.net`
+   - Upstash Redis: `inspired-chow-22858.upstash.io`
+
+5. **Docker Support**
 
    ```bash
-   npm test
+   # Local Development (uses docker-compose.yml with .env)
+   npm run docker:up:local
+
+   # Dev Region (uses docker-compose.dev.yml with .env.development)
+   npm run docker:up:dev
+
+   # Production Region (uses docker-compose.prod.yml with .env.production)
+   npm run docker:up:prod
    ```
+
+---
+
+## ☁️ Cloud First Architecture
+
+JollyJet follows a **Cloud First Architecture** where all database services (MongoDB and Redis) are hosted on managed cloud platforms. This approach eliminates local infrastructure overhead and ensures consistency across all environments.
+
+### **Architecture Overview**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     JollyJet Application                      │
+│                  (Node.js + TypeScript)                      │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+        ┌────────────┴────────────┐
+        │                         │
+        ▼                         ▼
+┌───────────────┐         ┌───────────────┐
+│  MongoDB Atlas│         │   Upstash     │
+│  (Primary DB) │         │   (Cache)     │
+│  - cluster0   │         │   - Redis     │
+│  - SRV Conn   │         │   - TLS       │
+└───────────────┘         └───────────────┘
+```
+
+### **Benefits of Cloud First**
+
+1. **Zero Local Setup**: No need to install MongoDB or Redis locally
+2. **Environment Parity**: Same database engine across dev, staging, and production
+3. **Managed Services**: Automatic backups, scaling, and performance monitoring
+4. **Team Collaboration**: All developers work against the same data structures
+5. **Cost Efficiency**: Pay-as-you-go pricing with free tiers for development
+
+---
+
+## 🗄️ MongoDB Configuration
+
+### **MongoDB Atlas Setup**
+
+JollyJet uses MongoDB Atlas as the primary database for all environments.
+
+#### **Development Configuration** ([`.env.development`](.env.development:16-30))
+
+```env
+# MongoDB (Atlas SRV - Development)
+MONGODB_DISABLED=false
+MONGODB_DB_NAME=jollyjet
+MONGODB_USERNAME=gururaj9m_db_user
+MONGODB_PASSWORD=jolly4277
+MONGODB_HOST=cluster0.y2vibke.mongodb.net
+MONGODB_SRV=true
+MONGODB_AUTH_SOURCE=admin
+MONGODB_AUTH_MECHANISM=SCRAM-SHA-1
+MONGODB_MAX_POOL_SIZE=10
+MONGODB_MIN_POOL_SIZE=2
+MONGODB_CONNECTION_TIMEOUT=10000
+MONGODB_SOCKET_TIMEOUT=45000
+MONGODB_SERVER_SELECTION_TIMEOUT=5000
+MONGODB_RETRY_ATTEMPTS=3
+MONGODB_RETRY_DELAY=1000
+```
+
+#### **Production Configuration** ([`.env.production`](.env.production:14-28))
+
+```env
+# MongoDB (Atlas SRV - Production)
+MONGODB_DISABLED=false
+MONGODB_DB_NAME=jollyjet
+MONGODB_USERNAME=__PROD_MONGO_USER__
+MONGODB_PASSWORD=__PROD_MONGO_PASS__
+MONGODB_HOST=__PROD_MONGO_CLUSTER_HOST__
+MONGODB_SRV=true
+MONGODB_AUTH_SOURCE=admin
+MONGODB_AUTH_MECHANISM=SCRAM-SHA-1
+MONGODB_MAX_POOL_SIZE=50
+MONGODB_MIN_POOL_SIZE=10
+MONGODB_CONNECTION_TIMEOUT=10000
+MONGODB_SOCKET_TIMEOUT=45000
+MONGODB_SERVER_SELECTION_TIMEOUT=5000
+MONGODB_RETRY_ATTEMPTS=5
+MONGODB_RETRY_DELAY=1000
+```
+
+### **Connection String Format**
+
+The application constructs the MongoDB URI using modular configuration:
+
+```
+mongodb+srv://${username}:${password}@${host}/${dbName}?authSource=${authSource}&retryWrites=true&w=majority
+```
+
+### **IP Whitelisting**
+
+**Important**: Your IP address must be whitelisted in MongoDB Atlas to connect.
+
+1. Go to MongoDB Atlas Dashboard: https://cloud.mongodb.com/
+2. Navigate to **Security** → **Network Access**
+3. Click **"Add IP Address"**
+4. Enter your IP or select **"Allow Access from Anywhere"** (`0.0.0.0/0`)
+5. Wait 1-2 minutes for propagation
+
+### **Connection Implementation**
+
+The MongoDB connection is managed by [`src/infrastructure/database/mongodb.ts`](src/infrastructure/database/mongodb.ts:20-135):
+
+- **Singleton Pattern**: Ensures a single connection instance
+- **Automatic Reconnection**: Handles connection failures gracefully
+- **Connection Pooling**: Optimizes database resource usage
+- **Health Monitoring**: Provides connection status for health checks
+
+### **Health Check Status**
+
+The `/health` endpoint reports MongoDB connection status:
+
+- **connected**: Active connection to Atlas
+- **error**: Connection failed (check IP whitelisting)
+- **disabled**: Intentionally turned off in config
+
+---
+
+## 🔴 Redis Configuration
+
+### **Upstash Redis Setup**
+
+JollyJet uses Upstash (serverless Redis) for caching, session management, and rate limiting.
+
+#### **Development Configuration** ([`.env.development`](.env.development:35-46))
+
+```env
+# Redis (Upstash - Development)
+REDIS_DISABLED=false
+REDIS_HOST=inspired-chow-22858.upstash.io
+REDIS_PORT=6379
+REDIS_USERNAME=default
+REDIS_PASSWORD=AVlKAAIncDI3NzNlYTNhNmNlOGY0YjM4YTM2MDhhN2JjNmQxMzE5NHAyMjI4NTg
+REDIS_DB=0
+REDIS_TLS=true
+UPSTASH_REDIS_REST_URL="https://inspired-chow-22858.upstash.io"
+UPSTASH_REDIS_REST_TOKEN="AVlKAAIncDI3NzNlYTNhNmNlOGY0YjM4YTM2MDhhN2JjNmQxMzE5NHAyMjI4NTg"
+REDIS_EXPIRE_TIME=86400
+REDIS_MAX_RETRIES=5
+REDIS_RETRY_DELAY=1000
+```
+
+#### **Production Configuration** ([`.env.production`](.env.production:33-44))
+
+```env
+# Redis (Upstash/Cloud - Production)
+REDIS_DISABLED=false
+REDIS_HOST=__PROD_REDIS_HOST__
+REDIS_PORT=6379
+REDIS_USERNAME=__PROD_REDIS_USER__
+REDIS_PASSWORD=__PROD_REDIS_PASS__
+REDIS_DB=0
+REDIS_TLS=true
+UPSTASH_REDIS_REST_URL="__PROD_UPSTASH_URL__"
+UPSTASH_REDIS_REST_TOKEN="__PROD_UPSTASH_TOKEN__"
+REDIS_EXPIRE_TIME=86400
+REDIS_MAX_RETRIES=10
+REDIS_RETRY_DELAY=1000
+```
+
+### **Redis TTL Configuration**
+
+Time-to-live (TTL) settings for different cache types:
+
+| TTL Type               | Duration       | Use Case                 |
+| ---------------------- | -------------- | ------------------------ |
+| `REDIS_TTL_DEFAULT`    | 86400s (24h)   | Default cache duration   |
+| `REDIS_TTL_SHORT`      | 3600s (1h)     | Frequently changing data |
+| `REDIS_TTL_LONG`       | 604800s (7d)   | Stable reference data    |
+| `REDIS_TTL_NEVER`      | 0              | Permanent cache          |
+| `REDIS_TTL_SESSION`    | 86400s (24h)   | User sessions            |
+| `REDIS_TTL_TEMPORARY`  | 86400s (24h)   | Temporary data           |
+| `REDIS_TTL_PERMANENT`  | 31536000s (1y) | Long-term cache          |
+| `REDIS_TTL_RATE_LIMIT` | 86400s (24h)   | Rate limiting windows    |
+| `REDIS_TTL_PRODUCT`    | 86400s (24h)   | Product cache            |
+| `REDIS_TTL_USER`       | 86400s (24h)   | User data cache          |
+
+### **Connection Implementation**
+
+The Redis connection is managed by [`src/infrastructure/database/redis.ts`](src/infrastructure/database/redis.ts):
+
+- **Singleton Pattern**: Ensures a single Redis client instance
+- **Automatic Reconnection**: Exponential backoff retry strategy
+- **TLS Support**: Secure connections to Upstash
+- **Event Handling**: Monitors connection status
+
+### **Redis-First Caching Strategy**
+
+JollyJet implements a **Read-Aside (Lazy Loading)** caching pattern:
+
+1. **Cache Hit**: Return data from Redis (fast)
+2. **Cache Miss**: Fetch from MongoDB, then cache in Redis
+3. **Write Operations**: Update MongoDB, then invalidate Redis cache
+4. **Background Refresh**: Proactively refresh cache before expiration
+
+### **Cache Consistency**
+
+The [`CacheConsistencyService`](src/domain/services/cache/CacheConsistencyService.ts) ensures:
+
+- **Write-Through**: Updates propagate to both cache and database
+- **Cache Invalidation**: Automatic invalidation on data changes
+- **Stale Data Detection**: Background checks for outdated cache
+
+---
+
+## 🐳 Docker Compose Configuration
+
+JollyJet provides Docker Compose configurations for different deployment scenarios. All configurations connect to cloud-hosted databases (MongoDB Atlas and Upstash Redis).
+
+### **Base Configuration** ([`docker-compose.yml`](docker-compose.yml))
+
+```yaml
+# JollyJet - Cloud First Docker Configuration
+# Use this to run the application in a container.
+# It connects to cloud-hosted MongoDB (Atlas) and Redis (Upstash) as configured in your .env file.
+
+services:
+  api:
+    build: .
+    image: jollyjet-api:latest
+    container_name: jollyjet-api
+    restart: unless-stopped
+    ports:
+      - '${PORT:-3000}:3000'
+    env_file:
+      - .env
+    # No depends_on needed for cloud databases (app handles reconnection)
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+```
+
+**Key Features:**
+
+- **Cloud Database Connection**: No local database containers needed
+- **Environment Variables**: Loaded from `.env` file
+- **Restart Policy**: `unless-stopped` for resilience
+- **Log Rotation**: Automatic log management (10MB max, 3 files)
+
+### **Development Region** ([`docker-compose.dev.yml`](docker-compose.dev.yml))
+
+```yaml
+# JollyJet - Dev Region Docker Configuration
+# This file is used for deploying/running the application in the dev region.
+# It connects to cloud services (Atlas/Upstash) using .env.development.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: jollyjet-api:dev
+    container_name: jollyjet-api-dev
+    restart: unless-stopped
+    ports:
+      - '${PORT:-3000}:3000'
+    env_file:
+      - .env.development
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+```
+
+**Use Case:** Deploy to development/staging environment with dev-specific configuration.
+
+### **Production Region** ([`docker-compose.prod.yml`](docker-compose.prod.yml))
+
+```yaml
+# JollyJet - Production Region Docker Configuration
+# This file is used for production deployment.
+# It connects to cloud services using .env.production.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: jollyjet-api:latest
+    container_name: jollyjet-api-prod
+    restart: always
+    ports:
+      - '${PORT:-3000}:3000'
+    env_file:
+      - .env.production
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+```
+
+**Use Case:** Production deployment with production-specific configuration and `restart: always` policy.
+
+### **Docker Commands**
+
+```bash
+# Build and run with base configuration (local development)
+docker compose -f docker-compose.yml up -d
+
+# Build and run for dev region
+docker compose -f docker-compose.dev.yml up -d
+
+# Build and run for production
+docker compose -f docker-compose.prod.yml up -d
+
+# Stop containers
+docker compose -f docker-compose.yml down
+
+# View logs
+docker compose -f docker-compose.yml logs -f
+
+# Rebuild after code changes
+docker compose -f docker-compose.yml up -d --build
+```
+
+### **NPM Scripts for Docker**
+
+The project includes convenient NPM scripts:
+
+```bash
+# Local Development (Cloud First - uses docker-compose.yml with .env)
+npm run docker:up:local      # Start local container with .env
+npm run docker:down:local    # Stop local container
+npm run docker:build:local   # Build local container
+npm run docker:logs:local    # View local container logs
+
+# Dev Region (uses docker-compose.dev.yml with .env.development)
+npm run docker:up:dev      # Start dev region containers
+npm run docker:down:dev    # Stop dev region containers
+npm run docker:build:dev    # Build dev region container
+npm run docker:logs:dev     # View dev region logs
+
+# Production Region (uses docker-compose.prod.yml with .env.production)
+npm run docker:up:prod     # Start production containers
+npm run docker:down:prod   # Stop production containers
+npm run docker:build:prod   # Build production container
+npm run docker:logs:prod    # View production logs
+
+# Base Configuration (same as local - uses docker-compose.yml with .env)
+npm run docker:up          # Start with base config
+npm run docker:down        # Stop base config containers
+npm run docker:build        # Build base config container
+npm run docker:logs         # View base config logs
+```
+
+### **Why No Local Database Containers?**
+
+Following the **Cloud First Architecture**, Docker Compose does not include MongoDB or Redis containers because:
+
+1. **Consistency**: Same database across all environments
+2. **Simplicity**: No need to manage database state in containers
+3. **Performance**: Cloud databases are optimized and managed
+4. **Scalability**: Cloud databases can scale independently
+5. **Cost**: Free tiers available for development
+
+The application handles database reconnection automatically, so there's no need for `depends_on` directives.
+
+---
+
+## 🎮 Updated Developer Experience
+
+Since we now use cloud services globally, your daily routine is now faster:
+
+- **Local Dev (Cloud First)**: Just run `npm run dev` (uses [`.env`](.env) with MongoDB Atlas + Upstash Redis).
+- **Docker (Local)**: `npm run docker:up:local` (uses [`docker-compose.yml`](docker-compose.yml) with [`.env`](.env) for containerized local development).
+- **Docker (Dev Region)**: `npm run docker:up:dev` (uses [`docker-compose.dev.yml`](docker-compose.dev.yml) with [`.env.development`](.env.development) for dev region deployment).
+- **Docker (Prod Region)**: `npm run docker:up:prod` (uses [`docker-compose.prod.yml`](docker-compose.prod.yml) with [`.env.production`](.env.production) for production deployment).
+
+### **Why this matters?**
+
+- **Zero DB Setup**: No more downloading MongoDB or Redis images locally.
+- **Host Mode Supremacy**: Run the app with `npm run dev` and get instant HMR (Hot Module Replacement).
+- **Team Parity**: Every developer works against the same orchestrated data structures.
+- **Instant Scaling**: Transition from local dev to a containerized regional deployment with a single command.
+- **Cloud First Architecture**: All environments use the same cloud-hosted databases (MongoDB Atlas + Upstash Redis).
 
 ---
 
@@ -400,10 +799,13 @@ GET    /api/v1/products/count    # Count products
 
 - **Lines of Code**: Comprehensive implementation
 - **Test Coverage**: 97.59% (370 tests passing)
-- **Architecture**: Clean Architecture (4 layers)
-- **Performance**: Redis-first caching
+- **Architecture**: Clean Architecture (4 layers) + Cloud First
+- **Database**: MongoDB Atlas (managed NoSQL)
+- **Cache**: Upstash Redis (serverless Redis)
+- **Performance**: Redis-first caching with TTL management
 - **Security**: Multi-layer implementation
 - **Documentation**: Complete with code examples
+- **Deployment**: Docker Compose with regional support
 
 ---
 
@@ -411,12 +813,14 @@ GET    /api/v1/products/count    # Count products
 
 ✅ **Production-Ready E-commerce API**  
 ✅ **Clean Architecture Implementation**  
+✅ **Cloud First Architecture (MongoDB Atlas + Upstash Redis)**  
 ✅ **Comprehensive Testing Suite**  
-✅ **Advanced Caching Strategy**  
+✅ **Advanced Caching Strategy (Redis-first with TTL)**  
 ✅ **Security Best Practices**  
 ✅ **Complete Documentation**  
 ✅ **Performance Optimization**  
-✅ **Scalable Module Structure**
+✅ **Scalable Module Structure**  
+✅ **Docker Compose with Regional Support**
 
 ---
 
@@ -477,7 +881,8 @@ GET    /api/v1/products/count    # Count products
 - [Redis Implementation Plan](implementation-plans/09-redis-implementation-plan.md)
 - [CORS Policy Security Plan](implementation-plans/11-cors-policy-security-plan.md)
 - [Redis First Cache Plan](implementation-plans/12-redis-first-cache.md)
-- [PubSub Implementation Plan](implementation-plans/13-pubsub-implementation-plan.md)
+- [Cloud First Architecture Plan](implementation-plans/13-cloud-first-architecture.md)
+- [PubSub Implementation Plan](implementation-plans/14-pubsub-implementation-plan.md)
 
 #### Tests
 
@@ -731,7 +1136,8 @@ This guide provides the complete implementation information for the JollyJet pro
     export const envSchema = z.object({
       NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
       PORT: z.string().default('3000'),
-      MONGO_URI: z.string().url(),
+      MONGODB_URI: z.string().url().optional(),
+      MONGODB_HOST: z.string().optional(),
       REDIS_HOST: z.string().default('localhost'),
       REDIS_PORT: z.string().default('6379'),
       JWT_SECRET: z.string().min(32),
@@ -752,18 +1158,19 @@ This guide provides the complete implementation information for the JollyJet pro
 
 ---
 
-### **Phase 2: Database Infrastructure**
+### **Phase 2: Database Infrastructure (Cloud First)**
 
-**Description**: Establish the data persistence layer that will store and retrieve application data. This phase configures both MongoDB for primary data storage and Redis for caching and session management. Proper database setup ensures data integrity, performance, and scalability while providing the foundation for all data operations in the application.
+**Description**: Establish the data persistence layer using cloud-hosted managed services. This phase configures MongoDB Atlas for primary data storage and Upstash Redis for caching and session management. Following the Cloud First architecture, all database services are hosted on managed platforms, eliminating local infrastructure overhead and ensuring consistency across all environments.
 
-- ✅ **Step 2.1**: MongoDB Setup
+- ✅ **Step 2.1**: MongoDB Atlas Setup (Cloud First)
   - **Step Number**: 2.1
   - **Dependency Number**: 4
-  - **Files**: `src/infrastructure/database/mongodb.ts`
-  - **Purpose**: Configure MongoDB as the primary database for storing application data
-  - **Features**: Connection management, retry logic, health monitoring, graceful shutdown
+  - **Files**: `src/infrastructure/database/mongodb.ts`, `.env.development`, `.env.production`
+  - **Purpose**: Configure MongoDB Atlas as the primary cloud-hosted database for storing application data
+  - **Features**: Connection management, retry logic, health monitoring, graceful shutdown, SRV connection support
   - **Dependencies**: Step 1.3 (requires configuration setup for database environment variables)
-  - **Benefits**: Reliable database operations, automatic reconnection, connection pooling
+  - **Benefits**: Reliable database operations, automatic reconnection, connection pooling, managed service benefits
+  - **Cloud Provider**: MongoDB Atlas (https://www.mongodb.com/cloud/atlas)
   - **Code Example**:
 
     ```typescript
@@ -818,28 +1225,85 @@ This guide provides the complete implementation information for the JollyJet pro
     export default MongoDBConnection.getInstance();
     ```
 
+  - **Environment Configuration**:
+
+    **Development** ([`.env.development`](.env.development:16-30)):
+
+    ```env
+    MONGODB_DISABLED=false
+    MONGODB_DB_NAME=jollyjet
+    MONGODB_USERNAME=gururaj9m_db_user
+    MONGODB_PASSWORD=jolly4277
+    MONGODB_HOST=cluster0.y2vibke.mongodb.net
+    MONGODB_SRV=true
+    MONGODB_AUTH_SOURCE=admin
+    MONGODB_AUTH_MECHANISM=SCRAM-SHA-1
+    MONGODB_MAX_POOL_SIZE=10
+    MONGODB_MIN_POOL_SIZE=2
+    MONGODB_CONNECTION_TIMEOUT=10000
+    MONGODB_SOCKET_TIMEOUT=45000
+    MONGODB_SERVER_SELECTION_TIMEOUT=5000
+    MONGODB_RETRY_ATTEMPTS=3
+    MONGODB_RETRY_DELAY=1000
+    ```
+
+    **Production** ([`.env.production`](.env.production:14-28)):
+
+    ```env
+    MONGODB_DISABLED=false
+    MONGODB_DB_NAME=jollyjet
+    MONGODB_USERNAME=__PROD_MONGO_USER__
+    MONGODB_PASSWORD=__PROD_MONGO_PASS__
+    MONGODB_HOST=__PROD_MONGO_CLUSTER_HOST__
+    MONGODB_SRV=true
+    MONGODB_AUTH_SOURCE=admin
+    MONGODB_AUTH_MECHANISM=SCRAM-SHA-1
+    MONGODB_MAX_POOL_SIZE=50
+    MONGODB_MIN_POOL_SIZE=10
+    MONGODB_CONNECTION_TIMEOUT=10000
+    MONGODB_SOCKET_TIMEOUT=45000
+    MONGODB_SERVER_SELECTION_TIMEOUT=5000
+    MONGODB_RETRY_ATTEMPTS=5
+    MONGODB_RETRY_DELAY=1000
+    ```
+
+  - **Connection String Format**:
+
+    ```
+    mongodb+srv://${username}:${password}@${host}/${dbName}?authSource=${authSource}&retryWrites=true&w=majority
+    ```
+
+  - **IP Whitelisting**:
+    - Go to MongoDB Atlas Dashboard: https://cloud.mongodb.com/
+    - Navigate to **Security** → **Network Access**
+    - Click **"Add IP Address"**
+    - Enter your IP or select **"Allow Access from Anywhere"** (`0.0.0.0/0`)
+    - Wait 1-2 minutes for propagation
+
   - **Detailed Explanation**:
     - **Singleton Pattern**: The `MongoDBConnection` class implements the Singleton pattern to ensure that only one instance of the MongoDB connection is created and reused throughout the application. This prevents connection leaks and ensures efficient use of database resources.
-    - **Connection Management**: The `connect` method establishes a connection to MongoDB using the URI and configuration options defined in `MONGODB_CONFIG`. It handles connection errors gracefully and logs appropriate messages for debugging and monitoring.
+    - **Connection Management**: The `connect` method establishes a connection to MongoDB Atlas using the SRV connection string constructed from environment variables. It handles connection errors gracefully and logs appropriate messages for debugging and monitoring.
     - **Graceful Shutdown**: The `disconnect` method closes the MongoDB connection gracefully, ensuring that all pending operations are completed and resources are released properly.
     - **Health Monitoring**: The `isConnected` method provides a way to check the current connection status, which is useful for health checks and error handling.
 
   - **Configuration Details**:
-    - **maxPoolSize**: Specifies the maximum number of connections in the connection pool. This helps manage database load and prevents resource exhaustion.
+    - **maxPoolSize**: Specifies the maximum number of connections in the connection pool. Development uses 10, production uses 50 for higher throughput.
     - **serverSelectionTimeoutMS**: Sets the timeout for server selection during connection. This ensures that the application does not hang indefinitely if the database is unreachable.
     - **socketTimeoutMS**: Sets the timeout for individual socket operations. This prevents indefinite waits for database operations and ensures timely error handling.
     - **retryWrites and retryReads**: Enable automatic retries for write and read operations, improving the resilience of the application in the face of transient database errors.
+    - **MONGODB_SRV**: Enables SRV connection format for MongoDB Atlas, which automatically handles DNS resolution and connection string construction.
 
 ---
 
-- ✅ **Step 2.2**: Redis Setup
+- ✅ **Step 2.2**: Upstash Redis Setup (Cloud First)
   - **Step Number**: 2.2
   - **Dependency Number**: 5
-  - **Files**: `src/infrastructure/database/redis.ts`
-  - **Purpose**: Configure Redis for caching, session management, and performance optimization
-  - **Features**: Connection management, health monitoring, error handling, automatic reconnection
+  - **Files**: `src/infrastructure/database/redis.ts`, `.env.development`, `.env.production`
+  - **Purpose**: Configure Upstash Redis for caching, session management, and performance optimization
+  - **Features**: Connection management, health monitoring, error handling, automatic reconnection, TLS support
   - **Dependencies**: Step 1.3 (requires configuration setup for Redis environment variables)
-  - **Benefits**: High-performance caching, session storage, rate limiting foundation
+  - **Benefits**: High-performance caching, session storage, rate limiting foundation, serverless Redis
+  - **Cloud Provider**: Upstash (https://upstash.com)
   - **Code Example**:
 
     ```typescript
@@ -906,19 +1370,72 @@ This guide provides the complete implementation information for the JollyJet pro
     export default RedisConnection.getInstance();
     ```
 
+  - **Environment Configuration**:
+
+    **Development** ([`.env.development`](.env.development:35-46)):
+
+    ```env
+    REDIS_DISABLED=false
+    REDIS_HOST=inspired-chow-22858.upstash.io
+    REDIS_PORT=6379
+    REDIS_USERNAME=default
+    REDIS_PASSWORD=AVlKAAIncDI3NzNlYTNhNmNlOGY0YjM4YTM2MDhhN2JjNmQxMzE5NHAyMjI4NTg
+    REDIS_DB=0
+    REDIS_TLS=true
+    UPSTASH_REDIS_REST_URL="https://inspired-chow-22858.upstash.io"
+    UPSTASH_REDIS_REST_TOKEN="AVlKAAIncDI3NzNlYTNhNmNlOGY0YjM4YTM2MDhhN2JjNmQxMzE5NHAyMjI4NTg"
+    REDIS_EXPIRE_TIME=86400
+    REDIS_MAX_RETRIES=5
+    REDIS_RETRY_DELAY=1000
+    ```
+
+    **Production** ([`.env.production`](.env.production:33-44)):
+
+    ```env
+    REDIS_DISABLED=false
+    REDIS_HOST=__PROD_REDIS_HOST__
+    REDIS_PORT=6379
+    REDIS_USERNAME=__PROD_REDIS_USER__
+    REDIS_PASSWORD=__PROD_REDIS_PASS__
+    REDIS_DB=0
+    REDIS_TLS=true
+    UPSTASH_REDIS_REST_URL="__PROD_UPSTASH_URL__"
+    UPSTASH_REDIS_REST_TOKEN="__PROD_UPSTASH_TOKEN__"
+    REDIS_EXPIRE_TIME=86400
+    REDIS_MAX_RETRIES=10
+    REDIS_RETRY_DELAY=1000
+    ```
+
+  - **Redis TTL Configuration**:
+
+    | TTL Type               | Duration       | Use Case                 |
+    | ---------------------- | -------------- | ------------------------ |
+    | `REDIS_TTL_DEFAULT`    | 86400s (24h)   | Default cache duration   |
+    | `REDIS_TTL_SHORT`      | 3600s (1h)     | Frequently changing data |
+    | `REDIS_TTL_LONG`       | 604800s (7d)   | Stable reference data    |
+    | `REDIS_TTL_NEVER`      | 0              | Permanent cache          |
+    | `REDIS_TTL_SESSION`    | 86400s (24h)   | User sessions            |
+    | `REDIS_TTL_TEMPORARY`  | 86400s (24h)   | Temporary data           |
+    | `REDIS_TTL_PERMANENT`  | 31536000s (1y) | Long-term cache          |
+    | `REDIS_TTL_RATE_LIMIT` | 86400s (24h)   | Rate limiting windows    |
+    | `REDIS_TTL_PRODUCT`    | 86400s (24h)   | Product cache            |
+    | `REDIS_TTL_USER`       | 86400s (24h)   | User data cache          |
+
   - **Detailed Explanation**:
     - **Singleton Pattern**: The `RedisConnection` class implements the Singleton pattern to ensure that only one instance of the Redis client is created and reused throughout the application. This prevents connection leaks and ensures efficient use of Redis resources.
-    - **Connection Management**: The `connect` method establishes a connection to Redis using the configuration options defined in `REDIS_CONFIG`. It handles connection errors gracefully and logs appropriate messages for debugging and monitoring.
+    - **Connection Management**: The `connect` method establishes a connection to Upstash Redis using the configuration options defined in `REDIS_CONFIG`. It handles connection errors gracefully and logs appropriate messages for debugging and monitoring.
     - **Event Handling**: The `setupEventHandlers` method sets up event listeners for Redis connection events, such as `connect` and `error`, to monitor the connection status and log relevant information.
     - **Automatic Reconnection**: The `retryStrategy` option configures automatic reconnection with exponential backoff, ensuring that the application can recover from transient Redis connection issues.
 
   - **Configuration Details**:
-    - **host**: The Redis server hostname, loaded from environment variables for flexibility across different deployment environments.
+    - **host**: The Upstash Redis server hostname, loaded from environment variables for flexibility across different deployment environments.
     - **port**: The Redis server port number, typically `6379` for standard Redis deployments.
     - **password**: Authentication password for the Redis server, ensuring secure access to Redis resources.
     - **db**: The Redis database number, allowing the application to use a specific database within a Redis instance.
     - **retryStrategy**: Implements exponential backoff for automatic reconnection, with a maximum retry delay of 2000 milliseconds.
     - **maxRetriesPerRequest**: Limits the number of retry attempts per request to prevent infinite loops during Redis outages.
+    - **UPSTASH_REDIS_REST_URL**: REST API endpoint for Upstash Redis, providing an alternative connection method.
+    - **UPSTASH_REDIS_REST_TOKEN**: Authentication token for the Upstash REST API.
 
 ---
 

@@ -1,6 +1,7 @@
-import { CACHE_LOG_MESSAGES, REDIS_CONFIG } from '@/shared/constants';
+import config from '@/config';
+import { CACHE_LOG_MESSAGES } from '@/shared/constants';
 import { logger } from '@/shared/logger';
-import Redis from 'ioredis';
+import Redis, { RedisOptions } from 'ioredis';
 
 class RedisConnection {
   private static instance: RedisConnection;
@@ -8,22 +9,37 @@ class RedisConnection {
   private isConnected: boolean = false;
 
   private constructor() {
-    this.client = new Redis({
-      host: REDIS_CONFIG.HOST as string,
-      port: REDIS_CONFIG.PORT as number,
-      password: REDIS_CONFIG.PASSWORD as string,
-      db: REDIS_CONFIG.DB as number,
+    const protocol = config.redisConfig.tls ? 'rediss' : 'redis';
+    const auth = config.redisConfig.password ? `:${config.redisConfig.password}@` : '';
+    const uri = `${protocol}://${auth}${config.redisConfig.host}:${config.redisConfig.port}/${config.redisConfig.db}`;
+
+    if (config.env === 'development') {
+      logger.info(
+        `Constructed Redis URI for host: ${config.redisConfig.host} (TLS: ${config.redisConfig.tls})`
+      );
+    }
+
+    // Default options
+    const options: RedisOptions = {
       lazyConnect: true,
-      retryStrategy: (times) => {
-        // Limit retry attempts to 3 in development to reduce log noise
-        if (process.env.NODE_ENV === 'development' && times >= 3) {
+      retryStrategy: (times: number) => {
+        // Limit retry attempts in development
+        if (config.env === 'development' && times >= 5) {
           logger.warn(CACHE_LOG_MESSAGES.CONNECTION_RETRY_LIMIT);
-          return undefined; // Stop retrying
+          return undefined;
         }
-        const delay = Math.min(times * 50, 2000);
-        return delay;
+        return Math.min(times * 100, 3000);
       },
-    });
+    };
+
+    // If we have a URI, use it. If not (and no host), it will likely fail defaults.
+    if (uri) {
+      this.client = new Redis(uri, options);
+    } else {
+      // Fallback to internal defaults (localhost) if everything is missing
+      this.client = new Redis(options);
+    }
+
     this.setupEventHandlers();
   }
 
@@ -56,7 +72,7 @@ class RedisConnection {
   // Connect to Redis
   public async connect(): Promise<void> {
     // Guard clause: If Redis is disabled, don't attempt connection
-    if (REDIS_CONFIG.DISABLED) {
+    if (config.redisConfig.disabled) {
       logger.warn(CACHE_LOG_MESSAGES.CONNECTION_DISABLED);
       return;
     }
@@ -78,7 +94,7 @@ class RedisConnection {
   // Disconnect from Redis
   public async disconnect(): Promise<void> {
     // Guard clause: If Redis is disabled, nothing to disconnect
-    if (REDIS_CONFIG.DISABLED) {
+    if (config.redisConfig.disabled) {
       logger.warn(CACHE_LOG_MESSAGES.DISCONNECT_DISABLED);
       return;
     }
