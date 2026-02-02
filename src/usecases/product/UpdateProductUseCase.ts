@@ -1,5 +1,7 @@
 import { Product } from '@/domain/entities';
+import { generateEventId, ProductUpdatedEvent } from '@/domain/events';
 import { IProductRepository } from '@/domain/interfaces';
+import { IPublisherService } from '@/domain/interfaces/redis/IPublisherService';
 import { ProductService } from '@/domain/services';
 import { CacheService } from '@/domain/services/cache/CacheService';
 import { UpdateProductDTO } from '@/interface/dtos';
@@ -9,6 +11,8 @@ import {
   Logger,
   NotFoundError,
   PRODUCT_ERROR_MESSAGES,
+  PUBSUB_CHANNELS,
+  PUBSUB_EVENT_TYPES,
 } from '@/shared';
 import { validateProductId } from '@/shared/utils';
 
@@ -16,10 +20,10 @@ import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
 
 /**
- * Usecase for updating existing products with cache invalidation
- * Depends on: DI_TOKENS.PRODUCT_REPOSITORY, CacheService
+ * Usecase for updating existing products with cache invalidation and event publishing
+ * Depends on: DI_TOKENS.PRODUCT_REPOSITORY, CacheService, PublisherService
  *             UpdateProductDTO
- * Implements: Business logic orchestration between layers with cache management
+ * Implements: Business logic orchestration between layers with cache management and event-driven notifications
  */
 @injectable()
 export class UpdateProductUseCase {
@@ -29,7 +33,8 @@ export class UpdateProductUseCase {
     // 💡 This enables loose coupling and easy testing
     private productService: ProductService,
     @inject(DI_TOKENS.LOGGER) private logger: Logger,
-    @inject(DI_TOKENS.CACHE_SERVICE) private cacheService: CacheService
+    @inject(DI_TOKENS.CACHE_SERVICE) private cacheService: CacheService,
+    @inject(DI_TOKENS.PUBLISHER_SERVICE) private publisherService: IPublisherService
   ) {}
 
   /**
@@ -75,6 +80,9 @@ export class UpdateProductUseCase {
 
       // Invalidate product-related cache entries
       await this.invalidateProductCache(productId);
+
+      // Publish product updated event
+      await this.publishProductUpdatedEvent(productId, productData);
 
       return updatedProduct;
     } catch (error) {
@@ -159,6 +167,34 @@ export class UpdateProductUseCase {
       this.logger.info({ productId }, 'Product cache invalidated after update');
     } catch (error) {
       this.logger.warn({ error, productId }, 'Failed to invalidate product cache after update');
+    }
+  }
+
+  /**
+   * Publishes a ProductUpdatedEvent to notify subscribers of the product update.
+   * @param productId - The ID of the updated product
+   * @param changes - The changes made to the product
+   */
+  private async publishProductUpdatedEvent(
+    productId: string,
+    changes: UpdateProductDTO
+  ): Promise<void> {
+    try {
+      const event: ProductUpdatedEvent = {
+        eventId: generateEventId(),
+        eventType: PUBSUB_EVENT_TYPES.PRODUCT_UPDATED,
+        timestamp: new Date(),
+        payload: {
+          productId,
+          changes: { ...changes },
+        },
+      };
+
+      await this.publisherService.publish(PUBSUB_CHANNELS.PRODUCT, event);
+      this.logger.info({ productId }, 'Product updated event published successfully');
+    } catch (error) {
+      // Log error but don't throw - event publishing is non-blocking
+      this.logger.error({ error, productId }, 'Failed to publish product updated event');
     }
   }
 }
