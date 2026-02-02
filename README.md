@@ -2,13 +2,13 @@
 
 A high-performance Node.js starter for JollyJet E-commerce API with **Cloud First Architecture**. Includes Docker Compose stacks for local, dev, and prod and helpful scripts to boot the project quickly.
 
-![Project Status](https://img.shields.io/badge/status-production-ready-green)
 ![Test Coverage](https://img.shields.io/badge/coverage-97.59%25-brightgreen)
 ![Architecture](https://img.shields.io/badge/architecture-clean-blueviolet)
 ![Language](https://img.shields.io/badge/typescript-v5.0+-blue)
 ![Caching](https://img.shields.io/badge/caching-redis%20first-orange)
 ![Cloud First](https://img.shields.io/badge/cloud%20first-mongodb%20atlas%20%2B%20upstash%20redis-blue)
 ![Tests](https://img.shields.io/badge/tests-370%20passed-blue)
+![Pub/Sub](https://img.shields.io/badge/pub%2Fsub-redis%20events-orange)
 
 ## 🚀 Features
 
@@ -23,6 +23,7 @@ A high-performance Node.js starter for JollyJet E-commerce API with **Cloud Firs
 - **Rate Limiting**: Configurable rate limiting with Redis backend
 - **Session Management**: Secure session handling with Redis storage
 - **CORS Security**: Advanced CORS protection with geographic blocking capabilities
+- **Event-Driven Architecture**: Redis Pub/Sub for asynchronous event processing
 
 ---
 
@@ -145,9 +146,11 @@ The project follows a modular structure based on **Clean Architecture** principl
 
 ```text
 src/
-├── domain/         # Core business logic (Entities, Interfaces, Services)
+├── domain/         # Core business logic (Entities, Interfaces, Services, Events)
+│   └── events/     # Event definitions for Pub/Sub (ProductCreated, ProductUpdated, etc.)
 ├── usecases/       # Application logic (Orchestrators)
-├── infrastructure/ # External services (Database, Cache, External APIs)
+├── infrastructure/ # External services (Database, Cache, Pub/Sub, External APIs)
+│   └── pubsub/     # Pub/Sub bootstrap and event routing
 ├── interface/      # Input adapters (Controllers, Routes, DTOs)
 └── shared/         # Common utilities, constants, and logging
 ```

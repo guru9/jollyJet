@@ -277,15 +277,75 @@ export const SERVER_LOG_MESSAGES = {
 /**
  * Dependency Injection container tokens for loose coupling between application layers.
  * These string tokens are used to register and resolve dependencies in the DI container.
+ *
+ * Token Categories:
+ * - Repositories: Data access layer tokens
+ * - Services: Business logic and infrastructure services
+ * - Pub/Sub: Event-driven messaging services and handlers
+ * - Controllers: HTTP request handlers
+ *
+ * Usage:
+ * ```typescript
+ * // Register a service
+ * container.registerSingleton(DI_TOKENS.PUBLISHER_SERVICE, PublisherService);
+ *
+ * // Resolve a service
+ * const publisher = container.resolve<IPublisherService>(DI_TOKENS.PUBLISHER_SERVICE);
+ * ```
+ *
+ * @see di-container.ts
  */
 export const DI_TOKENS = {
+  // Repositories
   PRODUCT_REPOSITORY: 'ProductRepository',
+
+  // Core Services
   LOGGER: 'Logger',
   REDIS_SERVICE: 'RedisService',
   CACHE_SERVICE: 'CacheService',
   SESSION_SERVICE: 'SessionService',
   RATE_LIMIT_SERVICE: 'RateLimitingService',
   CORS_SECURITY_SERVICE: 'CorsSecurityService',
+
+  // Pub/Sub Services
+  /**
+   * Token for IPublisherService implementation.
+   * Used to publish events to Redis Pub/Sub channels.
+   */
+  PUBLISHER_SERVICE: 'PublisherService',
+
+  /**
+   * Token for ISubscriberService implementation.
+   * Used to subscribe to Redis Pub/Sub channels.
+   */
+  SUBSCRIBER_SERVICE: 'SubscriberService',
+
+  // Pub/Sub Event Handlers
+  /**
+   * Token for ProductCreatedHandler.
+   * Handles PRODUCT_CREATED events.
+   */
+  PRODUCT_CREATED_HANDLER: 'ProductCreatedHandler',
+
+  /**
+   * Token for ProductUpdatedHandler.
+   * Handles PRODUCT_UPDATED events.
+   */
+  PRODUCT_UPDATED_HANDLER: 'ProductUpdatedHandler',
+
+  /**
+   * Token for ProductDeletedHandler.
+   * Handles PRODUCT_DELETED events.
+   */
+  PRODUCT_DELETED_HANDLER: 'ProductDeletedHandler',
+
+  /**
+   * Token for AuditEventHandler.
+   * Handles USER_ACTIVITY events for audit logging.
+   */
+  AUDIT_EVENT_HANDLER: 'AuditEventHandler',
+
+  // Controllers
   HEALTH_CONTROLLER: 'HealthController',
 } as const;
 
@@ -490,4 +550,294 @@ export const ENV_VALIDATION_MESSAGES = {
   INVALID_CONFIGURATION: 'Invalid environment configuration',
   MONGO_URI_INVALID:
     'MONGO_URI must be a valid MongoDB connection string (mongodb:// or mongodb+srv://)',
+} as const;
+
+/**
+ * ============================================
+ * 10) PUB/SUB CONFIGURATION
+ * ============================================
+ */
+
+/**
+ * Log messages for Pub/Sub operations to ensure consistent logging across the application.
+ *
+ * These messages provide standardized logging for all Pub/Sub operations including
+ * publishing, subscribing, message handling, and error scenarios. They are used by
+ * PublisherService, SubscriberService, and EventHandlers.
+ *
+ * Message Categories:
+ * - PUBLISH_*: Messages related to publishing events
+ * - SUBSCRIBE_*: Messages related to subscription management
+ * - MESSAGE_*: Messages related to message processing
+ * - SUBSCRIBER_CLIENT_*: Messages related to client lifecycle
+ * - EVENT_HANDLING_*: Messages related to event processing
+ * - DLQ_*: Messages related to Dead Letter Queue operations
+ *
+ * Usage:
+ * ```typescript
+ * // Success logging
+ * logger.info(PUBSUB_MESSAGES.PUBLISH_SUCCESS(channel));
+ *
+ * // Error logging with context
+ * logger.error(error, PUBSUB_MESSAGES.PUBLISH_FAILED(channel));
+ *
+ * // With additional metadata
+ * logger.info({ messageSize: 1024 }, PUBSUB_MESSAGES.PUBLISH_SUCCESS(channel));
+ * ```
+ *
+ * @see PublisherService
+ * @see SubscriberService
+ * @see BaseEventHandler
+ */
+export const PUBSUB_MESSAGES = {
+  /**
+   * Message logged when a message is successfully published to a channel.
+   * Includes the channel name for traceability.
+   */
+  PUBLISH_SUCCESS: (channel: string) => `Published message to channel ${channel}`,
+
+  /**
+   * Message logged when publishing a message fails.
+   * Logged before the error is re-thrown to calling code.
+   */
+  PUBLISH_FAILED: (channel: string) => `Failed to publish message to channel ${channel}`,
+
+  /**
+   * Message logged when successfully subscribed to a channel.
+   * Indicates the subscriber is now receiving messages from this channel.
+   */
+  SUBSCRIBE_SUCCESS: (channel: string) => `Subscribed to channel ${channel}`,
+
+  /**
+   * Message logged when subscribing to a channel fails.
+   * Usually indicates connection issues or invalid channel names.
+   */
+  SUBSCRIBE_FAILED: (channel: string) => `Failed to subscribe to channel ${channel}`,
+
+  /**
+   * Message logged when successfully unsubscribed from a channel.
+   * The subscriber will no longer receive messages from this channel.
+   */
+  UNSUBSCRIBE_SUCCESS: (channel: string) => `Unsubscribed from channel ${channel}`,
+
+  /**
+   * Message logged when unsubscribing from a channel fails.
+   * May occur during connection issues or if already unsubscribed.
+   */
+  UNSUBSCRIBE_FAILED: (channel: string) => `Failed to unsubscribe from channel ${channel}`,
+
+  /**
+   * Message logged when a message is received from a channel.
+   * Triggered before message parsing and event handling.
+   */
+  MESSAGE_RECEIVED: (channel: string) => `Message received from channel ${channel}`,
+
+  /**
+   * Message logged when parsing a received message fails.
+   * Indicates malformed JSON or unexpected message format.
+   */
+  MESSAGE_PARSE_FAILED: (channel: string) => `Failed to parse message from channel ${channel}`,
+
+  /**
+   * Message logged when subscriber client encounters an error.
+   * Used for connection errors, Redis errors, etc.
+   */
+  SUBSCRIBER_CLIENT_ERROR: 'Subscriber client error',
+
+  /**
+   * Message logged when subscriber client successfully connects.
+   * Indicates the Redis connection is ready for subscriptions.
+   */
+  SUBSCRIBER_CLIENT_CONNECTED: 'Subscriber client connected',
+
+  /**
+   * Message logged when subscriber client disconnects.
+   * May indicate network issues or graceful shutdown.
+   */
+  SUBSCRIBER_CLIENT_DISCONNECTED: 'Subscriber client disconnected',
+
+  /**
+   * Message logged when event handling fails during retry attempts.
+   * Includes current attempt number and maximum retry count.
+   */
+  EVENT_HANDLING_FAILED: (attempt: number, maxRetries: number) =>
+    `Event handling failed, attempt ${attempt}/${maxRetries}`,
+
+  /**
+   * Message logged when event handling fails after exhausting all retry attempts.
+   * The event will be moved to the Dead Letter Queue.
+   */
+  EVENT_HANDLING_FAILED_ALL_RETRIES: 'Event handling failed after all retries',
+
+  /**
+   * Message logged when an event is moved to the Dead Letter Queue (DLQ).
+   * Includes event ID and type for debugging purposes.
+   */
+  DLQ_PUSHED: (eventId: string, eventType: string) =>
+    `Event moved to DLQ: ${eventId} (${eventType})`,
+} as const;
+
+/**
+ * Pub/Sub channel names for consistent channel naming across the application.
+ *
+ * Channel Naming Convention:
+ * All channel names follow the pattern: jollyjet:events:{domain}
+ * This ensures clear organization and avoids naming collisions.
+ *
+ * Available Channels:
+ * - PRODUCT: Product lifecycle events (create, update, delete)
+ * - AUDIT: User activity and audit trail events
+ * - NOTIFICATIONS: System notification events
+ * - DLQ: Dead Letter Queue for failed event processing
+ * - HEALTH_CHECK: System health monitoring events
+ *
+ * Environment Prefixing:
+ * Use getEnvironmentChannel() to prefix channels with the current environment
+ * (dev, staging, prod) for multi-environment deployments.
+ *
+ * Usage:
+ * ```typescript
+ * // Publishing to a channel
+ * await publisherService.publish(PUBSUB_CHANNELS.PRODUCT, event);
+ *
+ * // Subscribing to a channel
+ * subscriberService.subscribe(PUBSUB_CHANNELS.AUDIT, handler);
+ *
+ * // Environment-specific channel
+ * const envChannel = PUBSUB_CHANNELS.getEnvironmentChannel(PUBSUB_CHANNELS.PRODUCT);
+ * // Returns: "dev:jollyjet:events:product" (in development)
+ * ```
+ *
+ * @see PublisherService
+ * @see SubscriberService
+ */
+export const PUBSUB_CHANNELS = {
+  /**
+   * Channel for product-related events.
+   * Events: PRODUCT_CREATED, PRODUCT_UPDATED, PRODUCT_DELETED
+   */
+  PRODUCT: 'jollyjet:events:product',
+
+  /**
+   * Channel for audit and user activity events.
+   * Events: USER_ACTIVITY, security events, compliance events
+   */
+  AUDIT: 'jollyjet:events:audit',
+
+  /**
+   * Channel for notification events.
+   * Events: Email notifications, push notifications, alerts
+   */
+  NOTIFICATIONS: 'jollyjet:events:notifications',
+
+  /**
+   * Dead Letter Queue channel for failed events.
+   * Events that fail processing after all retries are moved here.
+   */
+  DLQ: 'jollyjet:events:dlq',
+
+  /**
+   * Health check channel for monitoring.
+   * Events: Health status updates, heartbeat messages
+   */
+  HEALTH_CHECK: 'health:check',
+
+  /**
+   * Helper function to prefix a channel with the current environment.
+   *
+   * Use this when deploying to multiple environments to ensure
+   * events don't cross environment boundaries.
+   *
+   * @param channel - The base channel name (e.g., PUBSUB_CHANNELS.PRODUCT)
+   * @returns Channel name prefixed with environment
+   * @example
+   * ```typescript
+   * // In development (NODE_ENV=development)
+   * getEnvironmentChannel('jollyjet:events:product')
+   * // Returns: 'development:jollyjet:events:product'
+   *
+   * // In production (NODE_ENV=production)
+   * getEnvironmentChannel('jollyjet:events:product')
+   * // Returns: 'production:jollyjet:events:product'
+   * ```
+   */
+  getEnvironmentChannel: (channel: string) => `${process.env.NODE_ENV || 'dev'}:${channel}`,
+} as const;
+
+/**
+ * Pub/Sub event types for consistent event type naming across the application.
+ *
+ * These string constants define all possible event types in the system.
+ * They are used for:
+ * - Type-safe event interfaces (via typeof PUBSUB_EVENT_TYPES.EVENT_NAME)
+ * - Event routing and handler selection
+ * - Event validation and filtering
+ * - Logging and monitoring
+ *
+ * Event Categories:
+ * - PRODUCT_*: Product lifecycle events
+ * - USER_ACTIVITY: Audit and user behavior events
+ * - BATCH: Bulk operation events
+ *
+ * Usage:
+ * ```typescript
+ * // In event interface definitions
+ * interface ProductCreatedEvent extends BaseEvent {
+ *   eventType: typeof PUBSUB_EVENT_TYPES.PRODUCT_CREATED;
+ *   payload: { ... };
+ * }
+ *
+ * // In event creation
+ * const event: ProductCreatedEvent = {
+ *   eventId: generateEventId(),
+ *   eventType: PUBSUB_EVENT_TYPES.PRODUCT_CREATED,
+ *   timestamp: new Date(),
+ *   payload: { productId: '123', name: 'Product' }
+ * };
+ *
+ * // In event handling
+ * if (event.eventType === PUBSUB_EVENT_TYPES.PRODUCT_CREATED) {
+ *   // Handle product creation
+ * }
+ * ```
+ *
+ * @see BaseEvent
+ * @see AppEvent
+ * @see PUBSUB_CHANNELS
+ */
+export const PUBSUB_EVENT_TYPES = {
+  /**
+   * Event type emitted when a new product is successfully created.
+   * Published to: PUBSUB_CHANNELS.PRODUCT
+   * Payload: { productId, name, price, category }
+   */
+  PRODUCT_CREATED: 'PRODUCT_CREATED',
+
+  /**
+   * Event type emitted when an existing product is modified.
+   * Published to: PUBSUB_CHANNELS.PRODUCT
+   * Payload: { productId, changes }
+   */
+  PRODUCT_UPDATED: 'PRODUCT_UPDATED',
+
+  /**
+   * Event type emitted when a product is removed from the system.
+   * Published to: PUBSUB_CHANNELS.PRODUCT
+   * Payload: { productId }
+   */
+  PRODUCT_DELETED: 'PRODUCT_DELETED',
+
+  /**
+   * Event type emitted for user activity and audit logging.
+   * Published to: PUBSUB_CHANNELS.AUDIT
+   * Payload: { userId, action, metadata }
+   */
+  USER_ACTIVITY: 'USER_ACTIVITY',
+
+  /**
+   * Event type for batch/bulk operations.
+   * Used when processing multiple items in a single operation.
+   * Published to: PUBSUB_CHANNELS.PRODUCT (or appropriate domain channel)
+   */
+  BATCH: 'BATCH',
 } as const;

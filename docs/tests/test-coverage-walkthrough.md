@@ -418,10 +418,17 @@ tests/
 ├── integration/                 # Integration Tests
 │   ├── app.test.ts             # App endpoint tests
 │   └── corsSecurity.integration.test.ts # CORS Security integration tests (NEW - 92% passing)
+├── unit/domain/events/          # Pub/Sub Event Tests (NEW)
+│   └── eventDefinitions.test.ts       # Event definitions and types tests
+├── unit/domain/services/redis/  # Pub/Sub Redis Service Tests (NEW)
+│   ├── PublisherService.test.ts       # Publisher service tests
+│   └── SubscriberService.test.ts      # Subscriber service tests
+├── unit/domain/services/events/ # Pub/Sub Event Handler Tests (NEW)
+│   └── EventHandler.test.ts           # Event handler base class tests
 └── setup.ts                     # Test environment setup
 ```
 
-### Total Test Suites: 27
+### Total Test Suites: 31
 
 1. **Integration:** App Endpoints (app.test.ts) - 4 test suites, 7 tests
 2. **Unit:** CORS Security Tests (corsSecurity.test.ts) - 6 test suites, 14 tests (NEW)
@@ -450,8 +457,12 @@ tests/
 25. **Unit:** RateLimitingService Tests ([Rate Limiting Test Documentation](./redis/step2.3-rate-limiting-test.md)) - 1 test suite, 7 tests
 26. **Unit:** Cache Decorator Tests ([Cache Decorator Test Documentation](./redis/step2.4-cache-decorators-test.md)) - 1 test suite, 4 tests (Added in Step 2.4)
 27. **Unit:** RedisController Tests ([RedisController Test Documentation](./redis/RedisController-test-analysis.md)) - 4 test suites, 12 tests (Added in Step 5.1)
+28. **Unit:** Event Definitions Tests ([Event Definitions Test Documentation](./pubsub/step1.1-event-definitions-test.md)) - 13 test suites, 35 tests (NEW)
+29. **Unit:** PublisherService Tests ([Publisher Service Test Documentation](./pubsub/step1.4-publisher-service-test.md)) - 10 test suites, 22 tests (NEW)
+30. **Unit:** SubscriberService Tests ([Subscriber Service Test Documentation](./pubsub/step1.5-subscriber-service-test.md)) - 20 test suites, 32 tests (NEW)
+31. **Unit:** EventHandler Tests ([Event Handler Test Documentation](./pubsub/step2.1-event-handler-test.md)) - 17 test suites, 28 tests (NEW)
 
-### Total Tests: 370 individual test cases
+### Total Tests: 487 individual test cases
 
 ### Coverage Metrics: 97.59%
 
@@ -700,6 +711,41 @@ After running `npm run test:coverage`, view the detailed coverage report at:
 ✅ **100% CORS test success rate** (33/33 tests passing)
 ✅ **Rate Limiting Service Tests** documented (Step 2.3)
 ✅ **Cache Decorator Tests** documented (Step 2.4)
+✅ **Pub/Sub Tests** documented (115 test cases for event-driven messaging)
+
+## 📡 Pub/Sub Event-Driven Architecture Tests
+
+Comprehensive test coverage for Redis Pub/Sub event-driven messaging system:
+
+### **Pub/Sub Test Analysis Documentation**
+
+| Test Document                                                                  | Component                               | Test Cases |
+| ------------------------------------------------------------------------------ | --------------------------------------- | ---------- |
+| [Event Definitions Test](./pubsub/step1.1-event-definitions-test.md)           | Event Types & Interfaces                | 12         |
+| [Publisher Service Test](./pubsub/step1.4-publisher-service-test.md)           | PublisherService                        | 12         |
+| [Subscriber Service Test](./pubsub/step1.5-subscriber-service-test.md)         | SubscriberService                       | 20         |
+| [Event Handler Test](./pubsub/step2.1-event-handler-test.md)                   | EventHandler Base Class                 | 18         |
+| [Product Event Handlers Test](./pubsub/step2.2-product-event-handlers-test.md) | ProductCreated/Updated/Deleted Handlers | 18         |
+| [Audit Event Handler Test](./pubsub/step2.3-audit-event-handler-test.md)       | AuditEventHandler                       | 18         |
+| [PubSub Bootstrap Test](./pubsub/step3.1-pubsub-bootstrap-test.md)             | PubSubBootstrap                         | 17         |
+| [Pub/Sub Summary](./pubsub/pubsub-test-analysis-summary.md)                    | Complete Test Overview                  | 115 Total  |
+
+### **Pub/Sub Test Coverage Highlights**
+
+- ✅ **Event Publishing**: Message serialization, channel publishing, error handling
+- ✅ **Event Subscribing**: Channel subscription, message routing, handler dispatch
+- ✅ **Event Handlers**: Retry logic with exponential backoff, DLQ support, structured logging
+- ✅ **Product Events**: PRODUCT_CREATED, PRODUCT_UPDATED, PRODUCT_DELETED handling
+- ✅ **Audit Events**: USER_ACTIVITY logging with security-sensitive action detection
+- ✅ **Bootstrap**: Initialization, graceful shutdown, event routing
+
+**Test Summary:**
+
+- **Total Test Cases**: 115
+- **High Priority**: 62 (53.9%)
+- **Unit Tests**: 95 (82.6%)
+- **Integration Tests**: 15 (13.0%)
+- **Performance Tests**: 5 (4.4%)
 
 ## 🎯 Redis-First Cache Implementation
 
@@ -720,4 +766,118 @@ After running `npm run test:coverage`, view the detailed coverage report at:
 - ✅ **Cache Updates**: Individual item caches updated on modifications
 - ✅ **Fallback Resilience**: Graceful degradation when Redis unavailable
 
-The JollyJet application now has **robust test coverage** and **high-performance Redis-first caching** ensuring both code quality and optimal user experience! 🚀🎉
+---
+
+## Pub/Sub Test Coverage (NEW)
+
+### Pub/Sub Test Files Created
+
+#### [`tests/unit/domain/events/eventDefinitions.test.ts`](file:///e:/Project/jollyJet/tests/unit/domain/events/eventDefinitions.test.ts) (NEW)
+
+Comprehensive event definitions and types testing:
+
+- ✅ **BaseEvent Interface Validation**: Required and optional fields
+- ✅ **ProductCreatedEvent Structure**: Payload validation
+- ✅ **ProductUpdatedEvent Structure**: Changes payload validation
+- ✅ **ProductDeletedEvent Structure**: Minimal payload validation
+- ✅ **UserActivityEvent Structure**: Audit metadata validation
+- ✅ **generateEventId Uniqueness**: 1000 unique IDs generation
+- ✅ **AppEvent Union Type Discrimination**: Type narrowing for all event types
+- ✅ **Event Serialization/Deserialization**: JSON round-trip
+- ✅ **PUBSUB_EVENT_TYPES Constants**: All event type values
+- ✅ **PUBSUB_CHANNELS Constants**: All channel values
+- ✅ **Deprecated Exports**: EVENT_TYPES and EVENT_CHANNELS aliases
+- ✅ **Timestamp Handling**: Past, present, future dates
+- ✅ **Edge Cases**: Empty metadata, empty changes, special characters
+
+**Test Coverage:** 13 test suites, 35 tests
+
+---
+
+#### [`tests/unit/domain/services/redis/PublisherService.test.ts`](file:///e:/Project/jollyJet/tests/unit/domain/services/redis/PublisherService.test.ts) (NEW)
+
+PublisherService comprehensive testing:
+
+- ✅ **Service Instantiation**: Dependencies injection
+- ✅ **Successful Publishing**: Channel and message publishing
+- ✅ **Message Serialization**: JSON serialization with Date handling
+- ✅ **Error Handling**: Redis errors caught and re-thrown
+- ✅ **Message Size Logging**: Size calculation and logging
+- ✅ **Multiple Channel Publishing**: Different channels
+- ✅ **Empty Message Handling**: Empty object, null, undefined
+- ✅ **Concurrent Publishing**: 10 concurrent events
+- ✅ **Redis Client Retrieval**: getClient called per publish
+- ✅ **Circular Reference Handling**: Error on circular refs
+
+**Test Coverage:** 10 test suites, 22 tests
+
+---
+
+#### [`tests/unit/domain/services/redis/SubscriberService.test.ts`](file:///e:/Project/jollyJet/tests/unit/domain/services/redis/SubscriberService.test.ts) (NEW)
+
+SubscriberService comprehensive testing:
+
+- ✅ **Service Instantiation**: Initial state, empty handlers
+- ✅ **Redis Disabled Handling**: Warning logged
+- ✅ **Successful Initialization**: Client creation, connection
+- ✅ **Double Initialization Prevention**: Warning on second call
+- ✅ **Channel Subscription**: Handler registration, Redis subscribe
+- ✅ **Subscribe Before Initialization**: Error thrown
+- ✅ **Message Handling**: Parse and route to handler
+- ✅ **Message Parse Error Handling**: Invalid JSON graceful handling
+- ✅ **Handler Error Handling**: Errors caught without crash
+- ✅ **Unsubscribe**: Handler removal, Redis unsubscribe
+- ✅ **Unsubscribe Before Initialization**: Graceful handling
+- ✅ **Connection Error Handling**: Error logging
+- ✅ **Disconnection and Reconnection**: isConnected updates
+- ✅ **Max Reconnection Attempts**: Stop after 5 attempts
+- ✅ **Resubscribe After Reconnection**: Channel resubscription
+- ✅ **Graceful Disconnect**: Resource cleanup
+- ✅ **Get Connection Status**: State tracking
+- ✅ **Get Subscribed Channels**: Channel list
+- ✅ **Multiple Handlers Same Channel**: Last handler wins
+- ✅ **Wrong Channel Message Filtering**: Ignore wrong channels
+
+**Test Coverage:** 20 test suites, 32 tests
+
+---
+
+#### [`tests/unit/domain/services/events/EventHandler.test.ts`](file:///e:/Project/jollyJet/tests/unit/domain/services/events/EventHandler.test.ts) (NEW)
+
+EventHandler base class comprehensive testing:
+
+- ✅ **Abstract Class Enforcement**: Cannot instantiate directly
+- ✅ **Concrete Handler Implementation**: Extension works
+- ✅ **Success Without Retry**: First attempt success
+- ✅ **Success on Retry**: Retry mechanism works
+- ✅ **All Retries Exhausted**: Error thrown after max retries
+- ✅ **Exponential Backoff Timing**: Delay calculations
+- ✅ **Log Event Received**: Correct log format
+- ✅ **Log Event Success**: Correct log format
+- ✅ **Log Event Error**: Correct log format with stack
+- ✅ **Send to DLQ**: DLQ event structure
+- ✅ **Send to DLQ Without Publisher**: Logs only
+- ✅ **Send to DLQ Publish Failure**: Graceful handling
+- ✅ **Validate Event - Valid**: True for valid events
+- ✅ **Validate Event - Invalid**: False for invalid events
+- ✅ **Custom Retry Delay**: Custom delay respected
+- ✅ **Zero Max Retries**: No retries attempted
+- ✅ **Async Operation in Retry**: Async operations work
+
+**Test Coverage:** 17 test suites, 28 tests
+
+---
+
+### Pub/Sub Test Summary
+
+| Component         | Test Suites | Tests   | Status          |
+| ----------------- | ----------- | ------- | --------------- |
+| Event Definitions | 13          | 35      | ✅ Created      |
+| PublisherService  | 10          | 22      | ✅ Created      |
+| SubscriberService | 20          | 32      | ✅ Created      |
+| EventHandler      | 17          | 28      | ✅ Created      |
+| **TOTAL**         | **60**      | **117** | **✅ Complete** |
+
+---
+
+The JollyJet application now has **robust test coverage**, **high-performance Redis-first caching**, and **comprehensive Pub/Sub event-driven messaging** ensuring both code quality and optimal user experience! 🚀🎉

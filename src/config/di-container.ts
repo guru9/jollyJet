@@ -19,12 +19,20 @@ import {
   IRedisService,
   ISessionService,
 } from '@/domain/interfaces';
+import { IPublisherService } from '@/domain/interfaces/redis/IPublisherService';
+import { ISubscriberService } from '@/domain/interfaces/redis/ISubscriberService';
 import { ICorsSecurityService } from '@/domain/interfaces/security/ICorsSecurityService';
 import {
+  AuditEventHandler,
   CacheConsistencyService,
   CacheService,
+  ProductCreatedHandler,
+  ProductDeletedHandler,
   ProductService,
+  ProductUpdatedHandler,
+  PublisherService,
   RedisService,
+  SubscriberService,
 } from '@/domain/services';
 import { CorsSecurityService } from '@/domain/services/security/CorsSecurityService';
 import { ProductRepository } from '@/infrastructure/repositories';
@@ -153,6 +161,47 @@ export const initializeDIContainer = (): void => {
     container.register<ICorsSecurityService>(DI_TOKENS.CORS_SECURITY_SERVICE, {
       useClass: CorsSecurityService,
     });
+  }
+
+  // ============================================
+  // PUB/SUB SERVICES REGISTRATION
+  // ============================================
+
+  // Register Publisher Service - Maps IPublisherService interface to PublisherService implementation
+  // PublisherService handles publishing events to Redis Pub/Sub channels
+  if (!container.isRegistered(DI_TOKENS.PUBLISHER_SERVICE)) {
+    container.register<IPublisherService>(DI_TOKENS.PUBLISHER_SERVICE, {
+      useClass: PublisherService,
+    });
+  }
+
+  // Register Subscriber Service - Maps ISubscriberService interface to SubscriberService implementation
+  // SubscriberService manages subscriptions to Redis Pub/Sub channels and routes messages to handlers
+  if (!container.isRegistered(DI_TOKENS.SUBSCRIBER_SERVICE)) {
+    container.register<ISubscriberService>(DI_TOKENS.SUBSCRIBER_SERVICE, {
+      useClass: SubscriberService,
+    });
+  }
+
+  // Register Event Handlers as singletons
+  // These handlers process specific event types and are reused across the application
+
+  // Product Event Handlers
+  if (!container.isRegistered(DI_TOKENS.PRODUCT_CREATED_HANDLER)) {
+    container.registerSingleton(DI_TOKENS.PRODUCT_CREATED_HANDLER, ProductCreatedHandler);
+  }
+
+  if (!container.isRegistered(DI_TOKENS.PRODUCT_UPDATED_HANDLER)) {
+    container.registerSingleton(DI_TOKENS.PRODUCT_UPDATED_HANDLER, ProductUpdatedHandler);
+  }
+
+  if (!container.isRegistered(DI_TOKENS.PRODUCT_DELETED_HANDLER)) {
+    container.registerSingleton(DI_TOKENS.PRODUCT_DELETED_HANDLER, ProductDeletedHandler);
+  }
+
+  // Audit Event Handler
+  if (!container.isRegistered(DI_TOKENS.AUDIT_EVENT_HANDLER)) {
+    container.registerSingleton(DI_TOKENS.AUDIT_EVENT_HANDLER, AuditEventHandler);
   }
 
   logger.info(SERVER_LOG_MESSAGES.DI_INITIALIZED);
