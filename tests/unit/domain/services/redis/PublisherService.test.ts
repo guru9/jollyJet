@@ -194,7 +194,8 @@ describe('PublisherService', () => {
     it('should handle undefined', async () => {
       await publisherService.publish('channel', undefined);
 
-      expect(mockRedisClient.publish).toHaveBeenCalledWith('channel', undefined);
+      // The implementation converts undefined to the string 'undefined' for safe publishing
+      expect(mockRedisClient.publish).toHaveBeenCalledWith('channel', 'undefined');
     });
   });
 

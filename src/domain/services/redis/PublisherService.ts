@@ -76,7 +76,8 @@ export class PublisherService implements IPublisherService {
       const client = this.redisService.getClient();
 
       // Serialize message to JSON string for transmission
-      const messageString = JSON.stringify(message);
+      // Handle undefined which JSON.stringify returns as undefined (not a string)
+      const messageString = message === undefined ? 'undefined' : JSON.stringify(message);
 
       // Publish message to the specified Redis channel
       await client.publish(channel, messageString);

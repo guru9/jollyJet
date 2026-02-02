@@ -418,10 +418,17 @@ tests/
 ├── integration/                 # Integration Tests
 │   ├── app.test.ts             # App endpoint tests
 │   └── corsSecurity.integration.test.ts # CORS Security integration tests (NEW - 92% passing)
+├── unit/domain/events/          # Pub/Sub Event Tests (NEW)
+│   └── eventDefinitions.test.ts       # Event definitions and types tests
+├── unit/domain/services/redis/  # Pub/Sub Redis Service Tests (NEW)
+│   ├── PublisherService.test.ts       # Publisher service tests
+│   └── SubscriberService.test.ts      # Subscriber service tests
+├── unit/domain/services/events/ # Pub/Sub Event Handler Tests (NEW)
+│   └── EventHandler.test.ts           # Event handler base class tests
 └── setup.ts                     # Test environment setup
 ```
 
-### Total Test Suites: 27
+### Total Test Suites: 31
 
 1. **Integration:** App Endpoints (app.test.ts) - 4 test suites, 7 tests
 2. **Unit:** CORS Security Tests (corsSecurity.test.ts) - 6 test suites, 14 tests (NEW)
@@ -450,8 +457,12 @@ tests/
 25. **Unit:** RateLimitingService Tests ([Rate Limiting Test Documentation](./redis/step2.3-rate-limiting-test.md)) - 1 test suite, 7 tests
 26. **Unit:** Cache Decorator Tests ([Cache Decorator Test Documentation](./redis/step2.4-cache-decorators-test.md)) - 1 test suite, 4 tests (Added in Step 2.4)
 27. **Unit:** RedisController Tests ([RedisController Test Documentation](./redis/RedisController-test-analysis.md)) - 4 test suites, 12 tests (Added in Step 5.1)
+28. **Unit:** Event Definitions Tests ([Event Definitions Test Documentation](./pubsub/step1.1-event-definitions-test.md)) - 13 test suites, 35 tests (NEW)
+29. **Unit:** PublisherService Tests ([Publisher Service Test Documentation](./pubsub/step1.4-publisher-service-test.md)) - 10 test suites, 22 tests (NEW)
+30. **Unit:** SubscriberService Tests ([Subscriber Service Test Documentation](./pubsub/step1.5-subscriber-service-test.md)) - 20 test suites, 32 tests (NEW)
+31. **Unit:** EventHandler Tests ([Event Handler Test Documentation](./pubsub/step2.1-event-handler-test.md)) - 17 test suites, 28 tests (NEW)
 
-### Total Tests: 370 individual test cases
+### Total Tests: 487 individual test cases
 
 ### Coverage Metrics: 97.59%
 
