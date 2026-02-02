@@ -117,7 +117,8 @@ e:/Project/jollyJet
 │   │   ├── 09-redis-implementation-plan.md
 │   │   ├── 11-cors-policy-security-plan.md
 │   │   ├── 12-redis-first-cache.md
-│   │   └── 13-pubsub-implementation-plan.md
+│   │   ├── 13-cloud-first-architecture.md
+│   │   └── 14-pubsub-implementation-plan.md      # Redis Pub/Sub event-driven architecture
 │   ├── migrations/
 │   │   ├── mcp-server-integration-plan.md
 │   │   ├── microservices-migration-plan.md
@@ -147,14 +148,23 @@ e:/Project/jollyJet
 │   │   │   ├── step4.2-toggle-wishlist-product-usecase-test.md
 │   │   │   ├── step4.2-update-product-usecase-test.md
 │   │   │   └── step5.1-product-controller-testcase.md
-│   │   └── redis/
-│   │       ├── RedisController-test-analysis.md
-│   │       ├── step1.3-redis-service-test.md
-│   │       ├── step2.1-cache-consistency-service-test.md
-│   │       ├── step2.2-session-management-test.md
-│   │       ├── step2.3-rate-limiting-test.md
-│   │       ├── step2.4-cache-decorators-test.md
-│   │       └── step3.1-redis-cache-middleware-test.md
+│   │   ├── redis/
+│   │   │   ├── RedisController-test-analysis.md
+│   │   │   ├── step1.3-redis-service-test.md
+│   │   │   ├── step2.1-cache-consistency-service-test.md
+│   │   │   ├── step2.2-session-management-test.md
+│   │   │   ├── step2.3-rate-limiting-test.md
+│   │   │   ├── step2.4-cache-decorators-test.md
+│   │   │   └── step3.1-redis-cache-middleware-test.md
+│   │   └── pubsub/
+│   │       ├── pubsub-test-analysis-summary.md
+│   │       ├── step1.1-event-definitions-test.md
+│   │       ├── step1.4-publisher-service-test.md
+│   │       ├── step1.5-subscriber-service-test.md
+│   │       ├── step2.1-event-handler-test.md
+│   │       ├── step2.2-product-event-handlers-test.md
+│   │       ├── step2.3-audit-event-handler-test.md
+│   │       └── step3.1-pubsub-bootstrap-test.md
 ├── node_modules/
 ├── src/
 │   ├── app.ts
@@ -354,6 +364,7 @@ GET    /api/v1/products/count    # Count products
 - ✅ **Integration Tests**: API endpoint testing
 - ✅ **Validation Tests**: Input validation verification
 - ✅ **Performance Tests**: Load testing
+- ✅ **Pub/Sub Tests**: Event-driven messaging testing
 
 ### **Coverage Metrics**
 
@@ -362,6 +373,7 @@ GET    /api/v1/products/count    # Count products
 - **Use Cases**: 98.5%
 - **Infrastructure**: 96.9%
 - **Interface Layer**: 97.2%
+- **Pub/Sub System**: 115 test cases covering all event-driven components
 
 ---
 

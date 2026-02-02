@@ -41,7 +41,8 @@ JollyJet is a **high-performance e-commerce shopping application** built with mo
 ✅ **Product Module Complete (8th phase - Fully Operational)**  
 ✅ **CORS Policy & Security Complete (11th phase)**  
 ✅ **Redis Integration Complete (Phase 9 & 12)**  
-✅ **Cloud First Architecture Implemented (Phase 14)**  
+✅ **Cloud First Architecture Implemented (Phase 13)**  
+✅ **Redis Pub/Sub Event-Driven Architecture Complete (Phase 14)**  
 ✅ **Zero-Setup Local Development (Host Mode)**  
 ✅ **Regional Docker Support (Dev/Prod)**
 
@@ -95,6 +96,19 @@ JollyJet is a **high-performance e-commerce shopping application** built with mo
 
 - 🛡️ **[CORS Security Analysis](../cors/cors-security.md)** - Security implementation and configuration
 
+- 📡 **[Pub/Sub Module Analysis](../pubsub/)** - Redis Pub/Sub event-driven architecture
+  - [Event Definitions & Types](./pubsub/step1.1-Event-Definitions-and-Types.md) - Event interfaces and type definitions
+  - [Publisher Service Interface](./pubsub/step1.2-Publisher-Service-Interface.md) - Event publishing contract
+  - [Subscriber Service Interface](./pubsub/step1.3-Subscriber-Service-Interface.md) - Event subscription contract
+  - [Publisher Service Implementation](./pubsub/step1.4-Publisher-Service-Implementation.md) - Redis publishing service
+  - [Subscriber Service Implementation](./pubsub/step1.5-Subscriber-Service-Implementation.md) - Redis subscription service
+  - [Event Handler Base Class](./pubsub/step2.1-Event-Handler-Base-Class.md) - Base class for event handlers
+  - [Product Event Handlers](./pubsub/step2.2-Product-Event-Handlers.md) - Product event processing
+  - [Audit Event Handler](./pubsub/step2.3-Audit-Event-Handler.md) - Audit logging handler
+  - [DI Container Registration](./pubsub/step3.1-DI-Container-Registration.md) - Dependency injection setup
+  - [Application Bootstrap](./pubsub/step3.2-Application-Bootstrap.md) - Pub/Sub initialization
+  - [Product Use Case Integration](./pubsub/step3.3-Product-Use-Case-Integration.md) - Event publishing from use cases
+
 #### **🖼️ Flowcharts & Visualizations**
 
 - 🖼️ **[JollyJet E-Commerce Flow](../flowchart/jollyjet-ecommerce-flow.md)** - Complete e-commerce user journey visualization
@@ -137,6 +151,8 @@ JollyJet is a **high-performance e-commerce shopping application** built with mo
 - 🔴 **[Redis Implementation](../implementation-plans/09-redis-implementation-plan.md)** - Caching infrastructure
 - 🛡️ **[CORS Security Plan](../implementation-plans/11-cors-policy-security-plan.md)** - Security implementation
 - ⚡ **[Redis-First Cache](../implementation-plans/12-redis-first-cache.md)** - Advanced caching strategy
+- ☁️ **[Cloud First Architecture](../implementation-plans/13-cloud-first-architecture.md)** - Cloud-native infrastructure
+- 📡 **[Pub/Sub Implementation](../implementation-plans/14-pubsub-implementation-plan.md)** - Event-driven architecture with Redis Pub/Sub
 
 #### **🔄 Migration Guides**
 
@@ -162,6 +178,7 @@ JollyJet is a **high-performance e-commerce shopping application** built with mo
 - 🛠️ **[Code Maintenance](../extra/code-maintenance.md)** - Code maintenance and refactoring guide
 - 🍃 **[MongoDB Setup](../extra/MONGODB_SETUP.md)** - MongoDB installation and configuration
 - 🔴 **[Redis Setup](../extra/REDIS_SETUP.md)** - Redis installation and configuration
+- 📡 **[Pub/Sub Setup](../extra/PUBSUB_SETUP.md)** - Pub/Sub event-driven architecture setup
 
 #### **🎯 Task Documentation**
 
@@ -170,6 +187,7 @@ JollyJet is a **high-performance e-commerce shopping application** built with mo
 - 🔴 **[Redis Integration Task](../tasks/03-redis-task.md)** - Redis caching implementation
 - 🛡️ **[CORS Security Task](../tasks/04-cors-task.md)** - Security features implementation
 - ⚡ **[Redis Cache Implementation](../tasks/05-redis-cache-implementation.md)** - Advanced caching features
+- 📡 **[Pub/Sub Integration Task](../tasks/06-pubsub-task.md)** - Event-driven architecture implementation
 
 ---
 

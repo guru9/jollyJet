@@ -1,5 +1,6 @@
 import { Product } from '@/domain/entities';
 import { IProductRepository } from '@/domain/interfaces';
+import { IPublisherService } from '@/domain/interfaces/redis/IPublisherService';
 import { CacheService } from '@/domain/services/cache/CacheService';
 import { Logger } from '@/shared';
 import { DeleteProductUseCase } from '@/usecases';
@@ -10,6 +11,7 @@ describe('DeleteProductUseCase', () => {
   let mockRepository: jest.Mocked<IProductRepository>;
   let mockLogger: jest.Mocked<Logger>;
   let mockCacheService: jest.Mocked<CacheService>;
+  let mockPublisherService: jest.Mocked<IPublisherService>;
   let existingProduct: Product;
 
   beforeEach(() => {
@@ -56,7 +58,16 @@ describe('DeleteProductUseCase', () => {
       getOrSet: jest.fn(),
     } as unknown as jest.Mocked<CacheService>;
 
-    useCase = new DeleteProductUseCase(mockRepository, mockLogger, mockCacheService);
+    mockPublisherService = {
+      publish: jest.fn(),
+    } as unknown as jest.Mocked<IPublisherService>;
+
+    useCase = new DeleteProductUseCase(
+      mockRepository,
+      mockLogger,
+      mockCacheService,
+      mockPublisherService
+    );
   });
 
   describe('execute method', () => {
