@@ -445,6 +445,45 @@ In CI and production pipelines prefer running `docker compose` (or image builds)
 
 ---
 
+## 📚 Documentation Guidelines
+
+**IMPORTANT: Documentation updates should only be made in feature branches. Do NOT merge documentation changes directly to main or release branches.**
+
+### Documentation Branch Restrictions
+
+- **Allowed Branches**: Feature branches (prefix: `feature/`)
+- **Restricted Branches**: Main (`main`) and release branches (`release/v*`)
+- **PR Requirements**: Documentation PRs must target only feature branches
+
+### Documentation Update Process
+
+1. Create a new feature branch for documentation updates:
+
+   ```bash
+   git checkout -b feature/documentation-updates
+   ```
+
+2. Make your documentation changes
+
+3. Create a PR targeting your feature branch
+
+4. Get approval from at least one developer
+
+### Documentation Files Structure
+
+```
+docs/
+├── ci-cd/
+│   ├── CI-CD_IMPLEMENTATION_GUIDE.md    # Main implementation guide
+│   ├── CI-CD-FILE-STRUCTURE.md          # File structure reference
+│   └── RELEASE-BRANCH-GUIDE.md          # Release branch management
+├── implementation-plans/
+│   └── 15-ci-cd-implementation-plan.md  # Detailed implementation plan
+└── JOLLYJET_IMPLEMENTATION_MASTER_GUIDE.md  # Complete system guide
+```
+
+---
+
 ## 🌟 Key Features & Highlights
 
 ### 🏗️ Architecture & Core

@@ -17,7 +17,7 @@ main:
       users: []
       teams: []
   restrictions:
-    branches: [] # Allow any branch to open PRs to main
+    branches: ['release/v[0-9]+.[0-9]+.[0-9]+'] # Only release branches can open PRs to main
     users:
       - release-managers # Only release managers can merge
   enforce_admins: true
@@ -37,7 +37,7 @@ main:
     dismiss_stale_reviews: true
     require_code_owner_reviews: true
   restrictions:
-    branches: [] # Allow any branch to open PRs to release branches
+    branches: ['develop', 'feature/*'] # Allow develop and feature branches to open PRs to release branches
     users:
       - developers # All developers can merge to release branches
   enforce_admins: true
