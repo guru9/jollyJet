@@ -71,7 +71,7 @@
  */
 
 import { inject, injectable } from 'tsyringe';
-import { DI_TOKENS } from '../../../shared/constants';
+import { DI_TOKENS, PUBSUB_MESSAGES } from '../../../shared/constants';
 import { Logger } from '../../../shared/logger';
 import { UserActivityEvent } from '../../events';
 import { EventHandler } from './EventHandler';
@@ -163,7 +163,7 @@ export class AuditEventHandler extends EventHandler<UserActivityEvent> {
       };
 
       // Log at INFO level with audit marker for filtering
-      this.logger.info(auditEntry, `AUDIT: ${event.payload.action}`);
+      this.logger.info(auditEntry, PUBSUB_MESSAGES.AUDIT_LOG(event.payload.action));
 
       // TODO: Store in dedicated audit database
       // Create immutable audit records in a separate database/table

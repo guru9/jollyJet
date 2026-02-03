@@ -46,7 +46,7 @@
  */
 
 import { inject, injectable } from 'tsyringe';
-import { DI_TOKENS } from '../../../shared/constants';
+import { DI_TOKENS, PUBSUB_MESSAGES } from '../../../shared/constants';
 import { Logger } from '../../../shared/logger';
 import { ProductCreatedEvent, ProductDeletedEvent, ProductUpdatedEvent } from '../../events';
 import { EventHandler } from './EventHandler';
@@ -122,7 +122,7 @@ export class ProductCreatedHandler extends EventHandler<ProductCreatedEvent> {
           category: event.payload.category,
           correlationId: event.correlationId,
         },
-        'Product created - processing event'
+        PUBSUB_MESSAGES.PRODUCT_CREATED_PROCESSING
       );
 
       // TODO: Send notification to admin/moderators
@@ -215,7 +215,7 @@ export class ProductUpdatedHandler extends EventHandler<ProductUpdatedEvent> {
           changedFields: Object.keys(event.payload.changes),
           correlationId: event.correlationId,
         },
-        'Product updated - processing event'
+        PUBSUB_MESSAGES.PRODUCT_UPDATED_PROCESSING
       );
 
       // TODO: Invalidate product cache
@@ -308,7 +308,7 @@ export class ProductDeletedHandler extends EventHandler<ProductDeletedEvent> {
           productId: event.payload.productId,
           correlationId: event.correlationId,
         },
-        'Product deleted - processing event'
+        PUBSUB_MESSAGES.PRODUCT_DELETED_PROCESSING
       );
 
       // TODO: Remove from search index
