@@ -347,10 +347,19 @@ jobs:
         run: |
           echo "CI/CD pipeline completed successfully."
 
-      # Step 8.3: Upload pipeline configuration as an artifact
+      # Step 8.3: Create and upload pipeline summary
+      - name: Create pipeline summary
+        run: |
+          echo "## CI/CD Pipeline Summary" > pipeline-summary.txt
+          echo "Run ID: ${{ github.run_id }}" >> pipeline-summary.txt
+          echo "Workflow: ${{ github.workflow }}" >> pipeline-summary.txt
+          echo "Branch: ${{ github.ref }}" >> pipeline-summary.txt
+          echo "Commit: ${{ github.sha }}" >> pipeline-summary.txt
+          echo "Status: ${{ job.status }}" >> pipeline-summary.txt
+
       - name: Upload pipeline summary
         uses: actions/upload-artifact@v4
         with:
           name: pipeline-summary
-          path: .github/workflows/ci.yml
+          path: pipeline-summary.txt
           retention-days: 7 # Retain for 7 days
