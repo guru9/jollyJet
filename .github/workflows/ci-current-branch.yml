@@ -1,0 +1,473 @@
+name: CI/CD Pipeline for Current Branch
+
+# Branch-Specific CI/CD Pipeline with Quality Gates
+# This workflow provides a comprehensive CI/CD pipeline for feature branches,
+# develop branch, and main branch. It includes pre-flight checks, code quality
+# verification, testing, security scanning, Docker image build, quality gate
+# decision, and deployment.
+
+# Triggers:
+# - Push to main, develop, or feature branches
+# - Pull requests to main or develop branches
+# - Manual workflow dispatch
+
+on:
+  push:
+    branches: [main, develop, feature/*]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '22'
+  DOCKER_REGISTRY: ghcr.io
+  IMAGE_NAME: jollyjet-starter
+
+jobs:
+  pre-flight-checks:
+    name: Pre-Flight Checks
+    runs-on: ubuntu-latest
+    outputs:
+      should-proceed: ${{ steps.check.outputs.should-proceed }}
+      branch-type: ${{ steps.check.outputs.branch-type }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Determine branch type
+        id: check
+        run: |
+          BRANCH=${{ github.ref_name }}
+
+          # Check if it's a feature branch
+          if [[ $BRANCH == feature/* ]]; then
+            echo "should-proceed=true" >> $GITHUB_OUTPUT
+            echo "branch-type=feature" >> $GITHUB_OUTPUT
+          elif [[ $BRANCH == main || $BRANCH == develop ]]; then
+            echo "should-proceed=true" >> $GITHUB_OUTPUT
+            echo "branch-type=main-develop" >> $GITHUB_OUTPUT
+          else
+            echo "should-proceed=false" >> $GITHUB_OUTPUT
+            echo "::warning::Unsupported branch type: $BRANCH"
+          fi
+
+          echo "Branch: $BRANCH"
+          echo "Branch type: ${{ steps.check.outputs.branch-type }}"
+
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    needs: pre-flight-checks
+    if: needs.pre-flight-checks.outputs.should-proceed == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Check Prettier formatting
+        run: npm run format:check
+
+      - name: TypeScript compilation check
+        run: npm run build
+
+      - name: Security code scan
+        uses: github/codeql-action/analyze@v2
+
+      - name: Upload ESLint results
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: eslint-results
+          path: eslint.log
+
+  documentation-check:
+    name: Documentation Accessibility Check
+    runs-on: ubuntu-latest
+    needs: code-quality
+    if: needs.pre-flight-checks.outputs.should-proceed == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify documentation files presence
+        run: |
+          echo "Checking CI/CD documentation files..."
+          ls -la docs/ci-cd/
+
+          if [ ! -f "docs/ci-cd/CI-CD_IMPLEMENTATION_GUIDE.md" ]; then
+            echo "::error::CI-CD_IMPLEMENTATION_GUIDE.md not found"
+            exit 1
+          fi
+
+          if [ ! -f "docs/ci-cd/CI-CD-FILE-STRUCTURE.md" ]; then
+            echo "::error::CI-CD-FILE-STRUCTURE.md not found"
+            exit 1
+          fi
+
+          if [ ! -f "docs/ci-cd/RELEASE-BRANCH-GUIDE.md" ]; then
+            echo "::error::RELEASE-BRANCH-GUIDE.md not found"
+            exit 1
+          fi
+
+          echo "Documentation files are accessible"
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: code-quality
+    if: needs.pre-flight-checks.outputs.should-proceed == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:coverage
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-results
+          path: junit.xml
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    if: needs.pre-flight-checks.outputs.should-proceed == 'true'
+    services:
+      mongodb:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+        options: --health-cmd="mongo" --health-interval=10s --health-timeout=5s --health-retries=5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run integration tests
+        run: npm run test:integration
+        env:
+          NODE_ENV: test
+          MONGODB_URI: mongodb://localhost:27017/jollyjet-test
+          REDIS_URL: redis://localhost:6379
+
+      - name: Upload integration test results
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: integration-test-results
+          path: integration-test-results.xml
+          retention-days: 7
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests]
+    if: needs.pre-flight-checks.outputs.should-proceed == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=medium
+
+      - name: Container security scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  build-docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [code-quality, unit-tests, integration-tests, security-scan]
+    if: needs.pre-flight-checks.outputs.should-proceed == 'true'
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix=${{ needs.pre-flight-checks.outputs.branch-type }}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          dockerfile: docker/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      - name: Upload Docker build logs
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: docker-build-logs
+          path: docker-build.log
+
+  quality-gate-decision:
+    name: Quality Gate Decision
+    runs-on: ubuntu-latest
+    needs: [code-quality, unit-tests, integration-tests, security-scan, build-docker]
+    if: needs.pre-flight-checks.outputs.should-proceed == 'true'
+
+    steps:
+      - name: Check quality gate status
+        run: |
+          # Check if any previous jobs failed
+          if [[ "${{ needs.code-quality.result }}" == "failure" || \
+                "${{ needs.unit-tests.result }}" == "failure" || \
+                "${{ needs.integration-tests.result }}" == "failure" || \
+                "${{ needs.security-scan.result }}" == "failure" || \
+                "${{ needs.build-docker.result }}" == "failure" ]]; then
+            echo "::error::Quality gates failed"
+            exit 1
+          fi
+          echo "Quality gates passed"
+
+      - name: Generate quality report
+        run: |
+          echo "Quality Report:" > quality-report.md
+          echo "================" >> quality-report.md
+          echo "" >> quality-report.md
+          echo "Code Quality: ${{ needs.code-quality.result }}" >> quality-report.md
+          echo "Unit Tests: ${{ needs.unit-tests.result }}" >> quality-report.md
+          echo "Integration Tests: ${{ needs.integration-tests.result }}" >> quality-report.md
+          echo "Security Scan: ${{ needs.security-scan.result }}" >> quality-report.md
+          echo "Docker Build: ${{ needs.build-docker.result }}" >> quality-report.md
+
+      - name: Upload quality report
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-report
+          path: quality-report.md
+          retention-days: 7
+
+  publish-branch:
+    name: Publish Branch
+    runs-on: ubuntu-latest
+    needs: quality-gate-decision
+    if: needs.pre-flight-checks.outputs.should-proceed == 'true' && github.ref_type == 'branch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for publishing
+        run: npm run build
+
+      - name: Publish to npm (feature branches only)
+        if: needs.pre-flight-checks.outputs.branch-type == 'feature'
+        run: |
+          echo "Publishing feature branch to npm..."
+          # Add publishing logic for feature branches
+
+      - name: Tag and publish version
+        if: needs.pre-flight-checks.outputs.branch-type == 'main-develop'
+        run: |
+          echo "Tagging and publishing version..."
+          # Add version tagging and publishing logic
+
+      - name: Upload publish artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: publish-artifacts
+          path: |
+            dist/
+            package.json
+          retention-days: 7
+
+  deploy-dev:
+    name: Deploy to Development
+    runs-on: ubuntu-latest
+    needs: publish-branch
+    if: needs.pre-flight-checks.outputs.should-proceed == 'true' && (github.ref_name == 'main' || github.ref_name == 'develop')
+    environment: development
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Compose
+        uses: docker/setup-compose-action@v2
+
+      - name: Deploy to development
+        run: |
+          docker compose -f docker/docker-compose.dev.yml pull
+          docker compose -f docker/docker-compose.dev.yml up -d
+
+      - name: Health check
+        run: |
+          sleep 30
+          curl -f http://localhost:3000/health
+
+      - name: Show deployment status
+        run: |
+          echo "🚀 Development environment deployed successfully!"
+          docker compose -f docker/docker-compose.dev.yml ps
+
+      - name: Show logs
+        run: |
+          docker compose -f docker/docker-compose.dev.yml logs --tail=50
+
+  pr-approval:
+    name: PR Approval Gate
+    runs-on: ubuntu-latest
+    needs: [quality-gate-decision, publish-branch]
+    if: needs.pre-flight-checks.outputs.should-proceed == 'true' && github.event_name == 'pull_request'
+
+    steps:
+      - name: Check if PR can be approved
+        run: |
+          # Check if all quality gates passed
+          if [[ "${{ needs.quality-gate-decision.result }}" == "success" ]]; then
+            echo "::notice::All quality gates passed. PR can be approved."
+          else
+            echo "::error::Quality gates failed. PR cannot be approved."
+            exit 1
+          fi
+
+      - name: Generate PR approval message
+        run: |
+          echo "## PR Quality Check Passed\n\n" > pr-approval.md
+          echo "✅ **All quality gates passed**\n\n" >> pr-approval.md
+          echo "- Code Quality: ${{ needs.code-quality.result }}\n" >> pr-approval.md
+          echo "- Unit Tests: ${{ needs.unit-tests.result }}\n" >> pr-approval.md
+          echo "- Integration Tests: ${{ needs.integration-tests.result }}\n" >> pr-approval.md
+          echo "- Security Scan: ${{ needs.security-scan.result }}\n" >> pr-approval.md
+          echo "- Docker Build: ${{ needs.build-docker.result }}\n" >> pr-approval.md
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo, number } = context.issue;
+            const fs = require('fs');
+            const approvalMessage = fs.readFileSync('./pr-approval.md', 'utf8');
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: number,
+              body: approvalMessage,
+            });
+
+  notify:
+    name: Notifications
+    runs-on: ubuntu-latest
+    needs: [quality-gate-decision, publish-branch, deploy-dev, pr-approval]
+    if: always()
+
+    steps:
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "CI/CD pipeline failed. Check the logs for details."
+
+      - name: Notify on success
+        if: success()
+        run: |
+          echo "CI/CD pipeline completed successfully."
+
+      - name: Upload pipeline summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-summary
+          path: .github/workflows/ci.yml
+          retention-days: 7

@@ -1,0 +1,203 @@
+name: Pull Request Review Environment
+
+# Pull Request Review Environment Automation
+# This workflow creates temporary review environments for pull requests to
+# facilitate testing and review. It builds a review image, deploys it, and
+# provides a preview URL for team members to test changes.
+
+# Triggers:
+# - Pull request opened
+# - Pull request synchronized (new commits pushed)
+# - Pull request reopened
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+env:
+  NODE_VERSION: '22'
+  DOCKER_REGISTRY: ghcr.io
+  IMAGE_NAME: jollyjet-starter
+  REVIEW_ENVIRONMENT: review-${{ github.sha }}
+
+jobs:
+  build-review-image:
+    name: Build Review Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Verify documentation files presence
+        run: |
+          echo "Checking CI/CD documentation files..."
+          ls -la docs/ci-cd/
+
+          if [ ! -f "docs/ci-cd/CI-CD_IMPLEMENTATION_GUIDE.md" ]; then
+            echo "::error::CI-CD_IMPLEMENTATION_GUIDE.md not found"
+            exit 1
+          fi
+
+          if [ ! -f "docs/ci-cd/CI-CD-FILE-STRUCTURE.md" ]; then
+            echo "::error::CI-CD-FILE-STRUCTURE.md not found"
+            exit 1
+          fi
+
+          if [ ! -f "docs/ci-cd/RELEASE-BRANCH-GUIDE.md" ]; then
+            echo "::error::RELEASE-BRANCH-GUIDE.md not found"
+            exit 1
+          fi
+
+          echo "Documentation files are accessible"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build review image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          dockerfile: docker/Dockerfile
+          push: false
+          tags: ${{ env.REVIEW_ENVIRONMENT }}
+          labels: |
+            org.opencontainers.image.source=${{ github.event.pull_request.head.repo.html_url }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ github.event.pull_request.created_at }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: review-build-artifacts
+          path: |
+            docker/Dockerfile
+            docker/docker-compose.yml
+          retention-days: 3
+
+  deploy-review-environment:
+    name: Deploy Review Environment
+    runs-on: ubuntu-latest
+    needs: build-review-image
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Setup Docker Compose
+        uses: docker/setup-compose-action@v2
+
+      - name: Deploy review environment
+        run: |
+          docker run -d -p 3000:3000 ${{ env.REVIEW_ENVIRONMENT }}
+          sleep 30
+
+      - name: Health check
+        run: |
+          curl -f http://localhost:3000/health
+
+      - name: Generate preview URL
+        run: |
+          REVIEW_URL="http://localhost:3000"
+          echo "::set-output name=preview_url::$REVIEW_URL"
+
+      - name: Show deployment status
+        run: |
+          echo "🚀 Review environment deployed successfully!"
+          echo "📊 Services status:"
+          docker ps -a
+
+      - name: Show logs
+        run: |
+          echo "📝 Recent logs:"
+          docker logs $(docker ps -q --filter ancestor=${{ env.REVIEW_ENVIRONMENT }})
+
+      - name: Save review artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: review-deployment-artifacts
+          path: |
+            review-deployment.log
+            preview-url.txt
+          retention-days: 3
+
+  comment-preview-url:
+    name: Comment Preview URL
+    runs-on: ubuntu-latest
+    needs: deploy-review-environment
+
+    steps:
+      - name: Get preview URL
+        uses: actions/download-artifact@v4
+        with:
+          name: review-deployment-artifacts
+          path: artifacts
+
+      - name: Read preview URL
+        id: preview
+        run: |
+          PREVIEW_URL=$(cat artifacts/preview-url.txt)
+          echo "preview_url=$PREVIEW_URL" >> $GITHUB_OUTPUT
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { preview_url } = ${{ toJSON(steps.preview.outputs) }};
+            const { owner, repo, number } = context.issue;
+
+            const body = `## Review Environment Deployed\n\n` +
+                        `🚀 **Preview URL:** ${preview_url}\n\n` +
+                        `📝 **Commit:** ${context.sha.substring(0, 7)}\n` +
+                        `👥 **Author:** ${context.actor}\n\n` +
+                        `### Quick Actions\n\n` +
+                        `- [ ] Review the changes\n` +
+                        `- [ ] Test the preview\n` +
+                        `- [ ] Approve if ready\n` +
+                        `- [ ] Request changes if needed\n\n` +
+                        `---\n\n` +
+                        `*This environment will be automatically cleaned up after 3 days or when the PR is closed.*`;
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: number,
+              body,
+            });
+
+  cleanup-review-environment:
+    name: Cleanup Review Environment
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && (github.event.action == 'closed' || github.event.action == 'synchronize')
+
+    steps:
+      - name: Cleanup Docker resources
+        run: |
+          echo "🧹 Cleaning up review environment..."
+          docker stop $(docker ps -q --filter ancestor=${{ env.REVIEW_ENVIRONMENT }}) && docker rm $(docker ps -aq --filter ancestor=${{ env.REVIEW_ENVIRONMENT }})
+          docker rmi ${{ env.REVIEW_ENVIRONMENT }} || true
+
+      - name: Cleanup artifacts
+        uses: actions/delete-artifact@v4
+        with:
+          name: review-deployment-artifacts
+
+      - name: Comment cleanup
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo, number } = context.issue;
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: number,
+              body: '## Review Environment Cleaned Up\n\n' +
+                    '🧹 The review environment has been automatically cleaned up.\n\n' +
+                    '' +
+                    'This cleanup was triggered because the PR was closed or synchronized.\n',
+            });

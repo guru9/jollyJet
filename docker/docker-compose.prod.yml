@@ -1,0 +1,68 @@
+# JollyJet - Production Region Docker Configuration
+# This file is used for production deployment.
+# It connects to cloud services using .env.production.
+# Optimized for production with security hardening and resource limits.
+
+# Version: 3.8
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: production
+      args:
+        NODE_ENV: production
+    image: jollyjet-api:latest
+    container_name: jollyjet-api-prod
+    restart: always
+    ports:
+      - '${PORT:-3000}:3000'
+    env_file:
+      - .env.production
+    environment:
+      - NODE_ENV=production
+      - PORT=${PORT:-3000}
+      - LOG_LEVEL=info
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '5'
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+      - read-only:false
+    read_only: true
+    tmpfs:
+      - /tmp
+    user: '1001:1001'
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+
+networks:
+  default:
+    name: jollyjet-prod-network
+    driver: overlay
+    attachable: true

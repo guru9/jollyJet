@@ -1,0 +1,64 @@
+# Branch Protection Configuration for JollyJet
+
+# Main Branch Protection
+main:
+  required_status_checks:
+    strict: true
+    contexts:
+      - CI/CD Pipeline (ci.yml)
+      - Security Scan (security-scan.yml)
+      - Code Quality (code-quality.yml)
+      - Release Branch Validation (release-branch-validation.yml)
+  required_pull_request_reviews:
+    required_approving_review_count: 2
+    dismiss_stale_reviews: true
+    require_code_owner_reviews: true
+    dismissal_restrictions:
+      users: []
+      teams: []
+  restrictions:
+    branches: [] # Allow any branch to open PRs to main
+    users:
+      - release-managers # Only release managers can merge
+  enforce_admins: true
+  allow_deletions: false
+  allow_force_pushes: false
+
+# Release Branch Protection
+'release/v[0-9]+.[0-9]+.[0-9]+':
+  required_status_checks:
+    strict: true
+    contexts:
+      - CI/CD Pipeline (ci.yml)
+      - Security Scan (security-scan.yml)
+      - Code Quality (code-quality.yml)
+  required_pull_request_reviews:
+    required_approving_review_count: 1
+    dismiss_stale_reviews: true
+    require_code_owner_reviews: true
+  restrictions:
+    branches: [] # Allow any branch to open PRs to release branches
+    users:
+      - developers # All developers can merge to release branches
+  enforce_admins: true
+  allow_deletions: false
+  allow_force_pushes: false
+
+# Develop Branch Protection
+develop:
+  required_status_checks:
+    strict: true
+    contexts:
+      - CI/CD Pipeline (ci.yml)
+      - Security Scan (security-scan.yml)
+      - Code Quality (code-quality.yml)
+  required_pull_request_reviews:
+    required_approving_review_count: 1
+    dismiss_stale_reviews: true
+  restrictions:
+    branches: [] # Allow any branch to open PRs to develop
+    users:
+      - developers # All developers can merge to develop
+  enforce_admins: true
+  allow_deletions: false
+  allow_force_pushes: false

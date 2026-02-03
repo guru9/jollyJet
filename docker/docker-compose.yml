@@ -1,0 +1,42 @@
+# JollyJet - Base Docker Configuration
+# Use this to run the application in a container.
+# It connects to cloud-hosted MongoDB (Atlas) and Redis (Upstash) as configured in your .env file.
+# This configuration is suitable for local development with cloud services.
+
+# Version: 3.8 (compatible with Docker Engine 18.06.0+)
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: jollyjet-api:latest
+    container_name: jollyjet-api
+    restart: unless-stopped
+    ports:
+      - '${PORT:-3000}:3000'
+    env_file:
+      - .env
+    # No depends_on needed for cloud databases (app handles reconnection)
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=${PORT:-3000}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    security_opt:
+      - no-new-privileges:true
+    user: '1001:1001'
+
+networks:
+  default:
+    name: jollyjet-network

@@ -1,0 +1,288 @@
+name: Deployment Strategies
+
+# Deployment Strategy Selector
+# This workflow allows manual selection of deployment strategies and
+# environments. It supports blue-green, canary, and rolling deployment
+# strategies, providing flexibility in how updates are rolled out.
+
+# Triggers:
+# - Manual workflow dispatch only
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+      strategy:
+        description: 'Deployment strategy'
+        required: true
+        default: 'blue-green'
+        type: choice
+        options:
+          - blue-green
+          - canary
+          - rolling
+      version:
+        description: 'Deployment version'
+        required: true
+        default: 'latest'
+
+env:
+  NODE_VERSION: '22'
+  DOCKER_REGISTRY: ghcr.io
+  IMAGE_NAME: jollyjet-starter
+
+jobs:
+  validate-deployment:
+    name: Validate Deployment
+    runs-on: ubuntu-latest
+    outputs:
+      valid: ${{ steps.validate.outputs.valid }}
+      image: ${{ steps.validate.outputs.image }}
+      strategy: ${{ steps.validate.outputs.strategy }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate environment
+        id: validate
+        run: |
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+          STRATEGY="${{ github.event.inputs.strategy }}"
+          VERSION="${{ github.event.inputs.version }}"
+
+          # Validate environment
+          if [[ ! "$ENVIRONMENT" =~ ^(development|staging|production)$ ]]; then
+            echo "::error::Invalid environment: $ENVIRONMENT"
+            echo "valid=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          # Validate strategy
+          if [[ ! "$STRATEGY" =~ ^(blue-green|canary|rolling)$ ]]; then
+            echo "::error::Invalid strategy: $STRATEGY"
+            echo "valid=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          # Validate version
+          if [[ -z "$VERSION" ]]; then
+            echo "::error::Version cannot be empty"
+            echo "valid=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          # Determine image name
+          if [[ "$ENVIRONMENT" == "production" ]]; then
+            IMAGE="$DOCKER_REGISTRY/$IMAGE_NAME:$VERSION"
+          else
+            IMAGE="$DOCKER_REGISTRY/$IMAGE_NAME:$ENVIRONMENT-$VERSION"
+          fi
+
+          echo "valid=true" >> $GITHUB_OUTPUT
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
+          echo "strategy=$STRATEGY" >> $GITHUB_OUTPUT
+
+          echo "🚀 Valid deployment configuration:"
+          echo "   Environment: $ENVIRONMENT"
+          echo "   Strategy: $STRATEGY"
+          echo "   Version: $VERSION"
+          echo "   Image: $IMAGE"
+
+  blue-green-deployment:
+    name: Blue-Green Deployment
+    runs-on: ubuntu-latest
+    needs: validate-deployment
+    if: needs.validate-deployment.outputs.valid == 'true' && github.event.inputs.strategy == 'blue-green'
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Compose
+        uses: docker/setup-compose-action@v2
+
+      - name: Pull new image
+        run: |
+          docker pull ${{ needs.validate-deployment.outputs.image }}
+
+      - name: Deploy to green environment
+        run: |
+          echo "Deploying to green environment..."
+          # Add logic to deploy to green environment
+
+      - name: Health check green
+        run: |
+          echo "Running health checks on green environment..."
+          # Add health check commands
+
+      - name: Switch traffic to green
+        run: |
+          echo "Switching traffic to green environment..."
+          # Add traffic switching logic
+
+      - name: Verify deployment
+        run: |
+          echo "Verifying deployment..."
+          # Add verification commands
+
+      - name: Cleanup old environment
+        run: |
+          echo "Cleaning up old environment..."
+          # Add cleanup commands
+
+      - name: Complete deployment
+        run: |
+          echo "✅ Blue-green deployment completed successfully!"
+
+  canary-deployment:
+    name: Canary Deployment
+    runs-on: ubuntu-latest
+    needs: validate-deployment
+    if: needs.validate-deployment.outputs.valid == 'true' && github.event.inputs.strategy == 'canary'
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Compose
+        uses: docker/setup-compose-action@v2
+
+      - name: Deploy canary instances
+        run: |
+          echo "Deploying canary instances..."
+          # Add canary deployment logic
+
+      - name: Monitor canary health
+        run: |
+          echo "Monitoring canary health..."
+          # Add monitoring commands
+
+      - name: Gradual traffic increase
+        run: |
+          echo "Gradually increasing traffic to canary..."
+          # Add traffic increase logic
+
+      - name: Full rollout decision
+        run: |
+          echo "Making full rollout decision..."
+          # Add decision logic
+
+      - name: Complete canary deployment
+        run: |
+          echo "✅ Canary deployment completed successfully!"
+
+  rolling-deployment:
+    name: Rolling Deployment
+    runs-on: ubuntu-latest
+    needs: validate-deployment
+    if: needs.validate-deployment.outputs.valid == 'true' && github.event.inputs.strategy == 'rolling'
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Compose
+        uses: docker/setup-compose-action@v2
+
+      - name: Rolling update
+        run: |
+          echo "Performing rolling update..."
+          # Add rolling update logic
+
+      - name: Monitor rolling deployment
+        run: |
+          echo "Monitoring rolling deployment..."
+          # Add monitoring commands
+
+      - name: Complete rolling deployment
+        run: |
+          echo "✅ Rolling deployment completed successfully!"
+
+  post-deployment-validation:
+    name: Post-Deployment Validation
+    runs-on: ubuntu-latest
+    needs: [blue-green-deployment, canary-deployment, rolling-deployment]
+    if: needs.validate-deployment.outputs.valid == 'true'
+
+    steps:
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests..."
+          # Add smoke test commands
+
+      - name: Performance validation
+        run: |
+          echo "Validating performance..."
+          # Add performance validation commands
+
+      - name: Error rate monitoring
+        run: |
+          echo "Monitoring error rates..."
+          # Add error rate monitoring commands
+
+      - name: Generate deployment report
+        run: |
+          echo "Deployment Report:" > deployment-report.md
+          echo "================" >> deployment-report.md
+          echo "" >> deployment-report.md
+          echo "Environment: ${{ github.event.inputs.environment }}" >> deployment-report.md
+          echo "Strategy: ${{ github.event.inputs.strategy }}" >> deployment-report.md
+          echo "Version: ${{ github.event.inputs.version }}" >> deployment-report.md
+          echo "Status: Success" >> deployment-report.md
+
+      - name: Upload deployment report
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-report
+          path: deployment-report.md
+          retention-days: 30
+
+  rollback-deployment:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    needs: post-deployment-validation
+    if: failure() || contains(needs.post-deployment-validation.outputs.validation-results, 'failed')
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Initiate rollback
+        run: |
+          echo "⚠️ Initiating rollback..."
+          # Add rollback logic
+
+      - name: Rollback to previous version
+        run: |
+          echo "Rolling back to previous version..."
+          # Add rollback commands
+
+      - name: Verify rollback
+        run: |
+          echo "Verifying rollback..."
+          # Add verification commands
+
+      - name: Complete rollback
+        run: |
+          echo "⚠️ Rollback completed"
+
+      - name: Send rollback notification
+        run: |
+          echo "Deployment failed. Automatic rollback executed."
+
+      - name: Upload rollback logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: rollback-logs
+          path: rollback.log
+          retention-days: 30

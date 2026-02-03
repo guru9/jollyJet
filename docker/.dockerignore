@@ -1,0 +1,83 @@
+# JollyJet .dockerignore
+
+# Dependencies
+node_modules/
+npm-debug.log
+
+# Build outputs
+dist/
+build/
+
+# IDE and editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+*.log
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+.dockerignore
+
+# Documentation
+README.md
+docs/
+*.md
+
+# Git
+.git/
+.gitignore
+.github/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Docker files (we'll handle these separately)
+Dockerfile
+docker-compose*.yml
+.docker/
+
+# CI/CD
+.github/workflows/*.yml
+!docker-compose*.yml
+
+# Editor and IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Package files
+package-lock.json
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test
+/coverage/
+
+# Misc
+*.pem

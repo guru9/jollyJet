@@ -1,0 +1,120 @@
+name: Deploy to Development
+
+# Development Environment Deployment Pipeline
+# This workflow automates the deployment of the JollyJet application to the
+# development environment. It ensures a smooth and reliable deployment process
+# with health checks and rollback capabilities.
+
+# Triggers:
+# - Push to main or develop branches
+# - Manual workflow dispatch
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '22'
+  DOCKER_REGISTRY: ghcr.io
+  IMAGE_NAME: jollyjet-starter
+  ENVIRONMENT: development
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy-dev:
+    name: Deploy to Development Environment
+    runs-on: ubuntu-latest
+    environment: development
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Compose
+        uses: docker/setup-compose-action@v2
+
+      - name: Pull latest images
+        run: |
+          docker compose -f docker/docker-compose.dev.yml pull
+
+      - name: Deploy development environment
+        run: |
+          docker compose -f docker/docker-compose.dev.yml up -d
+
+      - name: Wait for services to be ready
+        run: |
+          sleep 30
+
+      - name: Health check
+        run: |
+          curl -f http://localhost:3000/health
+
+      - name: Verify environment variables
+        run: |
+          docker compose -f docker/docker-compose.dev.yml exec -T jollyjet-starter env | grep -E "(NODE_ENV|PORT|LOG_LEVEL|MONGODB_URI|REDIS_URL)"
+
+      - name: Show deployment status
+        run: |
+          echo "🚀 Development environment deployed successfully!"
+          echo "📊 Services status:"
+          docker compose -f docker/docker-compose.dev.yml ps
+
+      - name: Show logs
+        run: |
+          echo "📝 Recent logs:"
+          docker compose -f docker/docker-compose.dev.yml logs --tail=50
+
+      - name: Save deployment artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dev-deployment-artifacts
+          path: |
+            docker/docker-compose.dev.yml
+            .env.development
+          retention-days: 7
+
+  rollback-dev:
+    name: Rollback Development
+    runs-on: ubuntu-latest
+    environment: development
+    if: failure()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Compose
+        uses: docker/setup-compose-action@v2
+
+      - name: Rollback to previous version
+        run: |
+          docker compose -f docker/docker-compose.dev.yml down
+          docker compose -f docker/docker-compose.dev.yml pull previous
+          docker compose -f docker/docker-compose.dev.yml up -d previous
+
+      - name: Verify rollback
+        run: |
+          sleep 30
+          curl -f http://localhost:3000/health
+
+      - name: Show rollback status
+        run: |
+          echo "⚠️ Development environment rollback completed"
+          docker compose -f docker/docker-compose.dev.yml ps
+
+      - name: Send rollback notification
+        run: |
+          echo "Development deployment failed. Automatic rollback executed."
+
+      - name: Upload rollback logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: rollback-logs
+          path: rollback.log
+          retention-days: 7

@@ -1,0 +1,268 @@
+name: Release Version Bump and Tag
+
+# Release management workflow for JollyJet e-commerce platform
+# This workflow automatically bumps the version based on commit messages
+# following Conventional Commits and creates GitHub releases with tags
+
+on:
+  push:
+    branches: [main, 'release/v[0-9]+.[0-9]+.[0-9]+']
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run release on'
+        required: true
+        default: 'main'
+        type: string
+      force_bump:
+        description: 'Force version bump type (major/minor/patch/none)'
+        required: false
+        default: 'none'
+        type: choice
+        options:
+          - none
+          - patch
+          - minor
+          - major
+      release_notes:
+        description: 'Custom release notes'
+        required: false
+        type: string
+
+env:
+  NODE_VERSION: '22'
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  determine-version-bump:
+    name: Determine Version Bump
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref_name }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Analyze commits for version bump
+        id: version-analysis
+        run: |
+          # Check if manual force bump is specified
+          FORCE_BUMP="${{ github.event.inputs.force_bump }}"
+          if [ "$FORCE_BUMP" != "none" ]; then
+            echo "Using manual force bump: $FORCE_BUMP"
+          fi
+
+          # Get latest tag from current branch
+          if git rev-parse --verify --quiet v1.0.0 2>/dev/null; then
+            LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          else
+            LATEST_TAG="v0.0.0"
+          fi
+
+          # Extract current version without v prefix
+          CURRENT_VERSION=$(echo "$LATEST_TAG" | sed 's/^v//')
+          echo "Current version: $CURRENT_VERSION"
+
+          # Get commit messages since last tag
+          if [ "$LATEST_TAG" = "v0.0.0" ]; then
+            COMMIT_MESSAGES=$(git log --format=%B --no-merges)
+          else
+            COMMIT_MESSAGES=$(git log $LATEST_TAG..HEAD --format=%B --no-merges)
+          fi
+
+          echo "Commit messages since last tag:"
+          echo "$COMMIT_MESSAGES"
+
+          # Determine bump type
+          if [ "$FORCE_BUMP" != "none" ]; then
+            BUMP_TYPE="$FORCE_BUMP"
+            echo "Using manual bump type: $BUMP_TYPE"
+          else
+            # Determine bump type based on commit messages
+            if echo "$COMMIT_MESSAGES" | grep -E "(BREAKING CHANGE|!:)"; then
+              BUMP_TYPE="major"
+            elif echo "$COMMIT_MESSAGES" | grep -E "(feat|feature|FEAT|FEATURE)"; then
+              BUMP_TYPE="minor"
+            elif echo "$COMMIT_MESSAGES" | grep -E "(fix|bug|BUG|fixes|bugfix|BUGFIX)"; then
+              BUMP_TYPE="patch"
+            else
+              BUMP_TYPE="none"
+            fi
+          fi
+
+          echo "Bump type: $BUMP_TYPE"
+          echo "::set-output name=bump_type::$BUMP_TYPE"
+          echo "::set-output name=current_version::$CURRENT_VERSION"
+
+      - name: Calculate new version
+        id: calculate-version
+        run: |
+          CURRENT_VERSION=${{ steps.version-analysis.outputs.current_version }}
+          BUMP_TYPE=${{ steps.version-analysis.outputs.bump_type }}
+
+          if [ "$BUMP_TYPE" = "none" ]; then
+            echo "No version bump needed"
+            echo "::set-output name=new_version::$CURRENT_VERSION"
+            echo "::set-output name=should_release::false"
+            exit 0
+          fi
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+
+          case $BUMP_TYPE in
+            major)
+              NEW_VERSION="$((MAJOR+1)).0.0"
+              ;;
+            minor)
+              NEW_VERSION="$MAJOR.$((MINOR+1)).0"
+              ;;
+            patch)
+              NEW_VERSION="$MAJOR.$MINOR.$((PATCH+1))"
+              ;;
+          esac
+
+          echo "New version: $NEW_VERSION"
+          echo "::set-output name=new_version::$NEW_VERSION"
+          echo "::set-output name=should_release::true"
+
+      - name: Create version bump artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: version-info
+          path: |
+            version-info.json
+          retention-days: 1
+
+  create-github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: determine-version-bump
+    if: needs.determine-version-bump.outputs.should_release == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Download version info artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: version-info
+
+      - name: Get version info
+        id: get-version
+        run: |
+          NEW_VERSION=${{ needs.determine-version-bump.outputs.new_version }}
+          BUMP_TYPE=${{ needs.determine-version-bump.outputs.bump_type }}
+          echo "::set-output name=new_version::$NEW_VERSION"
+          echo "::set-output name=bump_type::$BUMP_TYPE"
+
+      - name: Create changelog from commits
+        id: create-changelog
+        run: |
+          NEW_VERSION=${{ steps.get-version.outputs.new_version }}
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          CUSTOM_NOTES="${{ github.event.inputs.release_notes }}"
+
+          # Get commits since last tag
+          if [ "$LATEST_TAG" = "v0.0.0" ]; then
+            COMMITS=$(git log --oneline --no-merges)
+          else
+            COMMITS=$(git log $LATEST_TAG..HEAD --oneline --no-merges)
+          fi
+
+          # Create changelog
+          cat > CHANGELOG.md <<EOF
+          # JollyJet Release v$NEW_VERSION
+
+          ## Release Information
+          - Version: v$NEW_VERSION
+          - Date: $(date -u +"%Y-%m-%d %H:%M:%S") UTC
+          - Type: ${{ steps.get-version.outputs.bump_type }} release
+
+          $(if [ -n "$CUSTOM_NOTES" ]; then echo -e "\n## Custom Release Notes\n$CUSTOM_NOTES"; fi)
+
+          ## Changes
+          $COMMITS
+
+          ## Detailed Commits
+          $(git log --stat $LATEST_TAG..HEAD)
+          EOF
+
+          echo "Changelog created successfully"
+          echo "::set-output name=changelog_path::CHANGELOG.md"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.get-version.outputs.new_version }}
+          name: Release v${{ steps.get-version.outputs.new_version }}
+          body_path: ${{ steps.create-changelog.outputs.changelog_path }}
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+
+      - name: Publish to npm
+        run: |
+          npm config set registry https://registry.npmjs.org/
+          npm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
+          npm version ${{ steps.get-version.outputs.new_version }} --no-git-tag-version
+          npm publish --access public
+
+      - name: Clean up temporary files
+        run: |
+          rm -f CHANGELOG.md
+          rm -f version-info.json
+
+  notify:
+    name: Release Notifications
+    runs-on: ubuntu-latest
+    needs: [determine-version-bump, create-github-release]
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Notify on release success
+        if: needs.create-github-release.result == 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo
+            const version = 'v${{ needs.determine-version-bump.outputs.new_version }}'
+            const bumpType = '${{ needs.determine-version-bump.outputs.bump_type }}'
+
+            console.log(`🎉 Release ${version} published successfully!`)
+            console.log(`📦 Type: ${bumpType} release`)
+            console.log(`🔗 Release URL: https://github.com/${owner}/${repo}/releases/tag/${version}`)
+
+      - name: Notify on release failure
+        if: needs.create-github-release.result == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            console.error('❌ Release failed! Check the logs for details')

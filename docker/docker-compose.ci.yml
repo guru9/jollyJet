@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  jollyjet-ci:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: runtime
+      args:
+        NODE_ENV: ci
+    container_name: jollyjet-ci
+    environment:
+      - NODE_ENV=ci
+      - PORT=3000
+      - LOG_LEVEL=info
+      - MONGODB_URI=mongodb://mongo:27017/jollyjet-ci
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - '3000:3000'
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - jollyjet-ci-network
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+  mongo:
+    image: mongo:6.0
+    container_name: jollyjet-mongo-ci
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_DATABASE=jollyjet-ci
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-ci-data:/data/db
+    networks:
+      - jollyjet-ci-network
+    healthcheck:
+      test: ['CMD', 'mongo', '--eval', "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  redis:
+    image: redis:7-alpine
+    container_name: jollyjet-redis-ci
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-ci-data:/data
+    networks:
+      - jollyjet-ci-network
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  mongo-ci-data:
+  redis-ci-data:
+
+networks:
+  jollyjet-ci-network:
+    driver: bridge
