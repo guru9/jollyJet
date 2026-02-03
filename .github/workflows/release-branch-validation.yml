@@ -1,3 +1,4 @@
+# phase 8
 name: Release Branch Validation
 
 # Validates that pull requests to main branch are only from release branches
