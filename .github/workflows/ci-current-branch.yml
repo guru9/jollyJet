@@ -24,6 +24,9 @@ env:
   DOCKER_REGISTRY: ghcr.io
   IMAGE_NAME: jollyjet-starter
 
+permissions:
+  security-events: write
+
 jobs:
   # Step 1: Pre-Flight Checks
   # This job determines if the pipeline should proceed based on branch type

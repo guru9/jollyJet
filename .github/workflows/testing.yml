@@ -23,6 +23,9 @@ env:
   TEST_FRAMEWORK: jest
   COVERAGE_THRESHOLD: 80
 
+permissions:
+  security-events: write
+
 jobs:
   # Step 1: Code Quality Gates
   # This job ensures code quality by running ESLint, Prettier, and TypeScript compilation
