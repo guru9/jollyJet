@@ -1,3 +1,4 @@
+#phase 5
 name: Testing and Quality Gates
 
 # Comprehensive Testing Pipeline with Quality Gates
@@ -23,38 +24,48 @@ env:
   COVERAGE_THRESHOLD: 80
 
 jobs:
+  # Step 1: Code Quality Gates
+  # This job ensures code quality by running ESLint, Prettier, and TypeScript compilation
   code-quality-gates:
     name: Code Quality Gates
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1.1: Checkout the repository code to the runner
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Step 1.2: Setup Node.js environment with specified version and cache dependencies
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      # Step 1.3: Install project dependencies using npm ci for consistency
       - name: Install dependencies
         run: npm ci
 
+      # Step 1.4: Run ESLint to find and fix code quality issues
       - name: Run ESLint with custom rules
         run: |
           npx eslint . --ext .ts,.js --max-warnings=0 --no-error-on-unmatched-pattern
 
+      # Step 1.5: Check if code follows Prettier formatting rules
       - name: Check Prettier formatting
         run: |
           npx prettier --check "./{src,tests}/**/*.{ts,js,json}" --no-error-on-unmatched-pattern
 
+      # Step 1.6: Verify TypeScript compilation to catch type errors
       - name: TypeScript compilation check
         run: |
           npx tsc --noEmit --skipLibCheck
 
+      # Step 1.7: Run GitHub CodeQL analysis for security vulnerabilities
       - name: Security code scan
         uses: github/codeql-action/analyze@v2
 
+      # Step 1.8: Upload quality gate results if any checks fail
       - name: Upload quality gate results
         uses: actions/upload-artifact@v4
         if: failure()
@@ -66,6 +77,8 @@ jobs:
             tsc.log
           retention-days: 7
 
+  # Step 2: Unit Tests (Matrix)
+  # This job runs unit and integration tests using a test matrix
   unit-tests-matrix:
     name: Unit Tests (Matrix)
     runs-on: ubuntu-latest
@@ -76,18 +89,22 @@ jobs:
         test-type: [unit, integration]
 
     steps:
+      # Step 2.1: Checkout the repository code to the runner
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Step 2.2: Setup Node.js environment for each matrix combination
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
+      # Step 2.3: Install project dependencies for each test run
       - name: Install dependencies
         run: npm ci
 
+      # Step 2.4: Run the appropriate tests based on matrix configuration
       - name: Run ${{ matrix.test-type }} tests
         run: |
           if [ "${{ matrix.test-type }}" = "unit" ]; then
@@ -100,6 +117,7 @@ jobs:
           MONGODB_URI: mongodb://localhost:27017/jollyjet-test
           REDIS_URL: redis://localhost:6379
 
+      # Step 2.5: Upload test results if tests fail
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: failure()
@@ -108,6 +126,8 @@ jobs:
           path: junit.xml
           retention-days: 7
 
+  # Step 3: Integration Tests with Services
+  # This job runs integration tests that require MongoDB and Redis services
   integration-tests-services:
     name: Integration Tests with Services
     runs-on: ubuntu-latest
@@ -125,18 +145,22 @@ jobs:
         options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=5
 
     steps:
+      # Step 3.1: Checkout the repository code to the runner
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Step 3.2: Setup Node.js environment with specified version and cache dependencies
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      # Step 3.3: Install project dependencies using npm ci for consistency
       - name: Install dependencies
         run: npm ci
 
+      # Step 3.4: Run integration tests with test database and cache services
       - name: Run integration tests
         run: npm run test:integration
         env:
@@ -144,6 +168,7 @@ jobs:
           MONGODB_URI: mongodb://localhost:27017/jollyjet-test
           REDIS_URL: redis://localhost:6379
 
+      # Step 3.5: Upload integration test results if tests fail
       - name: Upload integration test results
         uses: actions/upload-artifact@v4
         if: failure()
@@ -152,35 +177,43 @@ jobs:
           path: integration-test-results.xml
           retention-days: 7
 
+  # Step 4: End-to-End Tests
+  # This job runs E2E tests using Docker Compose test environment
   e2e-tests:
     name: End-to-End Tests
     runs-on: ubuntu-latest
     needs: integration-tests-services
 
     steps:
+      # Step 4.1: Checkout the repository code to the runner
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Step 4.2: Setup Node.js environment with specified version and cache dependencies
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      # Step 4.3: Install project dependencies using npm ci for consistency
       - name: Install dependencies
         run: npm ci
 
+      # Step 4.4: Setup the test environment using Docker Compose
       - name: Setup test environment
         run: |
           docker compose -f docker/docker-compose.e2e.yml up -d
           sleep 30
 
+      # Step 4.5: Run E2E tests against the running test environment
       - name: Run E2E tests
         run: npm run test:e2e
         env:
           NODE_ENV: test
           API_BASE_URL: http://localhost:3000
 
+      # Step 4.6: Upload E2E test results if tests fail
       - name: Upload E2E test results
         uses: actions/upload-artifact@v4
         if: failure()
@@ -189,35 +222,43 @@ jobs:
           path: e2e-test-results.xml
           retention-days: 7
 
+  # Step 5: Performance Tests
+  # This job runs performance tests to measure application performance
   performance-tests:
     name: Performance Tests
     runs-on: ubuntu-latest
     needs: e2e-tests
 
     steps:
+      # Step 5.1: Checkout the repository code to the runner
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Step 5.2: Setup Node.js environment with specified version and cache dependencies
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      # Step 5.3: Install project dependencies using npm ci for consistency
       - name: Install dependencies
         run: npm ci
 
+      # Step 5.4: Setup performance test environment
       - name: Setup performance test environment
         run: |
           docker compose -f docker/docker-compose.performance.yml up -d
           sleep 60
 
+      # Step 5.5: Run performance tests
       - name: Run performance tests
         run: npm run test:performance
         env:
           NODE_ENV: test
           API_BASE_URL: http://localhost:3000
 
+      # Step 5.6: Upload performance results
       - name: Upload performance results
         uses: actions/upload-artifact@v4
         with:
@@ -225,29 +266,36 @@ jobs:
           path: performance-results.json
           retention-days: 7
 
+  # Step 6: Coverage Reporting
+  # This job generates coverage report and checks coverage thresholds
   coverage-reporting:
     name: Coverage Reporting
     runs-on: ubuntu-latest
     needs: [unit-tests-matrix, integration-tests-services, e2e-tests]
 
     steps:
+      # Step 6.1: Checkout the repository code to the runner
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Step 6.2: Setup Node.js environment with specified version and cache dependencies
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      # Step 6.3: Install project dependencies using npm ci for consistency
       - name: Install dependencies
         run: npm ci
 
+      # Step 6.4: Generate coverage report
       - name: Generate coverage report
         run: npm run test:coverage
         env:
           NODE_ENV: test
 
+      # Step 6.5: Upload coverage report
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
@@ -255,6 +303,7 @@ jobs:
           path: coverage/
           retention-days: 30
 
+      # Step 6.6: Check coverage against thresholds
       - name: Check coverage thresholds
         run: |
           COVERAGE=$(npx jest --coverage --coverageReporters=json | grep -o '"global":{"branches":[0-9.]*' | grep -o '[0-9.]*$')
@@ -265,15 +314,19 @@ jobs:
           fi
           echo "Coverage ($COVERAGE%) meets threshold ($THRESHOLD%)"
 
+  # Step 7: Security Testing
+  # This job runs security tests including Snyk, OWASP ZAP, and npm audit
   security-testing:
     name: Security Testing
     runs-on: ubuntu-latest
     needs: coverage-reporting
 
     steps:
+      # Step 7.1: Checkout the repository code to the runner
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Step 7.2: Run Snyk security test to find vulnerabilities
       - name: Run Snyk security test
         uses: snyk/actions/node@master
         env:
@@ -281,16 +334,19 @@ jobs:
         with:
           args: --severity-threshold=high
 
+      # Step 7.3: Run OWASP ZAP baseline scan for security vulnerabilities
       - name: Run OWASP ZAP baseline scan
         uses: zaproxy/action-baseline@v0.10.0
         with:
           target: 'http://localhost:3000'
           rules_file_name: '.zap/rules.tsv'
 
+      # Step 7.4: Run npm audit to check for vulnerable dependencies
       - name: Run dependency vulnerability scan
         run: |
           npm audit --audit-level=moderate
 
+      # Step 7.5: Upload security scan results if any security issues are found
       - name: Upload security scan results
         uses: actions/upload-artifact@v4
         if: failure()
@@ -299,30 +355,37 @@ jobs:
           path: security-scan-results.json
           retention-days: 30
 
+  # Step 8: Accessibility Testing
+  # This job runs accessibility tests to ensure the application is accessible
   accessibility-testing:
     name: Accessibility Testing
     runs-on: ubuntu-latest
     needs: security-testing
 
     steps:
+      # Step 8.1: Checkout the repository code to the runner
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Step 8.2: Setup Node.js environment with specified version and cache dependencies
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      # Step 8.3: Install project dependencies using npm ci for consistency
       - name: Install dependencies
         run: npm ci
 
+      # Step 8.4: Run accessibility tests
       - name: Run accessibility tests
         run: npm run test:accessibility
         env:
           NODE_ENV: test
           API_BASE_URL: http://localhost:3000
 
+      # Step 8.5: Upload accessibility test results
       - name: Upload accessibility results
         uses: actions/upload-artifact@v4
         with:
@@ -330,6 +393,8 @@ jobs:
           path: accessibility-results.json
           retention-days: 30
 
+  # Step 9: Quality Gate Decision
+  # This job decides if the quality gates have been passed or failed
   quality-gate-decision:
     name: Quality Gate Decision
     runs-on: ubuntu-latest
@@ -345,6 +410,7 @@ jobs:
       ]
 
     steps:
+      # Step 9.1: Check the status of all quality gate jobs
       - name: Check quality gate status
         run: |
           # Check if any previous jobs failed
@@ -360,6 +426,7 @@ jobs:
           fi
           echo "Quality gates passed"
 
+      # Step 9.2: Generate a quality report summarizing all results
       - name: Generate quality report
         run: |
           echo "Quality Report:" > quality-report.md
@@ -373,6 +440,7 @@ jobs:
           echo "Security: ${{ needs.security-testing.result }}" >> quality-report.md
           echo "Accessibility: ${{ needs.accessibility-testing.result }}" >> quality-report.md
 
+      # Step 9.3: Upload the quality report
       - name: Upload quality report
         uses: actions/upload-artifact@v4
         with:
