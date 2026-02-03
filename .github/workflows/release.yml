@@ -1,3 +1,4 @@
+#phase 7
 name: Release Version Bump and Tag
 
 # Release management workflow for JollyJet e-commerce platform
@@ -39,6 +40,9 @@ permissions:
   packages: write
 
 jobs:
+  # Determine Version Bump
+  # This job analyzes commit messages to determine the appropriate version bump
+  # based on Conventional Commits or manual override
   determine-version-bump:
     name: Determine Version Bump
     runs-on: ubuntu-latest
@@ -49,15 +53,18 @@ jobs:
         with:
           ref: ${{ github.event.inputs.branch || github.ref_name }}
           fetch-depth: 0
+        # Checkout code with full history to analyze commit messages
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+        # Set up Node.js environment
 
       - name: Install dependencies
         run: npm ci
+        # Install dependencies for commit analysis
 
       - name: Analyze commits for version bump
         id: version-analysis
@@ -109,6 +116,7 @@ jobs:
           echo "Bump type: $BUMP_TYPE"
           echo "::set-output name=bump_type::$BUMP_TYPE"
           echo "::set-output name=current_version::$CURRENT_VERSION"
+        # Analyze commit messages to determine version bump type
 
       - name: Calculate new version
         id: calculate-version
@@ -140,6 +148,7 @@ jobs:
           echo "New version: $NEW_VERSION"
           echo "::set-output name=new_version::$NEW_VERSION"
           echo "::set-output name=should_release::true"
+        # Calculate the new version based on bump type
 
       - name: Create version bump artifact
         uses: actions/upload-artifact@v4
@@ -148,7 +157,10 @@ jobs:
           path: |
             version-info.json
           retention-days: 1
+        # Store version information as artifact
 
+  # Create GitHub Release
+  # This job creates a GitHub release with a changelog and tags the repository
   create-github-release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
@@ -160,17 +172,20 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+        # Checkout code with full history to create changelog
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+        # Set up Node.js environment
 
       - name: Download version info artifact
         uses: actions/download-artifact@v4
         with:
           name: version-info
+        # Download version information from previous job
 
       - name: Get version info
         id: get-version
@@ -179,6 +194,7 @@ jobs:
           BUMP_TYPE=${{ needs.determine-version-bump.outputs.bump_type }}
           echo "::set-output name=new_version::$NEW_VERSION"
           echo "::set-output name=bump_type::$BUMP_TYPE"
+        # Extract version information
 
       - name: Create changelog from commits
         id: create-changelog
@@ -214,6 +230,7 @@ jobs:
 
           echo "Changelog created successfully"
           echo "::set-output name=changelog_path::CHANGELOG.md"
+        # Create changelog from commit history
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
@@ -224,6 +241,7 @@ jobs:
           draft: false
           prerelease: false
           generate_release_notes: false
+        # Create GitHub release with tag and changelog
 
       - name: Publish to npm
         run: |
@@ -231,12 +249,16 @@ jobs:
           npm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
           npm version ${{ steps.get-version.outputs.new_version }} --no-git-tag-version
           npm publish --access public
+        # Publish package to npm
 
       - name: Clean up temporary files
         run: |
           rm -f CHANGELOG.md
           rm -f version-info.json
+        # Clean up temporary files
 
+  # Release Notifications
+  # This job sends notifications about the release status
   notify:
     name: Release Notifications
     runs-on: ubuntu-latest
@@ -259,6 +281,7 @@ jobs:
             console.log(`🎉 Release ${version} published successfully!`)
             console.log(`📦 Type: ${bumpType} release`)
             console.log(`🔗 Release URL: https://github.com/${owner}/${repo}/releases/tag/${version}`)
+        # Notify on successful release
 
       - name: Notify on release failure
         if: needs.create-github-release.result == 'failure'
@@ -266,3 +289,4 @@ jobs:
         with:
           script: |
             console.error('❌ Release failed! Check the logs for details')
+        # Notify on release failure

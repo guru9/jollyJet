@@ -8,6 +8,8 @@ on:
     branches: [main]
 
 jobs:
+  # Validate Source Branch
+  # This job validates that PRs to main branch are only from properly formatted release branches
   validate-source-branch:
     name: Validate Source Branch
     runs-on: ubuntu-latest
@@ -15,6 +17,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        # Checkout the PR branch
 
       - name: Validate source branch name
         id: validate-branch
@@ -34,6 +37,7 @@ jobs:
 
           echo "Source branch validation passed"
           echo "::set-output name=is_valid::true"
+        # Validate that the source branch follows release branch naming convention
 
       - name: Extract version from branch name
         id: extract-version
@@ -44,6 +48,7 @@ jobs:
 
           echo "Version extracted: $VERSION"
           echo "::set-output name=version::$VERSION"
+        # Extract version number from branch name
 
       - name: Validate version format
         id: validate-version
@@ -60,6 +65,7 @@ jobs:
 
           echo "Version format validation passed: $VERSION"
           echo "::set-output name=is_valid::true"
+        # Validate version format matches semantic versioning
 
       - name: Check package.json version
         id: check-package-version
@@ -77,6 +83,7 @@ jobs:
           fi
 
           echo "Version check completed"
+        # Verify package.json version matches branch version
 
       - name: Verify release notes exist
         id: check-release-notes
@@ -95,7 +102,10 @@ jobs:
           fi
 
           echo "PR body check completed"
+        # Check if PR body contains release notes
 
+  # Check Commit Messages
+  # This job validates that commits follow Conventional Commits specification
   check-commit-messages:
     name: Check Commit Messages
     runs-on: ubuntu-latest
@@ -107,6 +117,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+        # Checkout code with full history to access commit messages
 
       - name: Get PR commits
         id: get-commits
@@ -125,6 +136,7 @@ jobs:
           cat pr-commits.txt
 
           echo "::set-output name=commit_count::$(git rev-list --count $BASE_SHA..$HEAD_SHA)"
+        # Get all commits in the PR
 
       - name: Validate commit messages
         id: validate-commits
@@ -149,7 +161,10 @@ jobs:
           done < pr-commits.txt
 
           echo "Commit message validation completed"
+        # Validate commit messages against Conventional Commits specification
 
+  # Security Checks
+  # This job runs security scans to identify vulnerabilities in dependencies
   security-checks:
     name: Security Checks
     runs-on: ubuntu-latest
@@ -159,20 +174,24 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        # Checkout the PR branch
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
+        # Set up Node.js environment
 
       - name: Install dependencies
         run: npm ci
+        # Install dependencies for security scanning
 
       - name: Run security audit
         run: |
           echo "Running npm audit..."
           npm audit --audit-level=high
+        # Run npm audit to check for vulnerabilities
 
       - name: Run Snyk security scan
         uses: snyk/actions/node@master
@@ -180,7 +199,10 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --severity-threshold=high
+        # Run Snyk scan to check for vulnerabilities
 
+  # Validate Merge Readiness
+  # This job evaluates all check results to determine if the PR is ready to merge
   validate-merge-readiness:
     name: Validate Merge Readiness
     runs-on: ubuntu-latest
@@ -209,3 +231,4 @@ jobs:
           fi
 
           echo "All checks completed successfully"
+        # Evaluate all check results and determine merge readiness

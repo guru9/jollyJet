@@ -1,3 +1,4 @@
+#phase 2
 name: CI/CD Pipeline for Current Branch
 
 # Branch-Specific CI/CD Pipeline with Quality Gates

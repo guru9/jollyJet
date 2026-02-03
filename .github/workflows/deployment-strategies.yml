@@ -1,3 +1,4 @@
+#phase 6
 name: Deployment Strategies
 
 # Deployment Strategy Selector
@@ -40,6 +41,8 @@ env:
   IMAGE_NAME: jollyjet-starter
 
 jobs:
+  # Validate Deployment Configuration
+  # This job validates the deployment configuration before executing any deployment strategy
   validate-deployment:
     name: Validate Deployment
     runs-on: ubuntu-latest
@@ -51,6 +54,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        # Checkout the repository code to access deployment configurations
 
       - name: Validate environment
         id: validate
@@ -97,6 +101,9 @@ jobs:
           echo "   Version: $VERSION"
           echo "   Image: $IMAGE"
 
+  # Blue-Green Deployment Strategy
+  # This strategy deploys the new version to a "green" environment, verifies it,
+  # then switches traffic from "blue" to "green" for zero-downtime deployment.
   blue-green-deployment:
     name: Blue-Green Deployment
     runs-on: ubuntu-latest
@@ -107,43 +114,54 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        # Checkout code to access deployment scripts and configurations
 
       - name: Setup Docker Compose
         uses: docker/setup-compose-action@v2
+        # Set up Docker Compose to manage container deployments
 
       - name: Pull new image
         run: |
           docker pull ${{ needs.validate-deployment.outputs.image }}
+        # Pull the Docker image to ensure we're deploying the specified version
 
       - name: Deploy to green environment
         run: |
           echo "Deploying to green environment..."
           # Add logic to deploy to green environment
+          # This could be Docker Compose, Kubernetes, or cloud provider specific
 
       - name: Health check green
         run: |
           echo "Running health checks on green environment..."
           # Add health check commands
+          # Check the health endpoint of the new deployment (e.g., /api/health)
 
       - name: Switch traffic to green
         run: |
           echo "Switching traffic to green environment..."
           # Add traffic switching logic
+          # This could involve updating DNS records, load balancer configurations, etc.
 
       - name: Verify deployment
         run: |
           echo "Verifying deployment..."
           # Add verification commands
+          # Run smoke tests, check endpoints, verify functionality
 
       - name: Cleanup old environment
         run: |
           echo "Cleaning up old environment..."
           # Add cleanup commands
+          # Stop and remove old containers, clean up resources
 
       - name: Complete deployment
         run: |
           echo "✅ Blue-green deployment completed successfully!"
 
+  # Canary Deployment Strategy
+  # This strategy deploys the new version to a small percentage of users first,
+  # monitors performance, and gradually rolls it out to all users if successful.
   canary-deployment:
     name: Canary Deployment
     runs-on: ubuntu-latest
@@ -154,34 +172,43 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        # Checkout code to access deployment scripts and configurations
 
       - name: Setup Docker Compose
         uses: docker/setup-compose-action@v2
+        # Set up Docker Compose to manage container deployments
 
       - name: Deploy canary instances
         run: |
           echo "Deploying canary instances..."
           # Add canary deployment logic
+          # Deploy a small number of instances with the new version
 
       - name: Monitor canary health
         run: |
           echo "Monitoring canary health..."
           # Add monitoring commands
+          # Check error rates, response times, and health endpoints
 
       - name: Gradual traffic increase
         run: |
           echo "Gradually increasing traffic to canary..."
           # Add traffic increase logic
+          # Incrementally route more traffic to the canary instances (e.g., 10% → 25% → 50% → 100%)
 
       - name: Full rollout decision
         run: |
           echo "Making full rollout decision..."
           # Add decision logic
+          # Based on monitoring data, decide whether to rollback or continue with full deployment
 
       - name: Complete canary deployment
         run: |
           echo "✅ Canary deployment completed successfully!"
 
+  # Rolling Deployment Strategy
+  # This strategy updates instances one at a time, ensuring availability while
+  # minimizing downtime. Each instance is replaced with the new version sequentially.
   rolling-deployment:
     name: Rolling Deployment
     runs-on: ubuntu-latest
@@ -192,24 +219,31 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        # Checkout code to access deployment scripts and configurations
 
       - name: Setup Docker Compose
         uses: docker/setup-compose-action@v2
+        # Set up Docker Compose to manage container deployments
 
       - name: Rolling update
         run: |
           echo "Performing rolling update..."
           # Add rolling update logic
+          # Update instances one by one, ensuring minimal downtime
 
       - name: Monitor rolling deployment
         run: |
           echo "Monitoring rolling deployment..."
           # Add monitoring commands
+          # Check the health of each updated instance
 
       - name: Complete rolling deployment
         run: |
           echo "✅ Rolling deployment completed successfully!"
 
+  # Post-Deployment Validation
+  # This job runs validation checks after the deployment is complete to ensure
+  # everything is functioning correctly and meets quality standards.
   post-deployment-validation:
     name: Post-Deployment Validation
     runs-on: ubuntu-latest
@@ -221,16 +255,19 @@ jobs:
         run: |
           echo "Running smoke tests..."
           # Add smoke test commands
+          # Quick tests to verify basic functionality
 
       - name: Performance validation
         run: |
           echo "Validating performance..."
           # Add performance validation commands
+          # Check response times, throughput, and resource utilization
 
       - name: Error rate monitoring
         run: |
           echo "Monitoring error rates..."
           # Add error rate monitoring commands
+          # Check for any unusual increase in error rates
 
       - name: Generate deployment report
         run: |
@@ -241,6 +278,7 @@ jobs:
           echo "Strategy: ${{ github.event.inputs.strategy }}" >> deployment-report.md
           echo "Version: ${{ github.event.inputs.version }}" >> deployment-report.md
           echo "Status: Success" >> deployment-report.md
+        # Create a detailed deployment report
 
       - name: Upload deployment report
         uses: actions/upload-artifact@v4
@@ -248,7 +286,11 @@ jobs:
           name: deployment-report
           path: deployment-report.md
           retention-days: 30
+        # Upload the deployment report as an artifact
 
+  # Rollback Deployment
+  # This job handles automatic rollback if the deployment or validation fails,
+  # ensuring the system returns to a known working state.
   rollback-deployment:
     name: Rollback Deployment
     runs-on: ubuntu-latest
@@ -261,16 +303,19 @@ jobs:
         run: |
           echo "⚠️ Initiating rollback..."
           # Add rollback logic
+          # Start the rollback process
 
       - name: Rollback to previous version
         run: |
           echo "Rolling back to previous version..."
           # Add rollback commands
+          # Revert to the last known working version
 
       - name: Verify rollback
         run: |
           echo "Verifying rollback..."
           # Add verification commands
+          # Check that the system is functioning correctly after rollback
 
       - name: Complete rollback
         run: |
@@ -286,3 +331,4 @@ jobs:
           name: rollback-logs
           path: rollback.log
           retention-days: 30
+        # Upload rollback logs for debugging

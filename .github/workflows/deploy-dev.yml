@@ -27,49 +27,61 @@ permissions:
   packages: write
 
 jobs:
+  # Step 1: Deploy to Development Environment
+  # This job deploys the application to the development environment
   deploy-dev:
     name: Deploy to Development Environment
     runs-on: ubuntu-latest
     environment: development
 
     steps:
+      # Step 1.1: Checkout the repository code to the runner
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Step 1.2: Setup Docker Compose to manage containers
       - name: Setup Docker Compose
         uses: docker/setup-compose-action@v2
 
+      # Step 1.3: Pull the latest development images from registry
       - name: Pull latest images
         run: |
           docker compose -f docker/docker-compose.dev.yml pull
 
+      # Step 1.4: Deploy the development environment containers
       - name: Deploy development environment
         run: |
           docker compose -f docker/docker-compose.dev.yml up -d
 
+      # Step 1.5: Wait for services to be fully ready
       - name: Wait for services to be ready
         run: |
           sleep 30
 
+      # Step 1.6: Perform health check on the development environment
       - name: Health check
         run: |
           curl -f http://localhost:3000/health
 
+      # Step 1.7: Verify environment variables are correctly configured
       - name: Verify environment variables
         run: |
           docker compose -f docker/docker-compose.dev.yml exec -T jollyjet-starter env | grep -E "(NODE_ENV|PORT|LOG_LEVEL|MONGODB_URI|REDIS_URL)"
 
+      # Step 1.8: Show deployment status and services
       - name: Show deployment status
         run: |
           echo "🚀 Development environment deployed successfully!"
           echo "📊 Services status:"
           docker compose -f docker/docker-compose.dev.yml ps
 
+      # Step 1.9: Show recent container logs for debugging
       - name: Show logs
         run: |
           echo "📝 Recent logs:"
           docker compose -f docker/docker-compose.dev.yml logs --tail=50
 
+      # Step 1.10: Save deployment artifacts for reference
       - name: Save deployment artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -79,39 +91,48 @@ jobs:
             .env.development
           retention-days: 7
 
+  # Step 2: Rollback Development
+  # This job handles automatic rollback if deployment fails
   rollback-dev:
     name: Rollback Development
     runs-on: ubuntu-latest
     environment: development
-    if: failure()
+    if: failure() # Only run if previous job failed
 
     steps:
+      # Step 2.1: Checkout the repository code to the runner
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Step 2.2: Setup Docker Compose to manage containers
       - name: Setup Docker Compose
         uses: docker/setup-compose-action@v2
 
+      # Step 2.3: Rollback to previous version of the application
       - name: Rollback to previous version
         run: |
           docker compose -f docker/docker-compose.dev.yml down
           docker compose -f docker/docker-compose.dev.yml pull previous
           docker compose -f docker/docker-compose.dev.yml up -d previous
 
+      # Step 2.4: Verify rollback was successful
       - name: Verify rollback
         run: |
           sleep 30
           curl -f http://localhost:3000/health
 
+      # Step 2.5: Show rollback status
       - name: Show rollback status
         run: |
           echo "⚠️ Development environment rollback completed"
           docker compose -f docker/docker-compose.dev.yml ps
 
+      # Step 2.6: Send rollback notification
       - name: Send rollback notification
         run: |
           echo "Development deployment failed. Automatic rollback executed."
 
+      # Step 2.7: Upload rollback logs for debugging
       - name: Upload rollback logs
         uses: actions/upload-artifact@v4
         with:
