@@ -61,7 +61,13 @@ jobs:
         run: |
           npx tsc --noEmit --skipLibCheck
 
-      # Step 1.7: Run GitHub CodeQL analysis for security vulnerabilities
+      # Step 1.7: Initialize GitHub CodeQL analysis
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript
+
+      # Step 1.8: Run GitHub CodeQL analysis for security vulnerabilities
       - name: Security code scan
         uses: github/codeql-action/analyze@v2
 

@@ -96,7 +96,13 @@ jobs:
       - name: TypeScript compilation check
         run: npm run build
 
-      # Step 2.7: Run GitHub CodeQL analysis for security vulnerabilities
+      # Step 2.7: Initialize GitHub CodeQL analysis
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript
+
+      # Step 2.8: Run GitHub CodeQL analysis for security vulnerabilities
       - name: Security code scan
         uses: github/codeql-action/analyze@v2
 
