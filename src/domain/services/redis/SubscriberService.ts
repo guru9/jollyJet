@@ -158,7 +158,7 @@ export class SubscriberService implements ISubscriberService {
 
       this.logger.info(PUBSUB_MESSAGES.SUBSCRIBER_CLIENT_CONNECTED);
     } catch (error) {
-      this.logger.error(error as Error, 'Failed to initialize subscriber client');
+      this.logger.error(error as Error, PUBSUB_MESSAGES.INITIALIZE_FAILED);
       throw error;
     }
   }
@@ -234,7 +234,7 @@ export class SubscriberService implements ISubscriberService {
   unsubscribe(channel: string): void {
     // Validate state
     if (!this.isConnected || !this.subscriberClient) {
-      this.logger.warn(`Cannot unsubscribe from ${channel}: Subscriber not initialized`);
+      this.logger.warn(PUBSUB_MESSAGES.UNSUBSCRIBE_NOT_INITIALIZED(channel));
       return;
     }
 
@@ -277,10 +277,10 @@ export class SubscriberService implements ISubscriberService {
         // Execute the handler
         // Wrap in Promise.resolve to handle both sync and async handlers
         Promise.resolve(handler(event)).catch((error) => {
-          this.logger.error(error as Error, `Handler error for channel ${channel}`);
+          this.logger.error(error as Error, PUBSUB_MESSAGES.HANDLER_ERROR(channel));
         });
       } else {
-        this.logger.warn(`No handler found for channel: ${channel}`);
+        this.logger.warn(PUBSUB_MESSAGES.NO_HANDLER_FOUND(channel));
       }
     } catch (error) {
       // Log parse error but don't throw - we want to continue processing other messages
@@ -313,7 +313,7 @@ export class SubscriberService implements ISubscriberService {
       if (this.reconnectAttempts < this.MAX_RECONNECT_ATTEMPTS) {
         this.reconnectAttempts++;
         this.logger.info(
-          `Attempting reconnection ${this.reconnectAttempts}/${this.MAX_RECONNECT_ATTEMPTS}`
+          PUBSUB_MESSAGES.RECONNECTING(this.reconnectAttempts, this.MAX_RECONNECT_ATTEMPTS)
         );
         setTimeout(() => this.initialize(), Math.pow(2, this.reconnectAttempts) * 1000);
       }
@@ -321,14 +321,14 @@ export class SubscriberService implements ISubscriberService {
 
     // Handle successful connection
     this.subscriberClient.on('connect', () => {
-      this.logger.info('Subscriber client connection established');
+      this.logger.info(PUBSUB_MESSAGES.SUBSCRIBER_CLIENT_CONNECTION_ESTABLISHED);
     });
 
     // Handle ready state (connection + server reports ready)
     this.subscriberClient.on('ready', () => {
       this.isConnected = true;
       this.reconnectAttempts = 0;
-      this.logger.info('Subscriber client ready');
+      this.logger.info(PUBSUB_MESSAGES.SUBSCRIBER_CLIENT_READY);
 
       // Resubscribe to all channels after reconnection
       this.resubscribeAll();
@@ -349,9 +349,9 @@ export class SubscriberService implements ISubscriberService {
     for (const [channel] of this.handlers) {
       this.subscriberClient.subscribe(channel, (err) => {
         if (err) {
-          this.logger.error(err, `Failed to resubscribe to ${channel}`);
+          this.logger.error(err, PUBSUB_MESSAGES.RESUBSCRIBE_FAILED(channel));
         } else {
-          this.logger.info(`Resubscribed to ${channel} after reconnection`);
+          this.logger.info(PUBSUB_MESSAGES.RESUBSCRIBE_SUCCESS(channel));
         }
       });
     }
@@ -387,9 +387,9 @@ export class SubscriberService implements ISubscriberService {
       await this.subscriberClient.quit();
       this.isConnected = false;
 
-      this.logger.info('Subscriber service disconnected successfully');
+      this.logger.info(PUBSUB_MESSAGES.DISCONNECT_SUCCESS);
     } catch (error) {
-      this.logger.error(error as Error, 'Error during subscriber service disconnect');
+      this.logger.error(error as Error, PUBSUB_MESSAGES.DISCONNECT_ERROR);
       throw error;
     }
   }

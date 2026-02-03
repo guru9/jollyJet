@@ -33,7 +33,7 @@ import {
   ProductDeletedHandler,
   ProductUpdatedHandler,
 } from '@/domain/services/events/ProductEventHandlers';
-import { DI_TOKENS, PUBSUB_CHANNELS, PUBSUB_EVENT_TYPES } from '@/shared';
+import { DI_TOKENS, PUBSUB_CHANNELS, PUBSUB_EVENT_TYPES, PUBSUB_MESSAGES } from '@/shared';
 import { Logger } from '@/shared/logger';
 import { DependencyContainer } from 'tsyringe';
 
@@ -52,7 +52,7 @@ export class PubSubBootstrap {
    */
   async initialize(): Promise<void> {
     if (this.isInitialized) {
-      this.logger.warn('Pub/Sub system already initialized');
+      this.logger.warn(PUBSUB_MESSAGES.PUBSUB_ALREADY_INITIALIZED);
       return;
     }
 
@@ -64,15 +64,15 @@ export class PubSubBootstrap {
 
       // Initialize subscriber (creates Redis client)
       await this.subscriberService.initialize();
-      this.logger.info('Subscriber service initialized successfully');
+      this.logger.info(PUBSUB_MESSAGES.SUBSCRIBER_INITIALIZED);
 
       // Register event handlers
       await this.registerEventHandlers();
 
       this.isInitialized = true;
-      this.logger.info('Pub/Sub system initialized successfully');
+      this.logger.info(PUBSUB_MESSAGES.PUBSUB_INITIALIZED);
     } catch (error) {
-      this.logger.error({ error }, 'Failed to initialize Pub/Sub system');
+      this.logger.error({ error }, PUBSUB_MESSAGES.PUBSUB_INITIALIZE_FAILED);
       // Don't throw - Pub/Sub is not critical for basic operation
       // The server can continue without event handling
     }
@@ -83,7 +83,7 @@ export class PubSubBootstrap {
    */
   private async registerEventHandlers(): Promise<void> {
     if (!this.subscriberService) {
-      throw new Error('Subscriber service not initialized');
+      throw new Error(PUBSUB_MESSAGES.SUBSCRIBER_NOT_INITIALIZED);
     }
 
     // Resolve event handlers from DI container
@@ -109,13 +109,13 @@ export class PubSubBootstrap {
         productDeletedHandler
       );
     });
-    this.logger.info(`Subscribed to channel: ${PUBSUB_CHANNELS.PRODUCT}`);
+    this.logger.info(PUBSUB_MESSAGES.SUBSCRIBE_SUCCESS(PUBSUB_CHANNELS.PRODUCT));
 
     // Subscribe to audit events channel
     this.subscriberService.subscribe(PUBSUB_CHANNELS.AUDIT, (event: AppEvent) => {
       this.handleAuditEvent(event, auditEventHandler);
     });
-    this.logger.info(`Subscribed to channel: ${PUBSUB_CHANNELS.AUDIT}`);
+    this.logger.info(PUBSUB_MESSAGES.SUBSCRIBE_SUCCESS(PUBSUB_CHANNELS.AUDIT));
   }
 
   /**
@@ -131,20 +131,26 @@ export class PubSubBootstrap {
       case PUBSUB_EVENT_TYPES.PRODUCT_CREATED:
         createdHandler
           .handle(event as ProductCreatedEvent)
-          .catch((error) => this.logger.error({ error }, 'Error handling PRODUCT_CREATED event'));
+          .catch((error) =>
+            this.logger.error({ error }, PUBSUB_MESSAGES.EVENT_HANDLING_ERROR('PRODUCT_CREATED'))
+          );
         break;
       case PUBSUB_EVENT_TYPES.PRODUCT_UPDATED:
         updatedHandler
           .handle(event as ProductUpdatedEvent)
-          .catch((error) => this.logger.error({ error }, 'Error handling PRODUCT_UPDATED event'));
+          .catch((error) =>
+            this.logger.error({ error }, PUBSUB_MESSAGES.EVENT_HANDLING_ERROR('PRODUCT_UPDATED'))
+          );
         break;
       case PUBSUB_EVENT_TYPES.PRODUCT_DELETED:
         deletedHandler
           .handle(event as ProductDeletedEvent)
-          .catch((error) => this.logger.error({ error }, 'Error handling PRODUCT_DELETED event'));
+          .catch((error) =>
+            this.logger.error({ error }, PUBSUB_MESSAGES.EVENT_HANDLING_ERROR('PRODUCT_DELETED'))
+          );
         break;
       default:
-        this.logger.warn({ eventType: event.eventType }, 'Unknown product event type received');
+        this.logger.warn({ eventType: event.eventType }, PUBSUB_MESSAGES.UNKNOWN_EVENT_TYPE);
     }
   }
 
@@ -154,7 +160,9 @@ export class PubSubBootstrap {
   private handleAuditEvent(event: AppEvent, handler: AuditEventHandler): void {
     handler
       .handle(event as UserActivityEvent)
-      .catch((error) => this.logger.error({ error }, 'Error handling USER_ACTIVITY event'));
+      .catch((error) =>
+        this.logger.error({ error }, PUBSUB_MESSAGES.EVENT_HANDLING_ERROR('USER_ACTIVITY'))
+      );
   }
 
   /**
@@ -167,10 +175,10 @@ export class PubSubBootstrap {
 
     try {
       await this.subscriberService.disconnect();
-      this.logger.info('Subscriber service disconnected');
+      this.logger.info(PUBSUB_MESSAGES.SUBSCRIBER_DISCONNECTED);
       this.isInitialized = false;
     } catch (error) {
-      this.logger.error({ error }, 'Error during Pub/Sub shutdown');
+      this.logger.error({ error }, PUBSUB_MESSAGES.PUBSUB_SHUTDOWN_ERROR);
     }
   }
 

@@ -675,6 +675,158 @@ export const PUBSUB_MESSAGES = {
    */
   DLQ_PUSHED: (eventId: string, eventType: string) =>
     `Event moved to DLQ: ${eventId} (${eventType})`,
+
+  /**
+   * Message logged when initializing subscriber client fails.
+   */
+  INITIALIZE_FAILED: 'Failed to initialize subscriber client',
+
+  /**
+   * Message logged when unsubscribe is attempted but subscriber is not initialized.
+   */
+  UNSUBSCRIBE_NOT_INITIALIZED: (channel: string) =>
+    `Cannot unsubscribe from ${channel}: Subscriber not initialized`,
+
+  /**
+   * Message logged when a handler encounters an error.
+   */
+  HANDLER_ERROR: (channel: string) => `Handler error for channel ${channel}`,
+
+  /**
+   * Message logged when no handler is found for a channel.
+   */
+  NO_HANDLER_FOUND: (channel: string) => `No handler found for channel: ${channel}`,
+
+  /**
+   * Message logged when attempting to reconnect to Redis.
+   */
+  RECONNECTING: (attempt: number, maxAttempts: number) =>
+    `Attempting reconnection ${attempt}/${maxAttempts}`,
+
+  /**
+   * Message logged when subscriber client connection is established.
+   */
+  SUBSCRIBER_CLIENT_CONNECTION_ESTABLISHED: 'Subscriber client connection established',
+
+  /**
+   * Message logged when subscriber client is ready.
+   */
+  SUBSCRIBER_CLIENT_READY: 'Subscriber client ready',
+
+  /**
+   * Message logged when resubscribing to a channel fails.
+   */
+  RESUBSCRIBE_FAILED: (channel: string) => `Failed to resubscribe to ${channel}`,
+
+  /**
+   * Message logged when successfully resubscribed to a channel.
+   */
+  RESUBSCRIBE_SUCCESS: (channel: string) => `Resubscribed to ${channel} after reconnection`,
+
+  /**
+   * Message logged when subscriber service disconnects successfully.
+   */
+  DISCONNECT_SUCCESS: 'Subscriber service disconnected successfully',
+
+  /**
+   * Message logged when an error occurs during subscriber service disconnect.
+   */
+  DISCONNECT_ERROR: 'Error during subscriber service disconnect',
+
+  /**
+   * Message logged when an event is received for processing.
+   */
+  EVENT_RECEIVED: (eventType: string) => `Received ${eventType} event`,
+
+  /**
+   * Message logged when an event is successfully processed.
+   */
+  EVENT_SUCCESS: (eventType: string) => `Successfully processed ${eventType} event`,
+
+  /**
+   * Message logged when an error occurs during event processing.
+   */
+  EVENT_ERROR: (eventType: string) => `Error processing ${eventType} event`,
+
+  /**
+   * Message logged when publishing an event to DLQ fails.
+   */
+  DLQ_PUBLISH_FAILED: 'Failed to publish event to DLQ',
+
+  /**
+   * Message logged when processing a product created event.
+   */
+  PRODUCT_CREATED_PROCESSING: 'Product created - processing event',
+
+  /**
+   * Message logged when processing a product updated event.
+   */
+  PRODUCT_UPDATED_PROCESSING: 'Product updated - processing event',
+
+  /**
+   * Message logged when processing a product deleted event.
+   */
+  PRODUCT_DELETED_PROCESSING: 'Product deleted - processing event',
+
+  /**
+   * Message logged for audit log entries.
+   */
+  AUDIT_LOG: (action: string) => `AUDIT: ${action}`,
+
+  /**
+   * Message logged when Pub/Sub system is already initialized.
+   */
+  PUBSUB_ALREADY_INITIALIZED: 'Pub/Sub system already initialized',
+
+  /**
+   * Message logged when subscriber service is initialized successfully.
+   */
+  SUBSCRIBER_INITIALIZED: 'Subscriber service initialized successfully',
+
+  /**
+   * Message logged when Pub/Sub system is initialized successfully.
+   */
+  PUBSUB_INITIALIZED: 'Pub/Sub system initialized successfully',
+
+  /**
+   * Message logged when Pub/Sub system initialization fails.
+   */
+  PUBSUB_INITIALIZE_FAILED: 'Failed to initialize Pub/Sub system',
+
+  /**
+   * Message logged when subscriber service is not initialized.
+   */
+  SUBSCRIBER_NOT_INITIALIZED: 'Subscriber service not initialized',
+
+  /**
+   * Message logged when an error occurs during event handling.
+   */
+  EVENT_HANDLING_ERROR: (eventType: string) => `Error handling ${eventType} event`,
+
+  /**
+   * Message logged when an unknown event type is received.
+   */
+  UNKNOWN_EVENT_TYPE: 'Unknown product event type received',
+
+  /**
+   * Message logged when subscriber service is disconnected.
+   */
+  SUBSCRIBER_DISCONNECTED: 'Subscriber service disconnected',
+
+  /**
+   * Message logged when an error occurs during Pub/Sub shutdown.
+   */
+  PUBSUB_SHUTDOWN_ERROR: 'Error during Pub/Sub shutdown',
+
+  /**
+   * Message logged when an error occurs while disconnecting subscriber service.
+   */
+  SUBSCRIBER_DISCONNECT_ERROR: 'Error disconnecting subscriber service',
+
+  /**
+   * Message logged when an error occurs while disconnecting Redis.
+   */
+  REDIS_DISCONNECT_ERROR: 'Error disconnecting Redis',
 } as const;
 
 /**

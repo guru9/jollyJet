@@ -195,7 +195,7 @@ export abstract class EventHandler<T extends BaseEvent> {
         correlationId: event.correlationId,
         timestamp: event.timestamp,
       },
-      `Received ${event.eventType} event`
+      PUBSUB_MESSAGES.EVENT_RECEIVED(event.eventType)
     );
   }
 
@@ -213,7 +213,7 @@ export abstract class EventHandler<T extends BaseEvent> {
         eventType: event.eventType,
         correlationId: event.correlationId,
       },
-      `Successfully processed ${event.eventType} event`
+      PUBSUB_MESSAGES.EVENT_SUCCESS(event.eventType)
     );
   }
 
@@ -234,7 +234,7 @@ export abstract class EventHandler<T extends BaseEvent> {
         error: error.message,
         stack: error.stack,
       },
-      `Error processing ${event.eventType} event`
+      PUBSUB_MESSAGES.EVENT_ERROR(event.eventType)
     );
   }
 
@@ -279,7 +279,7 @@ export abstract class EventHandler<T extends BaseEvent> {
       } catch (publishError) {
         this.logger.error(
           publishError instanceof Error ? publishError : new Error(String(publishError)),
-          'Failed to publish event to DLQ'
+          PUBSUB_MESSAGES.DLQ_PUBLISH_FAILED
         );
       }
     }
