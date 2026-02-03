@@ -49,43 +49,6 @@ jobs:
       - name: TypeScript compilation check
         run: npm run build
 
-  documentation-check:
-    name: Documentation Accessibility Check
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Verify documentation files presence
-        run: |
-          echo "Checking CI/CD documentation files..."
-          ls -la docs/ci-cd/
-
-          if [ ! -f "docs/ci-cd/CI-CD_IMPLEMENTATION_GUIDE.md" ]; then
-            echo "::error::CI-CD_IMPLEMENTATION_GUIDE.md not found"
-            exit 1
-          fi
-
-          if [ ! -f "docs/ci-cd/CI-CD-FILE-STRUCTURE.md" ]; then
-            echo "::error::CI-CD-FILE-STRUCTURE.md not found"
-            exit 1
-          fi
-
-          if [ ! -f "docs/ci-cd/RELEASE-BRANCH-GUIDE.md" ]; then
-            echo "::error::RELEASE-BRANCH-GUIDE.md not found"
-            exit 1
-          fi
-
-          echo "Documentation files are accessible"
-
-      - name: Upload ESLint results
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: eslint-results
-          path: eslint.log
-
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest

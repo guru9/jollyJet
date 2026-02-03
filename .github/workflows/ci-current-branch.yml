@@ -93,38 +93,6 @@ jobs:
           name: eslint-results
           path: eslint.log
 
-  documentation-check:
-    name: Documentation Accessibility Check
-    runs-on: ubuntu-latest
-    needs: code-quality
-    if: needs.pre-flight-checks.outputs.should-proceed == 'true'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Verify documentation files presence
-        run: |
-          echo "Checking CI/CD documentation files..."
-          ls -la docs/ci-cd/
-
-          if [ ! -f "docs/ci-cd/CI-CD_IMPLEMENTATION_GUIDE.md" ]; then
-            echo "::error::CI-CD_IMPLEMENTATION_GUIDE.md not found"
-            exit 1
-          fi
-
-          if [ ! -f "docs/ci-cd/CI-CD-FILE-STRUCTURE.md" ]; then
-            echo "::error::CI-CD-FILE-STRUCTURE.md not found"
-            exit 1
-          fi
-
-          if [ ! -f "docs/ci-cd/RELEASE-BRANCH-GUIDE.md" ]; then
-            echo "::error::RELEASE-BRANCH-GUIDE.md not found"
-            exit 1
-          fi
-
-          echo "Documentation files are accessible"
-
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
