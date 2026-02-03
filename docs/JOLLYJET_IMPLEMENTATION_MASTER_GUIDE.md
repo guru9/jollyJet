@@ -16,15 +16,27 @@
 
 ```
 e:/Project/jollyJet
-├── .env                    # Primary local configuration (Cloud First - MongoDB Atlas + Upstash Redis)
-├── .env.development        # Dev region template (MongoDB Atlas + Upstash)
-├── .env.production         # Prod region template (MongoDB Atlas + Upstash)
+├── .env.sample             # Environment variables template
 ├── .gitignore
 ├── .prettierrc
-├── docker-compose.yml      # Base Docker config (uses .env for local development)
-├── docker-compose.dev.yml  # Dev region Docker config (uses .env.development)
-├── docker-compose.prod.yml # Production region Docker config (uses .env.production)
-├── Dockerfile
+├── .github/
+│   ├── workflows/
+│   │   ├── ci.yml                          # Main CI pipeline with security checks
+│   │   ├── ci-current-branch.yml           # Current branch CI/CD pipeline
+│   │   ├── deploy-dev.yml                  # Development environment deployment
+│   │   ├── deploy-prod.yml                 # Production environment deployment
+│   │   ├── deployment-strategies.yml       # Deployment strategy selector
+│   │   ├── pr-review.yml                   # PR review environment automation
+│   │   ├── testing.yml                     # Comprehensive testing pipeline
+│   │   ├── release.yml                     # Version bump and release creation
+│   │   └── release-branch-validation.yml   # Release branch quality checks
+│   └── branch-protection.yml               # Branch protection configuration
+├── docker/
+│   ├── Dockerfile                          # Multi-stage production build
+│   ├── docker-compose.yml                  # Base configuration
+│   ├── docker-compose.dev.yml              # Development environment
+│   ├── docker-compose.prod.yml             # Production environment
+│   └── README.md                           # Docker documentation
 ├── eslint.config.mjs
 ├── jest.config.ts
 ├── nodemon.json
