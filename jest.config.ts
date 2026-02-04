@@ -21,6 +21,7 @@ const config: Config.InitialOptions = {
   ],
   coverageDirectory: 'coverage',
   verbose: true,
+  reporters: ['default', ['jest-junit', { outputDirectory: '<rootDir>' }]],
 };
 
 export default config;

@@ -172,7 +172,7 @@ jobs:
         image: mongo:6.0
         ports:
           - 27017:27017
-        options: --health-cmd="mongosh --quiet --eval 'db.adminCommand(\"ping\")'" --health-interval=10s --health-timeout=5s --health-retries=5
+        options: --health-cmd="nc -z localhost 27017" --health-interval=10s --health-timeout=5s --health-retries=5
 
       # Step 3.2: Start Redis service for integration tests
       redis:
