@@ -376,7 +376,7 @@ jobs:
         if: failure()
         with:
           name: docker-build-logs
-          path: |
+          path: dist/
 
   # Step 8: Publish Stage
   # This job handles version control, release management, and package publishing
