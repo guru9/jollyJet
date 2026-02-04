@@ -266,14 +266,14 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr
-            type=sha,prefix=${{ needs.pre-flight-checks.outputs.branch-type }}-
+            type=sha
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
-          dockerfile: docker/Dockerfile
+          file: docker/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -286,7 +286,7 @@ jobs:
         if: failure()
         with:
           name: docker-build-logs
-          path: docker-build.log
+          path: |
 
   # Step 6: Quality Gate Decision
   # This job decides if the pipeline should proceed based on quality gate results

@@ -363,7 +363,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          dockerfile: docker/Dockerfile
+          file: docker/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -371,14 +371,12 @@ jobs:
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
 
-      # Step 7.6: Upload Docker build logs if build fails
       - name: Upload Docker build logs
         uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: docker-build-logs
-          path: docker-build.log
-          retention-days: 30
+          path: |
 
   # Step 8: Publish Stage
   # This job handles version control, release management, and package publishing
