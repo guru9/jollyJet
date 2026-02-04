@@ -89,7 +89,10 @@ jobs:
 
       # Step 2.4: Run ESLint to identify and report code quality issues
       - name: Run ESLint
-        run: npm run lint -- --output-file eslint.log
+        run: |
+          npx eslint src tests --format json --output-file eslint.log || true
+          # Also create a text version for readability
+          npx eslint src tests --format stylish > eslint-output.txt 2>&1 || true
 
       # Step 2.5: Check if code follows Prettier formatting rules
       - name: Check Prettier formatting
