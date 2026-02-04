@@ -89,7 +89,7 @@ jobs:
 
       # Step 2.4: Run ESLint to identify and report code quality issues
       - name: Run ESLint
-        run: npm run lint
+        run: npm run lint -- --output-file eslint.log
 
       # Step 2.5: Check if code follows Prettier formatting rules
       - name: Check Prettier formatting
@@ -163,7 +163,7 @@ jobs:
         image: mongo:6.0
         ports:
           - 27017:27017
-        options: --health-cmd="mongo" --health-interval=10s --health-timeout=5s --health-retries=5
+        options: --health-cmd="nc -z localhost 27017" --health-interval=10s --health-timeout=5s --health-retries=5
       redis:
         image: redis:7-alpine
         ports:
@@ -195,7 +195,7 @@ jobs:
         if: failure()
         with:
           name: integration-test-results
-          path: integration-test-results.xml
+          path: junit.xml
           retention-days: 7
 
   security-scan:
