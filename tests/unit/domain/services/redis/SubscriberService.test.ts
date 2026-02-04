@@ -1,14 +1,44 @@
+import { IRedisService } from '@/domain/interfaces/redis/IRedisService';
 import { SubscriberService } from '@/domain/services/redis/SubscriberService';
 import { PUBSUB_CHANNELS, PUBSUB_EVENT_TYPES } from '@/shared/constants';
+import { Logger } from '@/shared/logger';
 import Redis from 'ioredis';
 
 jest.mock('ioredis');
 
 describe('SubscriberService', () => {
   let subscriberService: SubscriberService;
-  let mockRedisService: jest.Mocked<any>;
-  let mockLogger: jest.Mocked<any>;
-  let mockRedisClient: any;
+  let mockRedisService: {
+    getClient: jest.Mock<
+      () => {
+        connect: jest.Mock<(args_0?: void) => Promise<void>>;
+        subscribe: jest.Mock<
+          (args_0: string | Array<string>, args_1: (...args: unknown[]) => void) => Promise<void>
+        >;
+        unsubscribe: jest.Mock<
+          (args_0: string | Array<string>, args_1?: (...args: unknown[]) => void) => Promise<void>
+        >;
+        quit: jest.Mock<(args_0?: void) => Promise<void>>;
+        on: jest.Mock<(event: string, handler: (...args: unknown[]) => void) => void>;
+      }
+    >;
+  };
+  let mockLogger: {
+    info: jest.Mock<(obj: unknown, msg: string) => void>;
+    error: jest.Mock<(obj: unknown, msg: string) => void>;
+    warn: jest.Mock<(obj: unknown, msg: string) => void>;
+  };
+  let mockRedisClient: {
+    connect: jest.Mock<(args_0?: void) => Promise<void>>;
+    subscribe: jest.Mock<
+      (args_0: string | Array<string>, args_1: (...args: unknown[]) => void) => Promise<void>
+    >;
+    unsubscribe: jest.Mock<
+      (args_0: string | Array<string>, args_1?: (...args: unknown[]) => void) => Promise<void>
+    >;
+    quit: jest.Mock<(args_0?: void) => Promise<void>>;
+    on: jest.Mock<(event: string, handler: (...args: unknown[]) => void) => void>;
+  };
 
   beforeEach(() => {
     mockRedisClient = {
@@ -16,7 +46,7 @@ describe('SubscriberService', () => {
       subscribe: jest.fn().mockResolvedValue(undefined),
       unsubscribe: jest.fn().mockResolvedValue(undefined),
       quit: jest.fn().mockResolvedValue(undefined),
-      on: jest.fn().mockImplementation((_event: string, _handler: (...args: any[]) => void) => {
+      on: jest.fn().mockImplementation((_event: string, _handler: (...args: unknown[]) => void) => {
         // Store the handler for later use in tests
         // The handler will be called with specific arguments in individual tests
       }),
@@ -34,7 +64,10 @@ describe('SubscriberService', () => {
       warn: jest.fn(),
     };
 
-    subscriberService = new SubscriberService(mockRedisService, mockLogger);
+    subscriberService = new SubscriberService(
+      mockRedisService as unknown as IRedisService,
+      mockLogger as unknown as Logger
+    );
   });
 
   afterEach(() => {
@@ -148,7 +181,7 @@ describe('SubscriberService', () => {
       subscriberService.subscribe(PUBSUB_CHANNELS.PRODUCT, handler);
 
       const messageHandler = mockRedisClient.on.mock.calls.find(
-        (call: [string, (...args: any[]) => void]) => call[0] === 'message'
+        (call: [string, (...args: unknown[]) => void]) => call[0] === 'message'
       )?.[1];
 
       const message = JSON.stringify({
@@ -180,7 +213,7 @@ describe('SubscriberService', () => {
       subscriberService.subscribe(PUBSUB_CHANNELS.PRODUCT, handler);
 
       const messageHandler = mockRedisClient.on.mock.calls.find(
-        (call: [string, (...args: any[]) => void]) => call[0] === 'message'
+        (call: [string, (...args: unknown[]) => void]) => call[0] === 'message'
       )?.[1];
 
       if (messageHandler) {
@@ -205,7 +238,7 @@ describe('SubscriberService', () => {
       subscriberService.subscribe(PUBSUB_CHANNELS.PRODUCT, errorHandler);
 
       const messageHandler = mockRedisClient.on.mock.calls.find(
-        (call: [string, (...args: any[]) => void]) => call[0] === 'message'
+        (call: [string, (...args: unknown[]) => void]) => call[0] === 'message'
       )?.[1];
 
       const message = JSON.stringify({
@@ -255,7 +288,7 @@ describe('SubscriberService', () => {
 
     it('should handle connection errors', () => {
       const errorHandler = mockRedisClient.on.mock.calls.find(
-        (call: [string, (...args: any[]) => void]) => call[0] === 'error'
+        (call: [string, (...args: unknown[]) => void]) => call[0] === 'error'
       )?.[1];
 
       if (errorHandler) {
@@ -276,7 +309,7 @@ describe('SubscriberService', () => {
 
     it('should handle disconnection and set isConnected to false', () => {
       const endHandler = mockRedisClient.on.mock.calls.find(
-        (call: [string, (...args: any[]) => void]) => call[0] === 'end'
+        (call: [string, (...args: unknown[]) => void]) => call[0] === 'end'
       )?.[1];
 
       if (endHandler) {
@@ -312,7 +345,7 @@ describe('SubscriberService', () => {
       subscriberService.subscribe('channel2', handler);
 
       const readyHandler = mockRedisClient.on.mock.calls.find(
-        (call: [string, (...args: any[]) => void]) => call[0] === 'ready'
+        (call: [string, (...args: unknown[]) => void]) => call[0] === 'ready'
       )?.[1];
 
       if (readyHandler) {
@@ -403,7 +436,7 @@ describe('SubscriberService', () => {
       subscriberService.subscribe('channel', handler2);
 
       const messageHandler = mockRedisClient.on.mock.calls.find(
-        (call: [string, (...args: any[]) => void]) => call[0] === 'message'
+        (call: [string, (...args: unknown[]) => void]) => call[0] === 'message'
       )?.[1];
 
       const message = JSON.stringify({
@@ -431,7 +464,7 @@ describe('SubscriberService', () => {
       subscriberService.subscribe('channel1', handler);
 
       const messageHandler = mockRedisClient.on.mock.calls.find(
-        (call: [string, (...args: any[]) => void]) => call[0] === 'message'
+        (call: [string, (...args: unknown[]) => void]) => call[0] === 'message'
       )?.[1];
 
       const message = JSON.stringify({

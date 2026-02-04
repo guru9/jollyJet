@@ -167,7 +167,7 @@ export interface ProductUpdatedEvent extends BaseEvent {
     /** Unique identifier of the updated product */
     productId: string;
     /** Object containing only the fields that were changed (diff) */
-    changes: Record<string, any>;
+    changes: Record<string, unknown>;
   };
 }
 
@@ -246,7 +246,7 @@ export interface UserActivityEvent extends BaseEvent {
     /** Description of the action performed (e.g., 'LOGIN_SUCCESS', 'PRODUCT_CREATED') */
     action: string;
     /** Additional metadata about the activity (IP, user agent, etc.) */
-    metadata: Record<string, any>;
+    metadata: Record<string, unknown>;
   };
 }
 

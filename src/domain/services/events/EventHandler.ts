@@ -251,7 +251,7 @@ export abstract class EventHandler<T extends BaseEvent> {
   protected async sendToDLQ(
     event: T,
     error: Error,
-    publisherService?: { publish: (channel: string, message: any) => Promise<void> }
+    publisherService?: { publish: (channel: string, message: unknown) => Promise<void> }
   ): Promise<void> {
     const dlqEvent = {
       originalEvent: event,
@@ -307,15 +307,16 @@ export abstract class EventHandler<T extends BaseEvent> {
    * @param event - The event to validate
    * @returns True if the event is valid
    */
-  protected validateEvent(event: any): event is T {
+  protected validateEvent(event: unknown): event is T {
     // Explicitly return boolean false for null/undefined to match test expectations
     if (event === null || event === undefined) {
       return false;
     }
+    const typedEvent = event as Partial<BaseEvent>;
     return (
-      typeof event.eventId === 'string' &&
-      typeof event.eventType === 'string' &&
-      event.timestamp instanceof Date
+      typeof typedEvent.eventId === 'string' &&
+      typeof typedEvent.eventType === 'string' &&
+      typedEvent.timestamp instanceof Date
     );
   }
 }

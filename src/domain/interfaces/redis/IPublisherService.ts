@@ -12,5 +12,5 @@ export interface IPublisherService {
    * @returns Promise that resolves when message is published
    * @throws Error if publishing fails
    */
-  publish(channel: string, message: any): Promise<void>;
+  publish(channel: string, message: unknown): Promise<void>;
 }

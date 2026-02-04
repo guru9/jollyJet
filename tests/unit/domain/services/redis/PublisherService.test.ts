@@ -1,11 +1,22 @@
+import { IRedisService } from '@/domain/interfaces/redis/IRedisService';
 import { PublisherService } from '@/domain/services/redis/PublisherService';
 import { PUBSUB_CHANNELS, PUBSUB_EVENT_TYPES } from '@/shared/constants';
+import { Logger } from '@/shared/logger';
 
 describe('PublisherService', () => {
   let publisherService: PublisherService;
-  let mockRedisService: jest.Mocked<any>;
-  let mockRedisClient: jest.Mocked<any>;
-  let mockLogger: jest.Mocked<any>;
+  let mockRedisService: {
+    getClient: jest.Mock<
+      () => { publish: jest.Mock<(channel: string, message: string) => Promise<number>> }
+    >;
+  };
+  let mockRedisClient: {
+    publish: jest.Mock<(channel: string, message: string) => Promise<number>>;
+  };
+  let mockLogger: {
+    info: jest.Mock<(obj: unknown, msg: string) => void>;
+    error: jest.Mock<(obj: unknown, msg: string) => void>;
+  };
 
   beforeEach(() => {
     mockRedisClient = {
@@ -18,7 +29,10 @@ describe('PublisherService', () => {
       info: jest.fn(),
       error: jest.fn(),
     };
-    publisherService = new PublisherService(mockRedisService, mockLogger);
+    publisherService = new PublisherService(
+      mockRedisService as unknown as IRedisService,
+      mockLogger as unknown as Logger
+    );
   });
 
   describe('TC-PUB-001: PublisherService Instantiation', () => {
@@ -102,7 +116,7 @@ describe('PublisherService', () => {
   describe('TC-PUB-004: Publish Error Handling', () => {
     it('should log error and re-throw on publish failure', async () => {
       const publishError = new Error('Redis connection failed');
-      mockRedisClient.publish.mockRejectedValue(publishError);
+      mockRedisClient.publish.mockRejectedValue(publishError as never);
 
       const event = {
         eventId: 'evt_123',
@@ -225,7 +239,7 @@ describe('PublisherService', () => {
 
   describe('TC-PUB-010: Circular Reference Handling', () => {
     it('should throw error for circular reference', async () => {
-      const obj: any = { id: '1', data: 'test' };
+      const obj: Record<string, unknown> = { id: '1', data: 'test' };
       obj.self = obj;
 
       await expect(publisherService.publish('channel', obj)).rejects.toThrow();

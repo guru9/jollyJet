@@ -70,7 +70,7 @@ export class PublisherService implements IPublisherService {
    * });
    * ```
    */
-  async publish(channel: string, message: any): Promise<void> {
+  async publish(channel: string, message: unknown): Promise<void> {
     try {
       // Get Redis client from the Redis service
       const client = this.redisService.getClient();

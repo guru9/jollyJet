@@ -47,7 +47,7 @@
  * };
  * ```
  */
-export type MessageHandler = (message: any) => void | Promise<void>;
+export type MessageHandler = (message: unknown) => void | Promise<void>;
 
 /**
  * Subscriber Service Interface

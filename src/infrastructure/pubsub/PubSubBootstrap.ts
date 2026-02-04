@@ -101,7 +101,8 @@ export class PubSubBootstrap {
     );
 
     // Subscribe to product events channel with routing
-    this.subscriberService.subscribe(PUBSUB_CHANNELS.PRODUCT, (event: AppEvent) => {
+    this.subscriberService.subscribe(PUBSUB_CHANNELS.PRODUCT, (message: unknown) => {
+      const event = message as AppEvent;
       this.handleProductEvent(
         event,
         productCreatedHandler,
@@ -112,7 +113,8 @@ export class PubSubBootstrap {
     this.logger.info(PUBSUB_MESSAGES.SUBSCRIBE_SUCCESS(PUBSUB_CHANNELS.PRODUCT));
 
     // Subscribe to audit events channel
-    this.subscriberService.subscribe(PUBSUB_CHANNELS.AUDIT, (event: AppEvent) => {
+    this.subscriberService.subscribe(PUBSUB_CHANNELS.AUDIT, (message: unknown) => {
+      const event = message as AppEvent;
       this.handleAuditEvent(event, auditEventHandler);
     });
     this.logger.info(PUBSUB_MESSAGES.SUBSCRIBE_SUCCESS(PUBSUB_CHANNELS.AUDIT));

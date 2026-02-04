@@ -1,6 +1,7 @@
 import { BaseEvent } from '@/domain/events';
 import { EventHandler } from '@/domain/services/events/EventHandler';
 import { PUBSUB_CHANNELS, PUBSUB_EVENT_TYPES } from '@/shared/constants';
+import { Logger } from '@/shared/logger';
 
 // Concrete implementation for testing
 class TestEventHandler extends EventHandler<BaseEvent> {
@@ -65,7 +66,11 @@ class NoRetryHandler extends EventHandler<BaseEvent> {
 }
 
 describe('EventHandler', () => {
-  let mockLogger: jest.Mocked<any>;
+  let mockLogger: {
+    info: jest.Mock;
+    error: jest.Mock;
+    warn: jest.Mock;
+  };
 
   beforeEach(() => {
     mockLogger = {
@@ -79,7 +84,9 @@ describe('EventHandler', () => {
     it('should not allow direct instantiation of abstract class', () => {
       // TypeScript abstract classes can be instantiated at runtime,
       // but the abstract handle method will throw when called
-      const handler = new (EventHandler as any)(mockLogger);
+      const handler = new (EventHandler as unknown as new (
+        logger: Logger
+      ) => EventHandler<BaseEvent>)(mockLogger as unknown as Logger);
       // The abstract handle method should throw when called directly
       expect(() => {
         handler.handle({ eventId: 'test', eventType: 'TEST', timestamp: new Date() });
@@ -89,20 +96,20 @@ describe('EventHandler', () => {
 
   describe('TC-EH-002: Concrete Handler Implementation', () => {
     it('should allow concrete handler to extend EventHandler', () => {
-      const handler = new TestEventHandler(mockLogger);
+      const handler = new TestEventHandler(mockLogger as unknown as Logger);
       expect(handler).toBeDefined();
       expect(handler['maxRetries']).toBe(3);
     });
 
     it('should inject logger into concrete handler', () => {
-      const handler = new TestEventHandler(mockLogger);
+      const handler = new TestEventHandler(mockLogger as unknown as Logger);
       expect(handler['logger']).toBe(mockLogger);
     });
   });
 
   describe('TC-EH-003: Execute With Retry - Success on First Attempt', () => {
     it('should succeed without retry on first attempt', async () => {
-      const handler = new TestEventHandler(mockLogger);
+      const handler = new TestEventHandler(mockLogger as unknown as Logger);
       const event: BaseEvent = {
         eventId: 'evt_123',
         eventType: PUBSUB_EVENT_TYPES.PRODUCT_CREATED,
@@ -118,7 +125,7 @@ describe('EventHandler', () => {
 
   describe('TC-EH-004: Execute With Retry - Success on Retry', () => {
     it('should retry and eventually succeed', async () => {
-      const handler = new RetrySuccessHandler(mockLogger);
+      const handler = new RetrySuccessHandler(mockLogger as unknown as Logger);
       const event: BaseEvent = {
         eventId: 'evt_123',
         eventType: PUBSUB_EVENT_TYPES.PRODUCT_CREATED,
@@ -132,7 +139,7 @@ describe('EventHandler', () => {
     });
 
     it('should log retry attempts with correct context', async () => {
-      const handler = new RetrySuccessHandler(mockLogger);
+      const handler = new RetrySuccessHandler(mockLogger as unknown as Logger);
       const event: BaseEvent = {
         eventId: 'evt_123',
         eventType: PUBSUB_EVENT_TYPES.PRODUCT_CREATED,
@@ -155,7 +162,7 @@ describe('EventHandler', () => {
 
   describe('TC-EH-005: Execute With Retry - All Retries Exhausted', () => {
     it('should throw error when all retries fail', async () => {
-      const handler = new AlwaysFailHandler(mockLogger);
+      const handler = new AlwaysFailHandler(mockLogger as unknown as Logger);
       const event: BaseEvent = {
         eventId: 'evt_123',
         eventType: PUBSUB_EVENT_TYPES.PRODUCT_CREATED,
@@ -166,7 +173,7 @@ describe('EventHandler', () => {
     });
 
     it('should log final error with attempt count', async () => {
-      const handler = new AlwaysFailHandler(mockLogger);
+      const handler = new AlwaysFailHandler(mockLogger as unknown as Logger);
       const event: BaseEvent = {
         eventId: 'evt_123',
         eventType: PUBSUB_EVENT_TYPES.PRODUCT_CREATED,
@@ -204,7 +211,7 @@ describe('EventHandler', () => {
         }
       }
 
-      const handler = new FastFailHandler(mockLogger);
+      const handler = new FastFailHandler(mockLogger as unknown as Logger);
 
       const event: BaseEvent = {
         eventId: 'evt_123',
@@ -228,7 +235,7 @@ describe('EventHandler', () => {
 
   describe('TC-EH-007: Log Event Received', () => {
     it('should log event received with correct information', () => {
-      const handler = new TestEventHandler(mockLogger);
+      const handler = new TestEventHandler(mockLogger as unknown as Logger);
       const event: BaseEvent = {
         eventId: 'evt_123',
         eventType: PUBSUB_EVENT_TYPES.PRODUCT_CREATED,
@@ -252,7 +259,7 @@ describe('EventHandler', () => {
 
   describe('TC-EH-008: Log Event Success', () => {
     it('should log event success with correct information', () => {
-      const handler = new TestEventHandler(mockLogger);
+      const handler = new TestEventHandler(mockLogger as unknown as Logger);
       const event: BaseEvent = {
         eventId: 'evt_123',
         eventType: PUBSUB_EVENT_TYPES.PRODUCT_CREATED,
@@ -275,7 +282,7 @@ describe('EventHandler', () => {
 
   describe('TC-EH-009: Log Event Error', () => {
     it('should log event error with correct information', () => {
-      const handler = new TestEventHandler(mockLogger);
+      const handler = new TestEventHandler(mockLogger as unknown as Logger);
       const event: BaseEvent = {
         eventId: 'evt_123',
         eventType: PUBSUB_EVENT_TYPES.PRODUCT_CREATED,
@@ -301,7 +308,7 @@ describe('EventHandler', () => {
 
   describe('TC-EH-010: Send to DLQ', () => {
     it('should publish DLQ event with correct structure', async () => {
-      const handler = new TestEventHandler(mockLogger);
+      const handler = new TestEventHandler(mockLogger as unknown as Logger);
       const mockPublisher = { publish: jest.fn().mockResolvedValue(undefined) };
       const event: BaseEvent = {
         eventId: 'evt_123',
@@ -328,7 +335,7 @@ describe('EventHandler', () => {
     });
 
     it('should log DLQ send operation', async () => {
-      const handler = new TestEventHandler(mockLogger);
+      const handler = new TestEventHandler(mockLogger as unknown as Logger);
       const mockPublisher = { publish: jest.fn().mockResolvedValue(undefined) };
       const event: BaseEvent = {
         eventId: 'evt_123',
@@ -352,7 +359,7 @@ describe('EventHandler', () => {
 
   describe('TC-EH-011: Send to DLQ Without Publisher', () => {
     it('should log error without publishing when no publisher provided', async () => {
-      const handler = new TestEventHandler(mockLogger);
+      const handler = new TestEventHandler(mockLogger as unknown as Logger);
       const event: BaseEvent = {
         eventId: 'evt_123',
         eventType: PUBSUB_EVENT_TYPES.PRODUCT_CREATED,
@@ -368,7 +375,7 @@ describe('EventHandler', () => {
 
   describe('TC-EH-012: Send to DLQ Publish Failure', () => {
     it('should handle DLQ publish failure gracefully', async () => {
-      const handler = new TestEventHandler(mockLogger);
+      const handler = new TestEventHandler(mockLogger as unknown as Logger);
       const mockPublisher = {
         publish: jest.fn().mockRejectedValue(new Error('Publish failed')),
       };
@@ -390,7 +397,7 @@ describe('EventHandler', () => {
 
   describe('TC-EH-013: Validate Event - Valid', () => {
     it('should return true for valid events', () => {
-      const handler = new TestEventHandler(mockLogger);
+      const handler = new TestEventHandler(mockLogger as unknown as Logger);
       const validEvent = {
         eventId: 'evt_123',
         eventType: 'TEST',
@@ -405,46 +412,46 @@ describe('EventHandler', () => {
 
   describe('TC-EH-014: Validate Event - Invalid', () => {
     it('should return false for null', () => {
-      const handler = new TestEventHandler(mockLogger);
+      const handler = new TestEventHandler(mockLogger as unknown as Logger);
       expect(handler['validateEvent'](null)).toBe(false);
     });
 
     it('should return false for undefined', () => {
-      const handler = new TestEventHandler(mockLogger);
+      const handler = new TestEventHandler(mockLogger as unknown as Logger);
       expect(handler['validateEvent'](undefined)).toBe(false);
     });
 
     it('should return false for empty object', () => {
-      const handler = new TestEventHandler(mockLogger);
+      const handler = new TestEventHandler(mockLogger as unknown as Logger);
       expect(handler['validateEvent']({})).toBe(false);
     });
 
     it('should return false for missing eventType', () => {
-      const handler = new TestEventHandler(mockLogger);
+      const handler = new TestEventHandler(mockLogger as unknown as Logger);
       expect(handler['validateEvent']({ eventId: 'evt_123', timestamp: new Date() })).toBe(false);
     });
 
     it('should return false for missing timestamp', () => {
-      const handler = new TestEventHandler(mockLogger);
+      const handler = new TestEventHandler(mockLogger as unknown as Logger);
       expect(handler['validateEvent']({ eventId: 'evt_123', eventType: 'TEST' })).toBe(false);
     });
 
     it('should return false for wrong eventId type', () => {
-      const handler = new TestEventHandler(mockLogger);
+      const handler = new TestEventHandler(mockLogger as unknown as Logger);
       expect(
         handler['validateEvent']({ eventId: 123, eventType: 'TEST', timestamp: new Date() })
       ).toBe(false);
     });
 
     it('should return false for wrong eventType type', () => {
-      const handler = new TestEventHandler(mockLogger);
+      const handler = new TestEventHandler(mockLogger as unknown as Logger);
       expect(
         handler['validateEvent']({ eventId: 'evt_123', eventType: 123, timestamp: new Date() })
       ).toBe(false);
     });
 
     it('should return false for wrong timestamp type', () => {
-      const handler = new TestEventHandler(mockLogger);
+      const handler = new TestEventHandler(mockLogger as unknown as Logger);
       expect(
         handler['validateEvent']({ eventId: 'evt_123', eventType: 'TEST', timestamp: '2024-01-01' })
       ).toBe(false);
@@ -453,7 +460,7 @@ describe('EventHandler', () => {
 
   describe('TC-EH-015: Custom Retry Delay', () => {
     it('should use custom retry delay', async () => {
-      const handler = new CustomDelayHandler(mockLogger);
+      const handler = new CustomDelayHandler(mockLogger as unknown as Logger);
       const event: BaseEvent = {
         eventId: 'evt_123',
         eventType: PUBSUB_EVENT_TYPES.PRODUCT_CREATED,
@@ -475,7 +482,7 @@ describe('EventHandler', () => {
 
   describe('TC-EH-016: Zero Max Retries', () => {
     it('should not retry when maxRetries is 0', async () => {
-      const handler = new NoRetryHandler(mockLogger);
+      const handler = new NoRetryHandler(mockLogger as unknown as Logger);
       const event: BaseEvent = {
         eventId: 'evt_123',
         eventType: PUBSUB_EVENT_TYPES.PRODUCT_CREATED,
@@ -501,7 +508,7 @@ describe('EventHandler', () => {
         }
       }
 
-      const handler = new AsyncHandler(mockLogger);
+      const handler = new AsyncHandler(mockLogger as unknown as Logger);
       const event: BaseEvent = {
         eventId: 'evt_123',
         eventType: PUBSUB_EVENT_TYPES.PRODUCT_CREATED,
