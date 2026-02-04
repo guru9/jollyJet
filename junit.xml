@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="17" failures="0" errors="0" time="23.28">
+  <testsuite name="CORS Security Integration" errors="0" failures="0" skipped="0" timestamp="2026-02-04T15:11:12" time="16.713" tests="12">
+    <testcase classname="CORS Security Integration Security Headers Application should apply essential security headers" name="CORS Security Integration Security Headers Application should apply essential security headers" time="0.067">
+    </testcase>
+    <testcase classname="CORS Security Integration IP Validation should validate IP address" name="CORS Security Integration IP Validation should validate IP address" time="0.021">
+    </testcase>
+    <testcase classname="CORS Security Integration IP Validation should block request when IP validation fails" name="CORS Security Integration IP Validation should block request when IP validation fails" time="0.013">
+    </testcase>
+    <testcase classname="CORS Security Integration Geographic Blocking should allow requests when geographic blocking is disabled" name="CORS Security Integration Geographic Blocking should allow requests when geographic blocking is disabled" time="0.017">
+    </testcase>
+    <testcase classname="CORS Security Integration Geographic Blocking should check geographic restrictions when enabled" name="CORS Security Integration Geographic Blocking should check geographic restrictions when enabled" time="0.016">
+    </testcase>
+    <testcase classname="CORS Security Integration Geographic Blocking should block request when geographic validation fails" name="CORS Security Integration Geographic Blocking should block request when geographic validation fails" time="0.009">
+    </testcase>
+    <testcase classname="CORS Security Integration Security Event Logging should log successful security validation" name="CORS Security Integration Security Event Logging should log successful security validation" time="0.011">
+    </testcase>
+    <testcase classname="CORS Security Integration Security Event Logging should log security validation failures" name="CORS Security Integration Security Event Logging should log security validation failures" time="0.014">
+    </testcase>
+    <testcase classname="CORS Security Integration Middleware Integration should integrate with Express app correctly" name="CORS Security Integration Middleware Integration should integrate with Express app correctly" time="0.024">
+    </testcase>
+    <testcase classname="CORS Security Integration Middleware Integration should handle middleware errors gracefully" name="CORS Security Integration Middleware Integration should handle middleware errors gracefully" time="0.022">
+    </testcase>
+    <testcase classname="CORS Security Integration Configuration Options should use default options when none provided" name="CORS Security Integration Configuration Options should use default options when none provided" time="0.001">
+    </testcase>
+    <testcase classname="CORS Security Integration Configuration Options should accept custom configuration options" name="CORS Security Integration Configuration Options should accept custom configuration options" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="App Endpoints" errors="0" failures="0" skipped="0" timestamp="2026-02-04T15:11:12" time="21.848" tests="5">
+    <testcase classname="App Endpoints GET /health should return status ok with timestamp" name="App Endpoints GET /health should return status ok with timestamp" time="0.087">
+    </testcase>
+    <testcase classname="App Endpoints GET /api-docs.json should return swagger specification as JSON" name="App Endpoints GET /api-docs.json should return swagger specification as JSON" time="0.014">
+    </testcase>
+    <testcase classname="App Endpoints GET /api-docs.json should include health endpoint in swagger spec" name="App Endpoints GET /api-docs.json should include health endpoint in swagger spec" time="0.012">
+    </testcase>
+    <testcase classname="App Endpoints GET /api-docs should serve swagger UI HTML" name="App Endpoints GET /api-docs should serve swagger UI HTML" time="0.011">
+    </testcase>
+    <testcase classname="App Endpoints Error Handling should handle 404 for non-existent routes" name="App Endpoints Error Handling should handle 404 for non-existent routes" time="0.014">
+    </testcase>
+  </testsuite>
+</testsuites>
