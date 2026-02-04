@@ -169,10 +169,10 @@ jobs:
     services:
       # Step 3.1: Start MongoDB service for integration tests
       mongodb:
-        image: mongo:6.0
+        image: mongo:4.4
         ports:
           - 27017:27017
-        options: --health-cmd="nc -z localhost 27017" --health-interval=10s --health-timeout=5s --health-retries=5
+        options: --health-cmd="mongo --quiet --eval \"db.adminCommand('ping')\"" --health-interval=10s --health-timeout=5s --health-retries=5
 
       # Step 3.2: Start Redis service for integration tests
       redis:
@@ -210,7 +210,7 @@ jobs:
         if: failure() # Only run if previous step failed
         with:
           name: integration-test-results
-          path: integration-test-results.xml
+          path: junit.xml
 
   # Step 5: Comprehensive Audit
   # This job performs comprehensive security, compliance, and quality audits

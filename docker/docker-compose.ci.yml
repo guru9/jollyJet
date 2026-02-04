@@ -38,7 +38,7 @@ services:
         max-file: '3'
 
   mongo:
-    image: mongo:6.0
+    image: mongo:4.4
     container_name: jollyjet-mongo-ci
     restart: unless-stopped
     environment:
@@ -50,7 +50,7 @@ services:
     networks:
       - jollyjet-ci-network
     healthcheck:
-      test: ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping')"]
+      test: ['CMD', 'mongo', '--quiet', '--eval', "db.adminCommand('ping')"]
       interval: 30s
       timeout: 10s
       retries: 3
