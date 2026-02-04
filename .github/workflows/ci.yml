@@ -24,11 +24,70 @@ env:
   IMAGE_NAME: jollyjet-starter
 
 jobs:
-  # Step 1: Code Quality Checks
+  # Step 1: Issue Resolution Check
+  # This job checks if all issues linked to the PR are resolved before proceeding
+  issue-check:
+    name: Issue Resolution Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      # Step 1.1: Checkout the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 1.2: Check if PR has linked issues that are resolved
+      - name: Check linked issues status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pullRequestNumber = context.issue.number;
+
+            console.log(`Checking issues linked to PR #${pullRequestNumber}`);
+
+            try {
+              const { data: pullRequest } = await github.rest.pulls.get({
+                owner,
+                repo,
+                pull_number: pullRequestNumber
+              });
+              
+              // Check if PR body contains issue links
+              const issueLinks = pullRequest.body.match(/#(\d+)/g) || [];
+              console.log(`Found ${issueLinks.length} linked issues`);
+              
+              for (const link of issueLinks) {
+                const issueNumber = parseInt(link.slice(1));
+                console.log(`Checking issue #${issueNumber}`);
+                
+                const { data: issue } = await github.rest.issues.get({
+                  owner,
+                  repo,
+                  issue_number: issueNumber
+                });
+                
+                if (issue.state !== 'closed') {
+                  console.error(`Issue #${issueNumber} is not resolved (status: ${issue.state})`);
+                  core.setFailed(`All linked issues must be resolved before merging. Issue #${issueNumber} is still ${issue.state}.`);
+                } else {
+                  console.log(`Issue #${issueNumber} is resolved`);
+                }
+              }
+              
+              console.log('All linked issues are resolved');
+            } catch (error) {
+              console.error('Error checking issues:', error);
+              core.setFailed('Failed to check issue status');
+            }
+
+  # Step 2: Code Quality Checks
   # This job verifies the code quality using ESLint, Prettier, and TypeScript compilation
   code-quality:
     name: Code Quality Checks
     runs-on: ubuntu-latest
+    needs: [issue-check]
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
 
     steps:
       # Step 1.1: Checkout the repository code to the runner
@@ -58,7 +117,7 @@ jobs:
       - name: TypeScript compilation check
         run: npm run build
 
-  # Step 2: Unit Tests
+  # Step 3: Unit Tests
   # This job runs all unit tests with coverage reporting
   unit-tests:
     name: Unit Tests
@@ -101,7 +160,7 @@ jobs:
           name: test-results
           path: junit.xml
 
-  # Step 3: Integration Tests
+  # Step 4: Integration Tests
   # This job runs integration tests that require MongoDB and Redis services
   integration-tests:
     name: Integration Tests
@@ -153,31 +212,42 @@ jobs:
           name: integration-test-results
           path: integration-test-results.xml
 
-  # Step 4: Security Scan
-  # This job scans for vulnerabilities in dependencies and containers
-  security-scan:
-    name: Security Scan
+  # Step 5: Comprehensive Audit
+  # This job performs comprehensive security, compliance, and quality audits
+  audit:
+    name: Comprehensive Audit
     runs-on: ubuntu-latest
     needs: [unit-tests, integration-tests] # Wait for both test types to pass first
 
     steps:
-      # Step 4.1: Checkout the repository code to the runner
+      # Step 5.1: Checkout the repository code to the runner
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 4.2: Run npm audit to check for vulnerable dependencies
-      - name: Run npm audit
-        run: npm audit --audit-level=moderate # Fail on moderate or higher vulnerabilities
+      # Step 5.2: Set up Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
 
-      # Step 4.3: Run Snyk security scan for more comprehensive vulnerability detection
+      # Step 5.3: Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 5.4: Run npm audit with strict security checks
+      - name: Run npm audit
+        run: npm audit --audit-level=high # Fail on high or critical vulnerabilities
+
+      # Step 5.5: Run Snyk security scan for comprehensive vulnerability detection
       - name: Run Snyk security scan
         uses: snyk/actions/node@master
         env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }} # Snyk API token from GitHub Secrets
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --severity-threshold=medium # Fail on medium or higher vulnerabilities
+          args: --severity-threshold=high # Fail on high or critical vulnerabilities
 
-      # Step 4.4: Scan Docker container for vulnerabilities using Trivy
+      # Step 5.6: Scan Docker container for vulnerabilities using Trivy
       - name: Container security scan
         uses: aquasecurity/trivy-action@master
         with:
@@ -185,79 +255,177 @@ jobs:
           scan-ref: '.'
           format: 'sarif'
           output: 'trivy-results.sarif'
+          severity: 'HIGH,CRITICAL'
 
-      # Step 4.5: Upload Trivy scan results to GitHub Code Scanning
+      # Step 5.7: Upload Trivy scan results to GitHub Code Scanning
       - name: Upload Trivy scan results
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: 'trivy-results.sarif'
 
-  # Step 5: Build Docker Image
-  # This job builds and pushes the Docker image to GitHub Container Registry
-  build-docker:
-    name: Build Docker Image
+      # Step 5.8: Run CodeQL security analysis
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: 'javascript'
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v2
+
+  # Step 6: Build Stage
+  # This job builds the application and creates production artifacts
+  build:
+    name: Build Application
     runs-on: ubuntu-latest
-    needs: [code-quality, unit-tests, integration-tests, security-scan] # Wait for all checks to pass first
+    needs: [code-quality, unit-tests, integration-tests, audit] # Wait for all checks to pass first
     permissions:
       contents: read
-      packages: write # Need write permissions to GitHub Container Registry
+      packages: write
 
     steps:
-      # Step 5.1: Checkout the repository code to the runner
+      # Step 6.1: Checkout the repository code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 5.2: Set up Docker Buildx for multi-platform builds
+      # Step 6.2: Set up Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      # Step 6.3: Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 6.4: Build the application
+      - name: Build application
+        run: npm run build
+
+      # Step 6.5: Create production artifacts
+      - name: Create production artifacts
+        run: |
+          mkdir -p artifacts
+          cp -r dist/ artifacts/
+          cp package.json artifacts/
+          cp package-lock.json artifacts/
+
+      # Step 6.6: Upload build artifacts
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: artifacts/
+          retention-days: 14
+
+  # Step 7: Docker Build and Push
+  # This job builds and pushes the Docker image to GitHub Container Registry
+  docker-build:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      # Step 7.1: Checkout the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 7.2: Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Step 5.3: Log in to GitHub Container Registry using GitHub token
+      # Step 7.3: Log in to GitHub Container Registry
       - name: Log in to Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.DOCKER_REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }} # GitHub automatically provides this token
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 5.4: Extract metadata for Docker image tags and labels
+      # Step 7.4: Extract metadata for Docker image
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=branch  # Branch name as tag
-            type=ref,event=pr  # PR number as tag
-            type=sha,prefix={{branch}}-  # Commit SHA as tag with branch prefix
-            type=raw,value=latest,enable={{is_default_branch}}  # 'latest' tag for main branch
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
 
-      # Step 5.5: Build and push Docker image to GitHub Container Registry
+      # Step 7.5: Build and push Docker image
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           dockerfile: docker/Dockerfile
-          push: true # Always push the image
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha # Use GitHub Actions cache for faster builds
+          cache-from: type=gha
           cache-to: type=gha,mode=max
-          platforms: linux/amd64,linux/arm64 # Build for both x86 and ARM architectures
+          platforms: linux/amd64,linux/arm64
 
-      # Step 5.6: Upload Docker build logs if build fails
+      # Step 7.6: Upload Docker build logs if build fails
       - name: Upload Docker build logs
         uses: actions/upload-artifact@v4
-        if: failure() # Only run if previous step failed
+        if: failure()
         with:
           name: docker-build-logs
           path: docker-build.log
+          retention-days: 30
 
-  # Step 6: Deploy to Development
+  # Step 8: Publish Stage
+  # This job handles version control, release management, and package publishing
+  publish:
+    name: Publish and Release
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: github.ref == 'refs/heads/main' # Only run on main branch
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      # Step 8.1: Checkout the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN }} # Personal Access Token with write permissions
+
+      # Step 8.2: Set up Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      # Step 8.3: Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 8.4: Determine version and create release
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        with:
+          tag_name: v${{ github.run_number }}.${{ github.run_attempt }}
+          release_name: Release v${{ github.run_number }}.${{ github.run_attempt }}
+          draft: false
+          prerelease: false
+
+  # Step 9: Deploy to Development
   # This job deploys the application to the development environment (only for main/develop branches)
   deploy-dev:
     name: Deploy to Development
     runs-on: ubuntu-latest
-    needs: build-docker # Wait for Docker image to be built first
+    needs: docker-build # Wait for Docker image to be built first
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' # Only run for main or develop branches
     environment: development # Associate with development environment
 
@@ -326,12 +494,23 @@ jobs:
         if: always()
         run: docker stop $(docker ps -q) && docker rm $(docker ps -aq)
 
-  # Step 8: Notifications
+  # Step 10: Notifications
   # This job sends notifications about the pipeline status
   notify:
     name: Notifications
     runs-on: ubuntu-latest
-    needs: [code-quality, unit-tests, integration-tests, security-scan, build-docker, deploy-dev]
+    needs:
+      [
+        issue-check,
+        code-quality,
+        unit-tests,
+        integration-tests,
+        audit,
+        build,
+        docker-build,
+        deploy-dev,
+        publish,
+      ]
     if: always() # Always run, even if previous jobs failed
 
     steps:

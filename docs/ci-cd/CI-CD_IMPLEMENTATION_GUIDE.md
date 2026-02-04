@@ -142,48 +142,67 @@ docker build -f docker/Dockerfile -t jollyjet-starter:prod .
 
 Run the pipeline manually from the GitHub Actions tab or push a commit to the `main` branch.
 
-## 🔍 Pipeline Jobs
+## 🔍 Pipeline Stages
 
-### Code Quality Checks
+The CI/CD pipeline follows a sequential execution flow with the following stages:
 
-- **ESLint Validation**: Runs ESLint to check for code quality issues
-- **Prettier Formatting**: Verifies code formatting consistency
-- **TypeScript Compilation**: Checks TypeScript compilation
-- **Security Code Scan**: GitHub CodeQL analysis
+```
+1. issue-check → 2. code-quality → 3. unit-tests → 4. integration-tests → 5. audit → 6. build → 7. docker-build → 8. publish → 9. deploy-dev → 10. notify
+```
 
-### Testing
+### Stage Details:
 
-- **Unit Tests**: Runs Jest unit tests
-- **Integration Tests**: Tests with MongoDB and Redis services
-- **E2E Tests**: Full system tests using Docker Compose
-- **Performance Tests**: Performance benchmarking
-- **Security Testing**: Snyk and OWASP ZAP scanning
-- **Accessibility Testing**: Accessibility compliance checks
+1. **Issue Resolution Check** (`issue-check`)
+   - Verifies all linked issues are resolved before pipeline proceeds
+   - Only runs for pull requests
+   - Uses GitHub API to check issue statuses
 
-### Security Scanning
+2. **Code Quality Checks** (`code-quality`)
+   - **ESLint Validation**: Runs ESLint to check for code quality issues
+   - **Prettier Formatting**: Verifies code formatting consistency
+   - **TypeScript Compilation**: Checks TypeScript compilation
 
-- **Dependency Scanning**: `npm audit` for vulnerable dependencies
-- **Snyk Scan**: Comprehensive security scanning
-- **Trivy Container Scan**: Docker image vulnerability scanning
-- **GitHub CodeQL**: Advanced code security analysis
+3. **Unit Tests** (`unit-tests`)
+   - Runs Jest unit tests with coverage reporting
+   - Generates coverage reports and test results artifacts
+   - 14-day artifact retention
 
-### Build & Deploy
+4. **Integration Tests** (`integration-tests`)
+   - Tests with MongoDB and Redis services
+   - Requires both databases to be running
+   - Comprehensive integration test coverage
 
-- **Docker Build**: Builds multi-platform Docker images
-- **Docker Push**: Pushes images to container registry
-- **Development Deployment**: Deploys to development environment automatically
-- **Production Deployment**: Deploys to production with manual approval
-- **Review Environment**: Temporary PR review environments
-- **Deployment Strategy Selection**: Blue-green, canary, or rolling deployment
+5. **Comprehensive Audit** (`audit`)
+   - **npm Audit**: Checks for vulnerable dependencies (high severity)
+   - **Snyk Scan**: Comprehensive security scanning
+   - **Trivy Container Scan**: Docker image vulnerability scanning (high/critical)
+   - **CodeQL Analysis**: GitHub CodeQL security analysis
 
-### Version Management
+6. **Build Application** (`build`)
+   - Builds Node.js application
+   - Creates production artifacts
+   - 14-day artifact retention
 
-- **Version Bump Detection**: Automatic semantic versioning based on commits
-- **GitHub Release Creation**: Automatic release notes generation
-- **npm Package Publishing**: Package distribution
-- **Docker Image Tagging**: Semantic versioning for containers
+7. **Docker Build & Push** (`docker-build`)
+   - Builds multi-platform Docker images (amd64/arm64)
+   - Pushes images to GitHub Container Registry
+   - Enhanced cache management for faster builds
 
-### Quality Gates
+8. **Publish & Release** (`publish`)
+   - Automatic release creation
+   - Version control with `v{run_number}.{run_attempt}` format
+   - npm package publishing support
+   - Only runs on main branch
+
+9. **Deploy to Development** (`deploy-dev`)
+   - Deploys to development environment automatically
+   - Uses Docker Compose for orchestration
+   - Health checks and container logs
+
+10. **Notifications** (`notify`)
+    - Sends pipeline status notifications
+    - Generates pipeline summary
+    - 7-day retention for summary artifact
 
 - **Quality Gate Decision**: Determines if pipeline can proceed based on previous job results
 - **Quality Report**: Generates comprehensive quality report
